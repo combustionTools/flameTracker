@@ -4,7 +4,9 @@ The Flame Tracker is a video processing application designed for the combustion 
 The Flame Tracker is open source and cross platform; however, the MacOS and Windows versions are different. The 'script' folder contains both versions. Windows user have the additional option to donwload the latest release of the Flame Tracker and run the executable without the need to download the scripts (see...).
 
 Author: Luca Carmignani, PhD
+
 Contact: flameTrackerContact@gmail.com
+
 Copyright (C) 2020,2021  Luca Carmignani
 
 # Before you start:
