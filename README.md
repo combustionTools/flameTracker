@@ -1,7 +1,9 @@
 # Flame Tracker
 The Flame Tracker is a Python-based video processing application designed for the combustion research community. With its Graphical User Interface (GUI), it is possible to edit a video and track a flame or a bright object on a frame by frame basis. Flame characteristics such as position, spread rate, length and area can be obtained by isolating a flame from its background with different methods.
 
-The Flame Tracker is open source and cross platform; however, the MacOS and Windows versions have slightly different codes for the GUI visualization. The 'script' folder contains both versions. Windows users have the additional option to donwload the latest release of the Flame Tracker (https://github.com/combustionTools/flameTracker/releases), avoiding the need to download the scripts.
+The Flame Tracker is open source and cross platform; however, the MacOS and Windows versions have slightly different codes for the GUI visualization. The 'script' folder contains both versions.
+
+Note: Windows users have the additional option to donwload the latest release of the Flame Tracker (https://github.com/combustionTools/flameTracker/releases), avoiding the need to download the scripts.
 
 Author: Luca Carmignani, PhD
 
