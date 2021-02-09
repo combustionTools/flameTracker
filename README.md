@@ -1,5 +1,5 @@
 # Flame Tracker
-The Flame Tracker is a video processing application designed for the combustion research community. It has a Graphical User Interface (GUI) and can be used to edit a video and track a flame or a bright object on a frame by frame basis. Flame characteristics such as position, spread rate, length and area can be obtained by isolating a flame from its background with different methods (three so far). 
+The Flame Tracker is a video processing application designed for the combustion research community. With its Graphical User Interface (GUI), it is possible to edit a video and track a flame or a bright object on a frame by frame basis. Flame characteristics such as position, spread rate, length and area can be obtained by isolating a flame from its background with different methods.
 
 The Flame Tracker is open source and cross platform; however, the MacOS and Windows versions are different. The 'script' folder contains both versions. Windows user have the additional option to donwload the latest release of the Flame Tracker and run the executable without the need to download the scripts (see...).
 
