@@ -1,7 +1,7 @@
 # Flame Tracker
 The Flame Tracker is a video processing application designed for the combustion research community. With its Graphical User Interface (GUI), it is possible to edit a video and track a flame or a bright object on a frame by frame basis. Flame characteristics such as position, spread rate, length and area can be obtained by isolating a flame from its background with different methods.
 
-The Flame Tracker is open source and cross platform; however, the MacOS and Windows versions are different. The 'script' folder contains both versions. Windows user have the additional option to donwload the latest release of the Flame Tracker and run the executable without the need to download the scripts (see...).
+The Flame Tracker is open source and cross platform; however, the MacOS and Windows versions are different. The 'script' folder contains both versions. Windows user have the additional option to donwload the latest release of the Flame Tracker and run the executable without the need to download the scripts (https://github.com/combustionTools/flameTracker/releases).
 
 Author: Luca Carmignani, PhD
 
@@ -9,7 +9,7 @@ Contact: flameTrackerContact@gmail.com
 
 Copyright (C) 2020,2021  Luca Carmignani
 
-# Before you start:
+# Before you start
 Based on your operating system, download the appropriate script folder (flameTracker_Win or flameTracker_Mac). Each folder contains five python files, and flameTracker.py is the main one containing the GUI structure.
 The Flame Tracker was written in Python 3.6+ (https://www.python.org), and the packages required to run the code are (they can be installed with pip):
 - Pyqt5 (https://pypi.org/project/PyQt5/)
@@ -17,10 +17,17 @@ The Flame Tracker was written in Python 3.6+ (https://www.python.org), and the p
 - numPy (https://numpy.org)
 - PyQtgraph (http://www.pyqtgraph.org)
 
-One of the source codes related to the legend visualization in the last package (PyQtgraph) has been modified. The version used by the Flame Tracker is in combustionTools/flameTracker/scripts/other. You should replace the original LegendItem.py file in the package folder pyqtgraph/graphicsItems/legendItems.py.
+One of the source codes in the PyQtgraph package ('legendItems.py') related to the legend visualization has been modified. The version used by the Flame Tracker is in combustionTools/flameTracker/scripts/other. You should replace the original LegendItem.py file in the package folder .../site-packages/pyqtgraph/graphicsItems/legendItems.py; the path of the site-packages folder deopends on where you installed python. If you don't know the location, you can type 'python -m site' in the Command Prompt (Windows) or in the Terminal (MacOS) to see the folder path. Note that the path you're trying to access might be hidden, in that case make sure you check the 'Hidden items' box in File Explorer (Windows) or click on 'Go > Go to Folder...' and type the path in the Finder (MacOS).
 
-# Run the code:
-At this point, you should be able to run flameTracker.py using terminal (Mac users), console (Windows users).
+# Run the code
+At this point, you should be able to run flameTracker.py using the Command Prompt (Windows), or the Terminal (MacOS).
+
+# Additional information
+For information about installing and running the Flame Tracker release, as well as the use of the software, refer to the Wiki page.
+
+A publication with a detailed explanation of objectives and capabilities of the Flame Tracker is under preparation for the SoftwareX journal.
+
+For issues with the code and/or the analysis, please attach screenshots or other useful information related to you problem with your question at: flameTrackerContact@gmail.com.
 
 # Code overview
 As mentioned before, the Flame Tracker folder contains five python files: flameTracker.py, manualTracking.py, lumaTracking.py, colorTracking.py, and templateAddition.py. The Flame Tracker is conceptually divided in two categories: video editing and video analysis; the scripts and the GUI follow this conceptual scheme.
@@ -51,12 +58,7 @@ To add an analysis (I recommend to start from templateAddition.py):
 3) the buttons in the new file will need their methods declared in flameTracker.py. There is an assigned method block for each analysis at the end of the class "Window".
 4) The perspective correction function needs to be copied in each file (changing name accordingly)
 
-# Additional information
-A publication with a detailed explanation of objectives and capabilities of the Flame Tracker is under preparation for the SoftwareX journal.
-
-For issues with the code and/or the analysis, please attach screenshots or other useful information related to you problem with your question at: flameTrackerContact@gmail.com.
-
-# License:
+# License
 Flame Tracker is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
 the Free Software Foundation, either version 3 of the License, or
