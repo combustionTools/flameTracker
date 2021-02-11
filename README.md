@@ -3,8 +3,6 @@ The Flame Tracker is a Python-based video processing application designed for th
 
 The Flame Tracker is open source and cross platform; however, the MacOS and Windows versions have slightly different codes for the GUI visualization. The 'script' folder contains both versions.
 
-Note: Windows users have the additional option to donwload the latest release of the Flame Tracker (https://github.com/combustionTools/flameTracker/releases), avoiding the need to download the scripts.
-
 Author: Luca Carmignani, PhD
 
 Contact: flameTrackerContact@gmail.com
@@ -12,7 +10,10 @@ Contact: flameTrackerContact@gmail.com
 Copyright (C) 2020,2021  Luca Carmignani
 
 # Before you start
-Based on your operating system, download the appropriate script folder (flameTracker_Win or flameTracker_Mac). Each folder contains five python files, and flameTracker.py is the main one containing the GUI structure.
+Note: Windows users have the option to donwload the latest release with the executable file of the Flame Tracker (https://github.com/combustionTools/flameTracker/releases), avoiding the need to download the scripts; in this case, check the Wiki page to get started (https://github.com/combustionTools/flameTracker/wiki).
+
+Based on your operating system, use the appropriate folder (flameTracker_Win or flameTracker_Mac) inside combustionTools/flameTracker/scripts. Each folder contains five python files, and flameTracker.py is the main one containing the GUI structure.
+
 The packages required to run the code are (they can be installed with pip):
 - Pyqt5 (https://pypi.org/project/PyQt5/)
 - openCV (https://opencv.org)
