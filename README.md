@@ -32,7 +32,7 @@ One of the source codes in the PyQtgraph package ('legendItems.py') related to t
 At this point, you should be able to run flameTracker.py using the Command Prompt (Windows), or the Terminal (MacOS).
 
 # Additional information
-For information about installing and running the Flame Tracker release, as well as the use of the software, refer to the Wiki page.
+For more information about installing and running the Flame Tracker (with the script and the Windows release), as well as the use of the software, refer to the Wiki page: https://github.com/combustionTools/flameTracker/wiki.
 
 A publication with a detailed explanation of objectives and capabilities of the Flame Tracker is under preparation for the SoftwareX journal.
 
