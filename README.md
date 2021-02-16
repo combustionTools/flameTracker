@@ -14,7 +14,7 @@ Copyright (C) 2020,2021  Luca Carmignani
 # Before you start
 Note: Windows users have the option to donwload the latest release with the executable file of the Flame Tracker (https://github.com/combustionTools/flameTracker/releases), avoiding the need to download the scripts.
 
-Based on your operating system, use the appropriate folder (flameTracker_Win or flameTracker_Mac) available in combustionTools/flameTracker/scripts. Each folder contains five python files, and flameTracker.py is the main one containing the GUI structure.
+Based on your operating system, after downloading the repository folder, use the appropriate version (flameTracker_Win or flameTracker_Mac) available in combustionTools/flameTracker/scripts. Linux users should use flameTracker_Mac. Each folder contains five python files, and flameTracker.py is the main one containing the GUI structure.
 
 Python3 is required; if you don't have it, you can check these websites:
 - https://www.python.org
