@@ -14,11 +14,13 @@ Copyright (C) 2020,2021  Luca Carmignani
 # Before you start
 Note: Windows users have the option to donwload the latest release with the executable file of the Flame Tracker (https://github.com/combustionTools/flameTracker/releases), avoiding the need to download the scripts.
 
-Based on your operating system, after downloading the repository folder, use the appropriate version (flameTracker_Win or flameTracker_Mac) available in combustionTools/flameTracker/scripts. Linux users should use flameTracker_Mac. Each folder contains five python files, and flameTracker.py is the main one containing the GUI structure.
+## 1. Python3 installation (if needed)
 
 Python3 is required; if you don't have it, you can check these websites:
 - https://www.python.org
 - https://installpython3.com
+
+## 2. Install packages
 
 The packages required to run the code are (they can be installed with pip):
 - Pyqt5 (https://pypi.org/project/PyQt5/)
@@ -26,10 +28,21 @@ The packages required to run the code are (they can be installed with pip):
 - numPy (https://numpy.org)
 - PyQtgraph (http://www.pyqtgraph.org)
 
-One of the source codes in the PyQtgraph package ('legendItems.py') related to the legend visualization has been modified. The version used by the Flame Tracker is in combustionTools/flameTracker/scripts/other. You should replace the original LegendItem.py file in the package folder .../site-packages/pyqtgraph/graphicsItems/legendItems.py; the path of the site-packages folder depends on where you installed python. If you don't know the location, you can type 'python -m site' in the Command Prompt (Windows) or in the Terminal (MacOS) to see the folder path. Note that the path you're trying to access might be hidden, in that case make sure you check the 'Hidden items' box in the File Explorer (Windows) or click on 'Go > Go to Folder...' and type the path in the Finder (MacOS).
+Note: Mac and Linux users may have to use pip3 to install the packages for Python3, otherwise they could be installed in the default Python2 folders.
+
+## 3. Substitute package file
+
+One of the source codes in the PyQtgraph package (legendItem.py) related to the legend visualization has been modified. You should replace the original LegendItem.py file in the package folder .../site-packages/pyqtgraph/graphicsItems/legendItem.py; in order to do that:
+- locate the path of the site-packages folder, which depends on where and how you installed python. If you don't know the location, you can type 'python -m site' in the Command Prompt (Windows) or in the Terminal (MacOS) to see the folder path. Note: Linux users might need to look for the "dist-packages" folder instead of "site-packages".
+- The path you're trying to access might be hidden by File Explorer (Windows) or in the Finder (MacOS); in that case make sure you check the 'Hidden items' box in Windows, and click on 'Go > Go to Folder...' on Mac
+- Once you find the right folder, replace the legendItem.py file with the one available in: combustionTools/flameTracker/scripts/other.
+
+## Repository folder
+
+After downloading the repository folder, you will find two versions in the script folder: one for Windows and one for Mac users (flameTracker_Win or flameTracker_Mac). Linux users should use flameTracker_Mac. Each folder contains five python files, and flameTracker.py is the main one containing the structure of the Flame Tracker Graphical User Interface (GUI).
 
 # Run the code
-At this point, you should be able to run flameTracker.py using the Command Prompt (Windows), or the Terminal (MacOS).
+At this point, you should be able to run flameTracker.py using the Command Prompt (Windows), or the Terminal (MacOS), by typing 'python flameTracker.py' (this file should be in the same folder of the other Python files (manualTracking.py, lumaTracking.py, etc.).
 
 # Additional information
 For more information about installing and running the Flame Tracker (with the script and the Windows release), as well as the use of the software, refer to the Wiki page: https://github.com/combustionTools/flameTracker/wiki.
