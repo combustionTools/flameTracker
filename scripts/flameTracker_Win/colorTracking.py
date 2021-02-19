@@ -376,6 +376,7 @@ def colorTracking(self):
 
         flameLength_mm = np.round(flameLength_mm, 2)
         self.flameLength_mm = flameLength_mm.tolist()
+        print('Progress: 100 % - Tracking completed')
         self.msgLabel.setText('Tracking completed')
 
         if self.exportEdges_CT.isChecked():

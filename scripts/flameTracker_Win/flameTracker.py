@@ -57,7 +57,7 @@ class Window(QWidget):
         the Free Software Foundation, either version 3 of the License, or
         (at your option) any later version.''')
 
-        self.setWindowTitle('Flame Tracker (v1.0.0)')
+        self.setWindowTitle('Flame Tracker (v1.0.1)')
         self.setGeometry(25, 25, 1070, 740) #10,10,1000,720
         #Box to choose video parameters, widgets are listed below
         parametersBox = QGroupBox('Preview box', self)
@@ -768,10 +768,11 @@ class Window(QWidget):
             frame = checkEditing(self, frame)
             frameCrop = frame[int(self.roiTwoIn.text()) : (int(self.roiTwoIn.text()) + int(self.roiFourIn.text())), int(self.roiOneIn.text()) : (int(self.roiOneIn.text()) + int(self.roiThreeIn.text()))]
             vout.write(frameCrop)
-            print('progress: ', round((currentFrame - firstFrame)/(lastFrame - firstFrame) * 10000)/100, '%')
+            print('Progress: ', round((currentFrame - firstFrame)/(lastFrame - firstFrame) * 10000)/100, '%')
             currentFrame = currentFrame + 1 + int(self.skipFrameIn.text())
 
         vout.release()
+        print('Progress: 100 %, the video has been created.')
         self.msgLabel.setText('The video has been created.')
 
     def newVideoHelpBtn_clicked(self):
