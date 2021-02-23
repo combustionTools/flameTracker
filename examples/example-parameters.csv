@@ -1,0 +1,16 @@
+File,example.mp4
+ROI,Value
+"ROI, x:",131
+"ROI, y:",137
+"ROI, w:",1688
+"ROI, h:",637
+First frame:,1000
+Last frame:,4100
+Skip frames:,0
+Scale (px/mm):,10.767
+Horizontal:,150
+Vertical:,50
+Current frame:,3737
+Rotation (deg):,0
+Brightness:,0
+Contrast:,0
