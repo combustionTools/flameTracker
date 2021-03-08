@@ -225,9 +225,16 @@ def getColorFilteredFrame(self, frameNumber):
         frame = cv2.imread(frame)
 
     if self.perspectiveValue == True:
+        if self.rotationValue == True:
+            frame = rotationCorrection_CT(self, frame, self.anglePerspective)
         frame = perspectiveCorrectionCT(self, frame)
-    if self.rotationValue == True:
-        frame = rotationCorrection_CT(self, frame)
+        #the rotation has already been included in the perspective correction, but it could happen that a further rotation is needed after the correction (e.g. for the analysis)
+        if self.anglePerspective != float(self.rotationAngleIn.text()):
+            angle = float(self.rotationAngleIn.text()) - self.anglePerspective
+            frame = rotationCorrection_CT(self, frame, angle)
+    elif float(self.rotationAngleIn.text()) != 0: #in case there is no perspective correction
+            angle = float(self.rotationAngleIn.text())
+            frame = rotationCorrection_CT(self, frame, angle)
     if int(self.brightnessSlider.value()) != 0 or int(self.contrastSlider.value()) != 0:
         frameContainer = np.zeros(frame.shape, frame.dtype)
         alpha = (int(self.contrastSlider.value()) + 100) * 2 / 200
@@ -462,13 +469,23 @@ def filterParticleSldr_CT(self):
     self.lbl2_CT.setPixmap(QPixmap.fromImage(self.frameBW))
 
 def perspectiveCorrectionCT(self, frame):
+    # M is the matrix transformation calculated with the size of the sample (calculated from user input), and the sampleMod from the user clicks
     M = cv2.getPerspectiveTransform(self.sample, self.sampleMod)
-    frame = cv2.warpPerspective(frame, M, (frame.shape[1], frame.shape[0]))
+    # If the perspective is done on a rotated video, the corrected image might have a much larger size than the original one, here we check this
+    originalFrame = np.float32([[0,0], [self.vWidth, 0], [self.vWidth, self.vHeight], [0, self.vHeight]])
+    width = int(frame.shape[1])
+    height = int(frame.shape[0])
+    for point in self.sampleMod:
+        if point[0] > width:
+            width = int(point[0])
+        if point[1] > height:
+            height = int(point[1])
+
+    frame = cv2.warpPerspective(frame, M, (width, height))
     return(frame)
 
-def rotationCorrection_CT(self, frame):
+def rotationCorrection_CT(self, frame, angle):
     # rotation matrix:
-    angle = float(self.rotationAngleIn.text())
     width = int(self.vWidth)
     height = int(self.vHeight)
     center = (width/2, height/2)

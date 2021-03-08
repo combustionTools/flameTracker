@@ -58,7 +58,7 @@ class Window(QWidget):
         (at your option) any later version.''')
 
         self.setStyleSheet('font: 12pt Helvetica')
-        self.setWindowTitle('Flame Tracker (v1.0.1)')
+        self.setWindowTitle('Flame Tracker (v1.0.2)')
         self.setGeometry(10, 10, 1070, 755)
         #Box to choose video parameters, the widgets are listed below
         parametersBox = QGroupBox('Preview box', self)
@@ -67,6 +67,13 @@ class Window(QWidget):
         #widgets must be declared in the specific py file
         self.analysisGroupBox = QGroupBox('Analysis box', self)
         self.analysisGroupBox.setGeometry(10, 360, 1050, 390)
+
+        # this text box is only shown at the beginning
+        tempBox = QGroupBox(' ', self.analysisGroupBox)
+        tempBox.setGeometry(0, 0, 1050, 390)
+        introTxt = QLabel('Select the analysis method from -Choose analysis- to activate this panel', tempBox)
+        introTxt.setGeometry(100, 100, 600, 100)
+        introTxt.setStyleSheet('font: 16pt Helvetica')
 
         ### parametersBox
         # first column
@@ -292,51 +299,52 @@ class Window(QWidget):
 
     def openBtn_clicked(self):
         if self.openSelection == 'video':
-            #try:
-            self.fPath, fFilter = QFileDialog.getOpenFileName(self, 'Open File')
-            # look for the name: look for '/' after any character (.), repeated any times (*), and extract everything that comes after in a non-greedy way
-            self.fName = re.findall('.*[/](.*)?', self.fPath)
-            self.fNameLbl.setText(str(self.fName[0]))
-            self.fVideo = cv2.VideoCapture(self.fPath)
-            self.vFrames = int(self.fVideo.get(cv2.CAP_PROP_FRAME_COUNT)) #get(7)
-            self.vHeight = int(self.fVideo.get(cv2.CAP_PROP_FRAME_HEIGHT))
-            self.vWidth = int(self.fVideo.get(cv2.CAP_PROP_FRAME_WIDTH))
-            self.vFps = round(self.fVideo.get(cv2.CAP_PROP_FPS) * 100) / 100 #(get(5))
-            self.vFramesLbl.setText(str(self.vFrames))
-            self.vWidthLbl.setText(str(self.vWidth))
-            self.vHeightLbl.setText(str(self.vHeight))
-            self.vFpsLbl.setText(str(self.vFps))
-            self.vDuration = self.vFrames / self.vFps
-            self.vDuration = round(self.vDuration * 100) / 100 #only 2 decimals for duration
-            self.vDurationLbl.setText(str(self.vDuration))
-            self.roiOneIn.setText('0')
-            self.roiTwoIn.setText('0')
-            self.roiThreeIn.setText(str(self.vWidth - 1))
-            self.roiFourIn.setText(str(self.vHeight - 1))
-            self.firstFrameIn.setText('0')
-            self.lastFrameIn.setText(str(self.vFrames - 1))
-            self.skipFrameIn.setText('0')
-            self.previewSlider.setMinimum(int(self.firstFrameIn.text()))
-            self.previewSlider.setMaximum(int(self.lastFrameIn.text()))
-            self.previewSlider.setValue(int(self.frameIn.text()))
-            self.previewSlider.sliderReleased.connect(self.sliderValue_released)
-            self.previewSlider.valueChanged.connect(self.sliderValue_released)
-            self.frameIn.setText('0')
-            self.rotationAngleIn.setText('0')
-            self.perspectiveValue = False
-            self.lumaTrackingValue = False
-            self.colorTrackingValue = False
-            self.editFrame = False
-            self.colorTrackingValue = False
-            self.rotationValue = False
-            self.fVideo.set(1, 0)
-            ret, frame = self.fVideo.read()
-            showFrame(self, frame, 0)
-            self.msgLabel.setText('Video read succesfully')
-            for children in self.analysisGroupBox.findChildren(QGroupBox):
-                children.setParent(None)
-            #except:
-            #    self.msgLabel.setText('Error: the video could not be opened')
+            try:
+                self.fPath, fFilter = QFileDialog.getOpenFileName(self, 'Open File')
+                # look for the name: look for '/' after any character (.), repeated any times (*), and extract everything that comes after in a non-greedy way
+                self.fName = re.findall('.*[/](.*)?', self.fPath)
+                self.fNameLbl.setText(str(self.fName[0]))
+                self.fVideo = cv2.VideoCapture(self.fPath)
+                self.vFrames = int(self.fVideo.get(cv2.CAP_PROP_FRAME_COUNT)) #get(7)
+                self.vHeight = int(self.fVideo.get(cv2.CAP_PROP_FRAME_HEIGHT))
+                self.vWidth = int(self.fVideo.get(cv2.CAP_PROP_FRAME_WIDTH))
+                self.vFps = round(self.fVideo.get(cv2.CAP_PROP_FPS) * 100) / 100 #(get(5))
+                self.vFramesLbl.setText(str(self.vFrames))
+                self.vWidthLbl.setText(str(self.vWidth))
+                self.vHeightLbl.setText(str(self.vHeight))
+                self.vFpsLbl.setText(str(self.vFps))
+                self.vDuration = self.vFrames / self.vFps
+                self.vDuration = round(self.vDuration * 100) / 100 #only 2 decimals for duration
+                self.vDurationLbl.setText(str(self.vDuration))
+                self.roiOneIn.setText('0')
+                self.roiTwoIn.setText('0')
+                self.roiThreeIn.setText(str(self.vWidth - 1))
+                self.roiFourIn.setText(str(self.vHeight - 1))
+                self.firstFrameIn.setText('0')
+                self.lastFrameIn.setText(str(self.vFrames - 1))
+                self.skipFrameIn.setText('0')
+                self.previewSlider.setMinimum(int(self.firstFrameIn.text()))
+                self.previewSlider.setMaximum(int(self.lastFrameIn.text()))
+                self.previewSlider.setValue(int(self.frameIn.text()))
+                self.previewSlider.sliderReleased.connect(self.sliderValue_released)
+                self.previewSlider.valueChanged.connect(self.sliderValue_released)
+                self.frameIn.setText('0')
+                self.rotationAngleIn.setText('0')
+                self.perspectiveValue = False
+                self.rotationValue = False
+                self.lumaTrackingValue = False
+                self.colorTrackingValue = False
+                self.editFrame = False
+                self.colorTrackingValue = False
+                self.rotationValue = False
+                self.fVideo.set(1, 0)
+                ret, frame = self.fVideo.read()
+                showFrame(self, frame, 0)
+                self.msgLabel.setText('Video read succesfully')
+                for children in self.analysisGroupBox.findChildren(QGroupBox):
+                    children.setParent(None)
+            except:
+                self.msgLabel.setText('Error: the video could not be opened')
         elif self.openSelection == 'image(s)':
             try:
                 self.fPath, fFilter = QFileDialog.getOpenFileNames(self, 'Open Images')
@@ -383,6 +391,7 @@ class Window(QWidget):
                 self.previewSlider.valueChanged.connect(self.sliderValue_released)
                 self.rotationAngleIn.setText('0')
                 self.perspectiveValue = False
+                self.rotationValue = False
                 self.lumaTrackingValue = False
                 self.colorTrackingValue = False
                 self.editFrame = False
@@ -399,7 +408,6 @@ class Window(QWidget):
 
     def goToFrameBtn_clicked(self):
         newFrame = int(self.frameIn.text())
-
         if newFrame < int(self.firstFrameIn.text()):
             self.firstFrameIn.setText(str(newFrame))
         elif newFrame > int(self.lastFrameIn.text()):
@@ -412,7 +420,7 @@ class Window(QWidget):
             frame = cv2.imread(imageName)
 
         showFrame(self, frame, newFrame)
-        self.previewSlider.setValue(newFrame)
+        checkAnalysisBox(self, newFrame)
 
     def sliderValue_released(self):
         self.previewSlider.setMinimum(int(self.firstFrameIn.text()))
@@ -426,37 +434,7 @@ class Window(QWidget):
             frame = cv2.imread(frameNumber)
 
         showFrame(self, frame, newFrame)
-        # true value when the analysis is selected
-        if self.lumaTrackingValue == True:
-            # the labels might have become plot widgets, so we need to update them again
-            self.lbl1_LT = QLabel(self.lumaTrackingBox)
-            self.lbl1_LT.setGeometry(190, 25, 420, 300)
-            self.lbl1_LT.setStyleSheet('background-color: white')
-            self.lbl2_LT = QLabel(self.lumaTrackingBox)
-            self.lbl2_LT.setGeometry(620, 25, 420, 300)
-            self.lbl2_LT.setStyleSheet('background-color: white')
-            if self.grayscale.isChecked() == True:
-                self.msgLabel.setText('Grayscale images not supported with this feature')
-            getLumaFrame(self, newFrame)
-            self.lbl1_LT.setPixmap(QPixmap.fromImage(self.frameY))
-            self.lbl2_LT.setPixmap(QPixmap.fromImage(self.frameBW))
-            self.lbl1_LT.show()
-            self.lbl2_LT.show()
-
-        if self.colorTrackingValue == True:
-            self.lbl1_CT = QLabel(self.colorTrackingBox)
-            self.lbl1_CT.setGeometry(370, 25, 330, 250)
-            self.lbl1_CT.setStyleSheet('background-color: white')
-            self.lbl2_CT = QLabel(self.colorTrackingBox)
-            self.lbl2_CT.setGeometry(710, 25, 330, 250)
-            self.lbl2_CT.setStyleSheet('background-color: white')
-            if self.grayscale.isChecked() == True:
-                self.msgLabel.setText('Grayscale images not supported with this feature')
-            getColorFilteredFrame(self, newFrame)
-            self.lbl1_CT.setPixmap(QPixmap.fromImage(self.frame))
-            self.lbl2_CT.setPixmap(QPixmap.fromImage(self.frameBW))
-            self.lbl1_CT.show()
-            self.lbl2_CT.show()
+        checkAnalysisBox(self, newFrame)
 
     def roiBtn_clicked(self):
         try:
@@ -514,6 +492,10 @@ class Window(QWidget):
                 frame = self.imagesList[int(frameNumber)]
                 frame = cv2.imread(frame)
 
+            # The following conditions are the same of checkEditing(), here they are checked for the correction
+            self.anglePerspective = float(self.rotationAngleIn.text())
+            if float(self.rotationAngleIn.text()) != 0:
+                frame = rotationCorrection(self, frame, self.anglePerspective)
             if int(self.brightnessSlider.value()) != 0 or int(self.contrastSlider.value()) != 0:
                 frameContainer = np.zeros(frame.shape, frame.dtype)
                 alpha = (int(self.contrastSlider.value()) + 100) * 2 / 200
@@ -576,14 +558,26 @@ class Window(QWidget):
             self.perspectiveValue = True # this value tells us if a flame is distorted or not
             self.msgLabel.setText('Image successfully corrected')
             showFrame(self, frame, frameNumber)
+            # The rotation value has to be set after showing the frame to avoid double editing in the first preview
+            if float(self.rotationAngleIn.text()) != 0:
+                self.rotationValue = True
 
         except:
             self.msgLabel.setText('Ops! Something went wrong.')
 
     def originalBtn_clicked(self):
         self.perspectiveValue = False
+        self.rotationValue = False
         self.brightnessSlider.setValue(0)
         self.contrastSlider.setValue(0)
+        frameNumber = int(self.frameIn.text())
+        if self.openSelection == 'video':
+            self.fVideo.set(1, frameNumber)
+            ret, frame = self.fVideo.read()
+        elif self.openSelection == 'image(s)':
+            frame = self.imagesList[int(frameNumber)]
+            frame = cv2.imread(frame)
+        showFrame(self, frame, frameNumber)
 
     def saveParBtn_clicked(self):
         name = QFileDialog.getSaveFileName(self, 'Save parameters')
@@ -652,6 +646,9 @@ class Window(QWidget):
                         self.brightnessLbl.setText(row[1])
                     if self.contrastTxt.text() in row:
                         self.contrastLbl.setText(row[1])
+            self.previewSlider.setMinimum(int(self.firstFrameIn.text()))
+            self.previewSlider.setMaximum(int(self.lastFrameIn.text()))
+            self.previewSlider.setValue(int(self.frameIn.text()))
             self.msgLabel.setText('Parameters loaded.')
         except:
             notParameters_dlg = QErrorMessage(self)
@@ -748,34 +745,37 @@ class Window(QWidget):
         fourcc = cv2.VideoWriter_fourcc(*codec)
         size = (int(self.roiThreeIn.text()), int(self.roiFourIn.text()))
 
-        # open and set properties
-        vout = cv2.VideoWriter()
-        if self.grayscale.isChecked() == True:
-            vout.open(vName,fourcc,fps,size, isColor = False)
+        if vName != '.' + str(vFormat): # if the name is not empty
+            # open and set properties
+            vout = cv2.VideoWriter()
+            if self.grayscale.isChecked() == True:
+                vout.open(vName,fourcc,fps,size, isColor = False)
+            else:
+                vout.open(vName,fourcc,fps,size,True)
+
+            firstFrame = int(self.firstFrameIn.text())
+            lastFrame = int(self.lastFrameIn.text())
+            currentFrame = firstFrame
+
+            while (currentFrame < lastFrame):
+                if self.openSelection == 'video':
+                    self.fVideo.set(1, currentFrame)
+                    ret, frame = self.fVideo.read()
+                elif self.openSelection == 'image(s)':
+                    frameNumber = self.imagesList[currentFrame]
+                    frame = cv2.imread(frameNumber)
+
+                frame = checkEditing(self, frame)
+                frameCrop = frame[int(self.roiTwoIn.text()) : (int(self.roiTwoIn.text()) + int(self.roiFourIn.text())), int(self.roiOneIn.text()) : (int(self.roiOneIn.text()) + int(self.roiThreeIn.text()))]
+                vout.write(frameCrop)
+                print('Progress: ', round((currentFrame - firstFrame)/(lastFrame - firstFrame) * 10000)/100, '%')
+                currentFrame = currentFrame + 1 + int(self.skipFrameIn.text())
+
+            vout.release()
+            print('Progress: 100 %, the video has been created.')
+            self.msgLabel.setText('The video has been created.')
         else:
-            vout.open(vName,fourcc,fps,size,True)
-
-        firstFrame = int(self.firstFrameIn.text())
-        lastFrame = int(self.lastFrameIn.text())
-        currentFrame = firstFrame
-
-        while (currentFrame < lastFrame):
-            if self.openSelection == 'video':
-                self.fVideo.set(1, currentFrame)
-                ret, frame = self.fVideo.read()
-            elif self.openSelection == 'image(s)':
-                frameNumber = self.imagesList[currentFrame]
-                frame = cv2.imread(frameNumber)
-
-            frame = checkEditing(self, frame)
-            frameCrop = frame[int(self.roiTwoIn.text()) : (int(self.roiTwoIn.text()) + int(self.roiFourIn.text())), int(self.roiOneIn.text()) : (int(self.roiOneIn.text()) + int(self.roiThreeIn.text()))]
-            vout.write(frameCrop)
-            print('Progress: ', round((currentFrame - firstFrame)/(lastFrame - firstFrame) * 10000)/100, '%')
-            currentFrame = currentFrame + 1 + int(self.skipFrameIn.text())
-
-        vout.release()
-        print('Progress: 100 %, the video has been created.')
-        self.msgLabel.setText('The video has been created.')
+            self.msgLabel.setText('Error: Enter a valid video name')
 
     def newVideoHelpBtn_clicked(self):
         msg = QMessageBox(self)
@@ -916,14 +916,23 @@ def showFrame(self, frame, frameNumber):
     self.frameIn.setText(str(frameNumber))
 
 def perspectiveCorrection(self, frame):
+    # M is the matrix transformation calculated with the size of the sample (calculated from user input), and the sampleMod from the user clicks
     M = cv2.getPerspectiveTransform(self.sample, self.sampleMod)
-    frame = cv2.warpPerspective(frame, M, (frame.shape[1], frame.shape[0]))
+    # If the perspective is done on a rotated video, the corrected image might have a much larger size than the original one, here we check this
+    originalFrame = np.float32([[0,0], [self.vWidth, 0], [self.vWidth, self.vHeight], [0, self.vHeight]])
+    width = int(frame.shape[1])
+    height = int(frame.shape[0])
+    for point in self.sampleMod:
+        if point[0] > width:
+            width = int(point[0])
+        if point[1] > height:
+            height = int(point[1])
+
+    frame = cv2.warpPerspective(frame, M, (width, height))
     return(frame)
 
-def rotationCorrection(self, frame):
-    self.rotationValue = True
+def rotationCorrection(self, frame, angle):
     # rotation matrix:
-    angle = float(self.rotationAngleIn.text())
     width = int(self.vWidth)
     height = int(self.vHeight)
     center = (width/2, height/2)
@@ -942,10 +951,16 @@ def rotationCorrection(self, frame):
 
 def checkEditing(self, frame):
     if self.perspectiveValue == True:
+        if self.rotationValue == True:
+            frame = rotationCorrection(self, frame, self.anglePerspective)
         frame = perspectiveCorrection(self, frame)
-        self.msgLabel.setText('Perspective corrected')
-    if float(self.rotationAngleIn.text()) != 0:
-        frame = rotationCorrection(self, frame)
+#the rotation has already been included in the perspective correction, but it could happen that a further rotation is needed after the correction (e.g. for the analysis)
+        if self.anglePerspective != float(self.rotationAngleIn.text()):
+            angle = float(self.rotationAngleIn.text()) - self.anglePerspective
+            frame = rotationCorrection(self, frame, angle)
+    elif float(self.rotationAngleIn.text()) != 0: #in case there is no perspective correction
+        angle = float(self.rotationAngleIn.text())
+        frame = rotationCorrection(self, frame, angle)
     if int(self.brightnessSlider.value()) != 0 or int(self.contrastSlider.value()) != 0:
         frameContainer = np.zeros(frame.shape, frame.dtype)
         # alpha would go from 0 to 3, with lower contrast in 0-1. The scale is normalized in percentile
@@ -955,6 +970,39 @@ def checkEditing(self, frame):
     if self.grayscale.isChecked() == True:
         frame = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
     return(frame)
+
+def checkAnalysisBox(self, newFrame):
+    # true value when the analysis is selected
+    if self.lumaTrackingValue == True:
+        # the labels might have become plot widgets, so we need to update them again
+        self.lbl1_LT = QLabel(self.lumaTrackingBox)
+        self.lbl1_LT.setGeometry(190, 25, 420, 300)
+        self.lbl1_LT.setStyleSheet('background-color: white')
+        self.lbl2_LT = QLabel(self.lumaTrackingBox)
+        self.lbl2_LT.setGeometry(620, 25, 420, 300)
+        self.lbl2_LT.setStyleSheet('background-color: white')
+        if self.grayscale.isChecked() == True:
+            self.msgLabel.setText('Grayscale images not supported with this feature')
+        getLumaFrame(self, newFrame)
+        self.lbl1_LT.setPixmap(QPixmap.fromImage(self.frameY))
+        self.lbl2_LT.setPixmap(QPixmap.fromImage(self.frameBW))
+        self.lbl1_LT.show()
+        self.lbl2_LT.show()
+
+    if self.colorTrackingValue == True:
+        self.lbl1_CT = QLabel(self.colorTrackingBox)
+        self.lbl1_CT.setGeometry(370, 25, 330, 250)
+        self.lbl1_CT.setStyleSheet('background-color: white')
+        self.lbl2_CT = QLabel(self.colorTrackingBox)
+        self.lbl2_CT.setGeometry(710, 25, 330, 250)
+        self.lbl2_CT.setStyleSheet('background-color: white')
+        if self.grayscale.isChecked() == True:
+            self.msgLabel.setText('Grayscale images not supported with this feature')
+        getColorFilteredFrame(self, newFrame)
+        self.lbl1_CT.setPixmap(QPixmap.fromImage(self.frame))
+        self.lbl2_CT.setPixmap(QPixmap.fromImage(self.frameBW))
+        self.lbl1_CT.show()
+        self.lbl2_CT.show()
 
 if __name__ == '__main__':
     app = QApplication(sys.argv)
