@@ -72,7 +72,7 @@ class Window(QWidget):
         tempBox.setGeometry(0, 0, 1050, 390)
         introTxt = QLabel('Select the analysis method from -Choose analysis- to activate this panel', tempBox)
         introTxt.setGeometry(100, 100, 600, 100)
-        introTxt.setStyleSheet('font: 16pt Helvetica')
+        introTxt.setStyleSheet('font: 12pt Helvetica')
 
         ### parametersBox
         # first column
