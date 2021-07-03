@@ -58,7 +58,7 @@ class Window(QWidget):
         (at your option) any later version.''')
 
         self.setStyleSheet('font: 12pt Helvetica')
-        self.setWindowTitle('Flame Tracker (v1.0.2)')
+        self.setWindowTitle('Flame Tracker (v1.0.3)')
         self.setGeometry(10, 10, 1070, 755)
         #Box to choose video parameters, the widgets are listed below
         parametersBox = QGroupBox('Preview box', self)
@@ -606,6 +606,14 @@ class Window(QWidget):
                     writer.writerow([self.rotationAngleInTxt.text(), str(self.rotationAngleIn.text())])
                     writer.writerow([self.brightnessTxt.text(), str(self.brightnessLbl.text())])
                     writer.writerow([self.contrastTxt.text(), str(self.contrastLbl.text())])
+                    if self.rotationValue == True:
+                        writer.writerow(['Pre-rotation', 'Yes'])
+                        writer.writerow(['anglePerspective', str(self.anglePerspective)])
+                    if self.perspectiveValue == True:
+                        writer.writerow(['Perspective', 'Yes'])
+                        writer.writerow(['sample', self.sample[0], self.sample[1], self.sample[2], self.sample[3]])
+                        writer.writerow(['sampleMod', self.sampleMod[0], self.sampleMod[1], self.sampleMod[2], self.sampleMod[3]])
+
                 self.msgLabel.setText('Parameters saved.')
             except:
                 self.msgLabel.setText('Ops! Parameters were not saved.')
@@ -646,14 +654,37 @@ class Window(QWidget):
                         self.brightnessLbl.setText(row[1])
                     if self.contrastTxt.text() in row:
                         self.contrastLbl.setText(row[1])
+                    if 'anglePerspective' in row:
+                        self.rotationValue = True
+                        self.anglePerspective = float(row[1])
+                    if 'sample' in row:
+                        self.perspectiveValue = True
+                        self.sample = []
+                        for i in range(1,5): #x,y are the pixel values for each corner
+                            x = re.findall('^.([0-9]+.[0-9]*)', row[i])
+                            y = re.findall('\s([0-9]+.[0-9]*).+$', row[i])
+                            self.sample.append([np.float32(x[0]), np.float32(y[0])])
+                        self.sample = np.array(self.sample)
+                    if 'sampleMod' in row:
+                        self.sampleMod = []
+                        for i in range(1,5):
+                            x = re.findall('^.([0-9]+.[0-9]*)', row[i])
+                            y = re.findall('\s([0-9]+.[0-9]*).+$', row[i])
+                            self.sampleMod.append([np.float32(x[0]), np.float32(y[0])])
+                        self.sampleMod = np.array(self.sampleMod)
+
             self.previewSlider.setMinimum(int(self.firstFrameIn.text()))
             self.previewSlider.setMaximum(int(self.lastFrameIn.text()))
             self.previewSlider.setValue(int(self.frameIn.text()))
-            self.msgLabel.setText('Parameters loaded.')
+            if self.perspectiveValue == True:
+                self.msgLabel.setText('Parameters loaded. Perspective correction detected and applied')
+            else:
+                self.msgLabel.setText('Parameters loaded.')
         except:
             notParameters_dlg = QErrorMessage(self)
             notParameters_dlg.showMessage('Ops! There was a problem loading the parameters.')
             self.msgLabel.setText('Parameters not loaded correctly.')
+
     # selection connected to the specific file, getting rid of what was showing before
     def analysis_click(self, text):
         selection = self.analysisSelectionBox.currentText()

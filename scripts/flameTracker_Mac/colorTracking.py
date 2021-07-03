@@ -598,13 +598,14 @@ def absValBtn_CT(self):
     colorTrackingPlot(self.lbl2_CT, self.timeCount, self.spreadRateLeft, '','t', 'r')
 
 def saveBtn_CT(self):
-    fileName = QFileDialog.getSaveFileName(self, 'Save Tracking')
+    fileName = QFileDialog.getSaveFileName(self, 'Save tracking data')
     fileName = fileName[0]
     if not fileName[-4:] == '.csv':
         fileName = fileName + '.csv'
 
-    lbl = ['Frame', 'Time', 'Right Edge [mm]', 'Left Edge [mm]', 'Length [mm]', 'Spread Rate RE [mm/s]', 'Spread Rate LE [mm/s]', 'Area [mm^2]']
-    rows = [self.frameCount, self.timeCount, self.xRight_mm, self.xLeft_mm, self.flameLength_mm, self.spreadRateRight, self.spreadRateLeft, self.flameArea]
+    fileInfo = ['Name', self.fNameLbl.text(), 'Scale [px/mm]', self.scaleIn.text(), 'Moving avg', self.movAvgIn_CT.text(), 'Points LE', self.avgLEIn_CT.text(), 'Flame dir.:', self.flameDir]
+    lbl = ['File info', 'Frame', 'Time [s]', 'Right Edge [mm]', 'Left Edge [mm]', 'Length [mm]', 'Spread Rate RE [mm/s]', 'Spread Rate LE [mm/s]', 'Area [mm^2]']
+    rows = [fileInfo, self.frameCount, self.timeCount, self.xRight_mm, self.xLeft_mm, self.flameLength_mm, self.spreadRateRight, self.spreadRateLeft, self.flameArea]
     rows_zip = zip(*rows)
 
     if fileName == '.csv': #this prevents name issues when the user closes the dialog without saving
@@ -613,15 +614,10 @@ def saveBtn_CT(self):
         try:
             with open(fileName, 'w', newline = '') as csvfile:
                 writer = csv.writer(csvfile, delimiter = ',')
-                writer.writerow(['File', self.fNameLbl.text()])
-                writer.writerow(['Scale [px/mm]', self.scaleIn.text()])
-                writer.writerow(['Moving average', self.movAvgIn_CT.text()])
-                writer.writerow(['Points LE', self.avgLEIn_CT.text()])
-                writer.writerow(['Flame direction:', self.flameDir])
                 writer.writerow(lbl)
                 for row in rows_zip:
                     writer.writerow(row)
-            self.msgLabel.setText('Data saved succesfully.')
+            self.msgLabel.setText('Data succesfully saved.')
         except:
             self.msgLabel.setText('Ops! The values were not saved.')
 

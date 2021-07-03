@@ -378,13 +378,13 @@ def rotationCorrection_MT(self, frame, angle):
     return(frame)
 
 def saveData_ManualTracking(self):
-    fileName = QFileDialog.getSaveFileName(self, 'Save File')
+    fileName = QFileDialog.getSaveFileName(self, 'Save tracking data')
     fileName = fileName[0]
     if not fileName[-4:] == '.csv':
         fileName = fileName + '.csv'
 
     try:
-        lbl = ['Frame', 'Time']
+        lbl = ['Frame', 'Time [s]']
         rows = [self.frames_plot['1'], self.time_plot['1']]
 
         for n in range(int(self.nClicksLbl.text())):

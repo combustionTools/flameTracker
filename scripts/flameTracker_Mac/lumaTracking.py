@@ -59,8 +59,8 @@ def createLumaTrackingBox(self):
     self.filterParticleSldr_LT.sliderReleased.connect(self.filterParticleSldr_LT_released)
     avgLE_txt = QLabel('#px to locate edges:', self.lumaTrackingBox)
     avgLE_txt.setGeometry(x_cln1, 150, 140, h_txt)
-    self.avgLEIn = QLineEdit('5', self.lumaTrackingBox)
-    self.avgLEIn.setGeometry(x_cln2, 154, 30, h_lbl)
+    self.avgLEIn_LT = QLineEdit('5', self.lumaTrackingBox)
+    self.avgLEIn_LT.setGeometry(x_cln2, 154, 30, h_lbl)
     trackingTxt = QLabel('Flame tracking:', self.lumaTrackingBox)
     trackingTxt.setGeometry(x_cln1, 180, 120, h_txt)
     self.filterLight = QCheckBox('Ignore flashing light', self.lumaTrackingBox)
@@ -75,9 +75,9 @@ def createLumaTrackingBox(self):
     self.absValBtn = QPushButton('Absolute values', self.lumaTrackingBox)
     self.absValBtn.setGeometry(x_cln1 - 5, 290, w_btn, h_btn)
     self.absValBtn.clicked.connect(self.absValBtnLT_clicked)
-    self.save_LT_Btn = QPushButton('Save data', self.lumaTrackingBox)
-    self.save_LT_Btn.setGeometry(x_cln1 - 5, 320, w_btn, h_btn)
-    self.save_LT_Btn.clicked.connect(self.lumaSaveData_clicked)
+    self.saveBtn_LT = QPushButton('Save data', self.lumaTrackingBox)
+    self.saveBtn_LT.setGeometry(x_cln1 - 5, 320, w_btn, h_btn)
+    self.saveBtn_LT.clicked.connect(self.lumaSaveData_clicked)
     self.helpBtn_LT = QPushButton('Help', self.lumaTrackingBox)
     self.helpBtn_LT.setGeometry(x_cln1 - 5, 350, w_btn, h_btn)
     self.helpBtn_LT.clicked.connect(self.helpBtn_LT_clicked)
@@ -184,15 +184,15 @@ def findFlameEdges(self, frameBW, flamePx):
     sortedBWx = sorted(flamePx[1])
     try:
         # average of the flame location based on the n. of points indicated by the user
-        for x in range(int(self.avgLEIn.text())):
+        for x in range(int(self.avgLEIn_LT.text())):
             i = i + 1
             self.xMax = self.xMax + sortedBWx[-i]
             self.xMin = self.xMin + sortedBWx[i]
     except:
         pass
 
-    self.xMax = int(self.xMax/int(self.avgLEIn.text()))
-    self.xMin = int(self.xMin/int(self.avgLEIn.text()))
+    self.xMax = int(self.xMax/int(self.avgLEIn_LT.text()))
+    self.xMin = int(self.xMin/int(self.avgLEIn_LT.text()))
 
     if self.flameDir == 'toRight':
         self.xRight = int(self.roiOneIn.text()) + self.xMax
@@ -350,26 +350,22 @@ def chooseFlameDirection_LT(self, text):
         self.flameDir = 'toLeft'
 
 def lumaSaveData(self):
-    fileName = QFileDialog.getSaveFileName(self, 'Save File')
+    fileName = QFileDialog.getSaveFileName(self, 'Save tracking data')
     fileName = fileName[0]
     if not fileName[-4:] == '.csv':
         fileName = fileName + '.csv'
 
-    lbl = ['Frame', 'Time', 'Right edge [mm]', 'Left edge [mm]', 'Length [mm]', 'Spread Rate RE [mm/s]', 'Spread Rate LE [mm/s]', 'Area [mm^2]']
-    rows = [self.frameCount, self.timeCount, self.xRight_mm, self.xLeft_mm, self.flameLength_mm, self.spreadRateRight, self.spreadRateLeft, self.flameArea]
+    fileInfo = ['Name', self.fNameLbl.text(), 'Scale [px/mm]', self.scaleIn.text(), 'Moving avg', self.movAvgIn_LT.text(), 'Points LE', self.avgLEIn_LT.text(), 'Luma threshold', self.thresholdIn.text(), 'Flame dir.:', self.flameDir]
+    lbl = ['File info', 'Frame', 'Time [s]', 'Right edge [mm]', 'Left edge [mm]', 'Length [mm]', 'Spread Rate RE [mm/s]', 'Spread Rate LE [mm/s]', 'Area [mm^2]']
+    rows = [fileInfo, self.frameCount, self.timeCount, self.xRight_mm, self.xLeft_mm, self.flameLength_mm, self.spreadRateRight, self.spreadRateLeft, self.flameArea]
     rows_zip = zip(*rows)
 
     with open(fileName, 'w', newline = '') as csvfile:
         writer = csv.writer(csvfile, delimiter = ',')
-        writer.writerow(['File', self.fNameLbl.text()])
-        writer.writerow(['Scale [px/mm]', self.scaleIn.text()])
-        writer.writerow(['Moving average', self.movAvgIn_LT.text()])
-        writer.writerow(['Points LE', self.avgLEIn.text()])
-        writer.writerow(['Flame direction:', self.flameDir])
         writer.writerow(lbl)
         for row in rows_zip:
             writer.writerow(row)
-    self.msgLabel.setText('Data saved succesfully.')
+    self.msgLabel.setText('Data succesfully saved.')
 
 def absValueLT(self):
     abs_frames = list()
