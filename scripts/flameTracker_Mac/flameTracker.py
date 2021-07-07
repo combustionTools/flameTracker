@@ -58,7 +58,7 @@ class Window(QWidget):
         (at your option) any later version.''')
 
         self.setStyleSheet('font: 12pt Helvetica')
-        self.setWindowTitle('Flame Tracker (v1.0.3)')
+        self.setWindowTitle('Flame Tracker (v1.0.4)')
         self.setGeometry(10, 10, 1070, 755)
         #Box to choose video parameters, the widgets are listed below
         parametersBox = QGroupBox('Preview box', self)
@@ -661,15 +661,19 @@ class Window(QWidget):
                         self.perspectiveValue = True
                         self.sample = []
                         for i in range(1,5): #x,y are the pixel values for each corner
-                            x = re.findall('^.([0-9]+.[0-9]*)', row[i])
-                            y = re.findall('\s([0-9]+.[0-9]*).+$', row[i])
+                            point = re.findall('^\[(.+)\]$', row[i]) #this creates a list without '[]'
+                            point = points[0].strip() #gets rid of white spaces
+                            x = re.findall('(^[0-9]+.[0-9]*\s)', points)
+                            y = re.findall('\s([0-9]+.[0-9]*$)', points)
                             self.sample.append([np.float32(x[0]), np.float32(y[0])])
                         self.sample = np.array(self.sample)
                     if 'sampleMod' in row:
                         self.sampleMod = []
                         for i in range(1,5):
-                            x = re.findall('^.([0-9]+.[0-9]*)', row[i])
-                            y = re.findall('\s([0-9]+.[0-9]*).+$', row[i])
+                            point = re.findall('^\[(.+)\]$', row[i]) #this creates a list without '[]'
+                            point = points[0].strip() #gets rid of white spaces
+                            x = re.findall('(^[0-9]+.[0-9]*\s)', points)
+                            y = re.findall('\s([0-9]+.[0-9]*$)', points)
                             self.sampleMod.append([np.float32(x[0]), np.float32(y[0])])
                         self.sampleMod = np.array(self.sampleMod)
 
