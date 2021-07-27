@@ -33,10 +33,12 @@ from PyQt5 import QtGui
 from PyQt5.QtGui import *
 from PyQt5.QtWidgets import *
 from PyQt5.QtCore import *
+from itertools import zip_longest
+from pyqtgraph import PlotWidget, plot
+
 from manualTracking import *
 from lumaTracking import *
 from colorTracking import *
-from pyqtgraph import PlotWidget, plot
 
 #To make sure the resolution is correct also in Windows
 if hasattr(Qt, 'AA_EnableHighDpiScaling'):
@@ -57,7 +59,7 @@ class Window(QWidget):
         the Free Software Foundation, either version 3 of the License, or
         (at your option) any later version.''')
 
-        self.setWindowTitle('Flame Tracker (v1.0.4)')
+        self.setWindowTitle('Flame Tracker (v1.0.5)')
         self.setGeometry(25, 25, 1070, 740) #10,10,1000,720
         #Box to choose video parameters, widgets are listed below
         parametersBox = QGroupBox('Preview box', self)
@@ -246,25 +248,27 @@ class Window(QWidget):
         self.loadParBtn = QPushButton('Load Parameters', parametersBox)
         self.loadParBtn.setGeometry(x_cln1, 115, 140, h_btn)
         self.loadParBtn.clicked.connect(self.loadParBtn_clicked)
+        self.figSize = QCheckBox('Half-size figures', parametersBox)
+        self.figSize.setGeometry(x_cln1, 155, 150, h_btn)
         exportTxt = QLabel('Save edited video:', parametersBox)
-        exportTxt.setGeometry(x_cln1, 150, 140, h_txt)
+        exportTxt.setGeometry(x_cln1, 190, 140, h_txt)
         self.newVideoHelpBtn = QPushButton('?', parametersBox)
-        self.newVideoHelpBtn.setGeometry(x_cln2 + 30, 155, 20, h_btn - 5)
+        self.newVideoHelpBtn.setGeometry(x_cln2 + 30, 195, 20, h_btn - 5)
         self.newVideoHelpBtn.clicked.connect(self.newVideoHelpBtn_clicked)
         fpsTxt = QLabel('Frame rate (fps):', parametersBox)
-        fpsTxt.setGeometry(x_cln1, 180, 120, h_txt)
+        fpsTxt.setGeometry(x_cln1, 220, 120, h_txt)
         self.fpsIn = QLineEdit('24', parametersBox)
-        self.fpsIn.setGeometry(x_cln2, 185, 50, h_lbl)
+        self.fpsIn.setGeometry(x_cln2, 225, 50, h_lbl)
         codecTxt = QLabel('Codec:', parametersBox)
-        codecTxt.setGeometry(x_cln1, 210, 100, h_txt)
+        codecTxt.setGeometry(x_cln1, 250, 100, h_txt)
         self.codecIn = QLineEdit('mp4v', parametersBox)
-        self.codecIn.setGeometry(x_cln2, 215, 50, h_lbl)
+        self.codecIn.setGeometry(x_cln2, 255, 50, h_lbl)
         formatTxt = QLabel('Format:', parametersBox)
-        formatTxt.setGeometry(x_cln1, 240, 100, h_txt)
+        formatTxt.setGeometry(x_cln1, 280, 100, h_txt)
         self.formatIn = QLineEdit('mp4', parametersBox)
-        self.formatIn.setGeometry(x_cln2, 245, 50, h_lbl)
+        self.formatIn.setGeometry(x_cln2, 285, 50, h_lbl)
         self.exportVideoBtn = QPushButton('Export video', parametersBox)
-        self.exportVideoBtn.setGeometry(x_cln1, 280, 140, h_btn)
+        self.exportVideoBtn.setGeometry(x_cln1, 315, 140, h_btn)
         self.exportVideoBtn.clicked.connect(self.exportVideoBtn_clicked)
 
         # preview label
@@ -505,9 +509,16 @@ class Window(QWidget):
 
             # crop image
             frameCrop = frame[roiTwo : (roiTwo + roiFour), roiOne : (roiOne + roiThree)]
-            cv2.namedWindow('Perspective Correction', cv2.WINDOW_AUTOSIZE)
-            cv2.setMouseCallback('Perspective Correction', click)
-            cv2.imshow('Perspective Correction', frameCrop)
+            cv2.namedWindow('Perspective correction', cv2.WINDOW_AUTOSIZE)
+            cv2.setMouseCallback('Perspective correction', click)
+            if self.figSize.isChecked() == True:
+                newWidth = int(frameCrop.shape[1] / 2) #original width divided by 2
+                newHeight = int(frameCrop.shape[0] / 2) #original height divided by 2
+                halfFig = cv2.resize(frameCrop, (newWidth, newHeight))
+                cv2.imshow('Perspective correction', halfFig)
+            else:
+                cv2.imshow('Perspective correction', frameCrop)
+
             global clk
             clk = False # False unless the mouse is clicked
             posX = dict()
@@ -525,11 +536,19 @@ class Window(QWidget):
                         return
                 # update each position and frame list for the current click
                 if str(n+1) in posX:
-                    posX[str(n+1)].append(xPos)
-                    posY[str(n+1)].append(yPos)
+                    if self.figSize.isChecked() == True:
+                        posX[str(n+1)].append(xPos * 2)
+                        posY[str(n+1)].append(yPos * 2)
+                    else:
+                        posX[str(n+1)].append(xPos)
+                        posY[str(n+1)].append(yPos)
                 else:
-                    posX[str(n+1)] = [xPos]
-                    posY[str(n+1)] = [yPos]
+                    if self.figSize.isChecked() == True:
+                        posX[str(n+1)] = [xPos * 2]
+                        posY[str(n+1)] = [yPos * 2]
+                    else:
+                        posX[str(n+1)] = [xPos]
+                        posY[str(n+1)] = [yPos]
 
             cv2.destroyAllWindows()
             self.topRight = [(posX['1'][0] + roiOne), (posY['1'][0] + roiTwo)]
@@ -732,7 +751,14 @@ class Window(QWidget):
 
             cv2.namedWindow('MeasureScale', cv2.WINDOW_AUTOSIZE)
             cv2.setMouseCallback('MeasureScale', click)
-            cv2.imshow('MeasureScale',frameCrop)
+            if self.figSize.isChecked() == True:
+                newWidth = int(frameCrop.shape[1] / 2) #original width divided by 2
+                newHeight = int(frameCrop.shape[0] / 2) #original height divided by 2
+                halfFig = cv2.resize(frameCrop, (newWidth, newHeight))
+                cv2.imshow('MeasureScale', halfFig)
+            else:
+                cv2.imshow('MeasureScale', frameCrop)
+
             for n in range(2):
                 # wait for the mouse event or 'escape' key to quit
                 while (True):
@@ -743,9 +769,14 @@ class Window(QWidget):
                     if cv2.waitKey(1) == 27: #ord('q')
                         cv2.destroyAllWindows()
                         return
+
                 # update each position and frame list for the current click
-                points.append(xPos)
-                points.append(yPos)
+                if self.figSize.isChecked() == True:
+                    points.append(xPos * 2)
+                    points.append(yPos * 2)
+                else:
+                    points.append(xPos)
+                    points.append(yPos)
 
             length_mm, done1 = QInputDialog.getText(self, 'Measure scale', 'Measured length in mm:')
             length_px = ((points[3]-points[1])**2 + (points[2]-points[0])**2)**0.5
@@ -823,7 +854,16 @@ class Window(QWidget):
 
     def showFrameLargeBtn_clicked(self):
         cv2.namedWindow(('Frame: ' + self.frameIn.text()), cv2.WINDOW_AUTOSIZE)
-        cv2.imshow(('Frame: ' + self.frameIn.text()), self.currentFrame)
+        cv2.setMouseCallback(('Frame: ' + self.frameIn.text()), click)
+        if self.figSize.isChecked() == True:
+            newWidth = int(self.currentFrame.shape[1] / 2) #original width divided by 2
+            newHeight = int(self.currentFrame.shape[0] / 2) #original height divided by 2
+            halfFig = cv2.resize(self.currentFrame, (newWidth, newHeight))
+            cv2.imshow(('Frame: ' + self.frameIn.text()), halfFig)
+#            cv2.resizeWindow(('Frame: ' + self.frameIn.text()), newWidth, newHeight)
+        else:
+            cv2.imshow(('Frame: ' + self.frameIn.text()), self.currentFrame)
+
         while True:
             if cv2.waitKey(1) == 27: #ord('q')
                 cv2.destroyAllWindows()

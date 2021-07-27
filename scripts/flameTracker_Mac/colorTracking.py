@@ -605,8 +605,8 @@ def saveBtn_CT(self):
 
     fileInfo = ['Name', self.fNameLbl.text(), 'Scale [px/mm]', self.scaleIn.text(), 'Moving avg', self.movAvgIn_CT.text(), 'Points LE', self.avgLEIn_CT.text(), 'Flame dir.:', self.flameDir]
     lbl = ['File info', 'Frame', 'Time [s]', 'Right Edge [mm]', 'Left Edge [mm]', 'Length [mm]', 'Spread Rate RE [mm/s]', 'Spread Rate LE [mm/s]', 'Area [mm^2]']
-    rows = [fileInfo, self.frameCount, self.timeCount, self.xRight_mm, self.xLeft_mm, self.flameLength_mm, self.spreadRateRight, self.spreadRateLeft, self.flameArea]
-    rows_zip = zip(*rows)
+    clms = [fileInfo, self.frameCount, self.timeCount, self.xRight_mm, self.xLeft_mm, self.flameLength_mm, self.spreadRateRight, self.spreadRateLeft, self.flameArea]
+    clms_zip = zip_longest(*clms)
 
     if fileName == '.csv': #this prevents name issues when the user closes the dialog without saving
         self.msgLabel.setText('Ops! The values were not saved.')
@@ -615,7 +615,7 @@ def saveBtn_CT(self):
             with open(fileName, 'w', newline = '') as csvfile:
                 writer = csv.writer(csvfile, delimiter = ',')
                 writer.writerow(lbl)
-                for row in rows_zip:
+                for row in clms_zip:
                     writer.writerow(row)
             self.msgLabel.setText('Data succesfully saved.')
         except:

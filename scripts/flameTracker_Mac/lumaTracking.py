@@ -358,7 +358,7 @@ def lumaSaveData(self):
     fileInfo = ['Name', self.fNameLbl.text(), 'Scale [px/mm]', self.scaleIn.text(), 'Moving avg', self.movAvgIn_LT.text(), 'Points LE', self.avgLEIn_LT.text(), 'Luma threshold', self.thresholdIn.text(), 'Flame dir.:', self.flameDir]
     lbl = ['File info', 'Frame', 'Time [s]', 'Right edge [mm]', 'Left edge [mm]', 'Length [mm]', 'Spread Rate RE [mm/s]', 'Spread Rate LE [mm/s]', 'Area [mm^2]']
     rows = [fileInfo, self.frameCount, self.timeCount, self.xRight_mm, self.xLeft_mm, self.flameLength_mm, self.spreadRateRight, self.spreadRateLeft, self.flameArea]
-    rows_zip = zip(*rows)
+    rows_zip = zip_longest(*rows)
 
     with open(fileName, 'w', newline = '') as csvfile:
         writer = csv.writer(csvfile, delimiter = ',')

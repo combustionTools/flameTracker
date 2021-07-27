@@ -384,18 +384,19 @@ def saveData_ManualTracking(self):
         fileName = fileName + '.csv'
 
     try:
-        lbl = ['Frame', 'Time [s]']
-        rows = [self.frames_plot['1'], self.time_plot['1']]
+        fileInfo = ['Name', self.fNameLbl.text(), 'Scale [px/mm]', self.scaleIn.text(), 'Flame dir.:', self.flameDir]
+        lbl = ['File info', 'Frame', 'Time [s]']
+        clmns = [fileInfo, self.frames_plot['1'], self.time_plot['1']]
 
         for n in range(int(self.nClicksLbl.text())):
             lbl.append('xPos_click{} [px]'.format([n+1]))
-            rows.append(self.posX_px[str(n+1)])
+            clmns.append(self.posX_px[str(n+1)])
             lbl.append('xPos_click{} [mm]'.format([n+1]))
-            rows.append(np.round((self.posX_plot[str(n+1)]), 2))
+            clmns.append(np.round((self.posX_plot[str(n+1)]), 2))
             lbl.append('Vf_click{}'.format([n+1]))
-            rows.append(self.spreadRate[str(n+1)])
+            clmns.append(self.spreadRate[str(n+1)])
 
-        rows_zip = zip(*rows)
+        clmns_zip = zip_longest(*clmns)
     except:
         self.msgLabel.setText('Ops! Something went wrong with the click recordings.')
 
@@ -405,11 +406,8 @@ def saveData_ManualTracking(self):
         try:
             with open(fileName, 'w', newline = '') as csvfile:
                 writer = csv.writer(csvfile, delimiter = ',')
-                writer.writerow(['File', self.fNameLbl.text()])
-                writer.writerow(['Scale [px/mm]', self.scaleIn.text()])
-                writer.writerow(['Flame direction:', self.flameDir])
                 writer.writerow(lbl)
-                for row in rows_zip:
+                for row in clmns_zip:
                     writer.writerow(row)
             self.msgLabel.setText('Data successfully saved.')
         except:

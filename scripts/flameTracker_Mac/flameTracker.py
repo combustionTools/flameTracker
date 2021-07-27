@@ -33,10 +33,12 @@ from PyQt5 import QtGui
 from PyQt5.QtGui import *
 from PyQt5.QtWidgets import *
 from PyQt5.QtCore import *
+from itertools import zip_longest
+from pyqtgraph import PlotWidget, plot
+
 from manualTracking import *
 from lumaTracking import *
 from colorTracking import *
-from pyqtgraph import PlotWidget, plot
 
 #To make sure the resolution is correct also in Windows
 if hasattr(Qt, 'AA_EnableHighDpiScaling'):
@@ -58,7 +60,7 @@ class Window(QWidget):
         (at your option) any later version.''')
 
         self.setStyleSheet('font: 12pt Helvetica')
-        self.setWindowTitle('Flame Tracker (v1.0.4)')
+        self.setWindowTitle('Flame Tracker (v1.0.5)')
         self.setGeometry(10, 10, 1070, 755)
         #Box to choose video parameters, the widgets are listed below
         parametersBox = QGroupBox('Preview box', self)
@@ -248,24 +250,24 @@ class Window(QWidget):
         self.loadParBtn.setGeometry(x_cln1 - 10, 125, 150, h_btn)
         self.loadParBtn.clicked.connect(self.loadParBtn_clicked)
         exportTxt = QLabel('Save edited video:', parametersBox)
-        exportTxt.setGeometry(x_cln1, 170, 150, h_txt)
+        exportTxt.setGeometry(x_cln1, 200, 150, h_txt)
         self.newVideoHelpBtn = QPushButton('?', parametersBox)
-        self.newVideoHelpBtn.setGeometry(x_cln2 + 15, 169, 30, h_btn)
+        self.newVideoHelpBtn.setGeometry(x_cln2 + 15, 199, 30, h_btn)
         self.newVideoHelpBtn.clicked.connect(self.newVideoHelpBtn_clicked)
         fpsTxt = QLabel('Frame rate (fps):', parametersBox)
-        fpsTxt.setGeometry(x_cln1, 195, 120, h_txt)
+        fpsTxt.setGeometry(x_cln1, 225, 120, h_txt)
         self.fpsIn = QLineEdit('30', parametersBox)
-        self.fpsIn.setGeometry(x_cln2, 199, 40, h_lbl)
+        self.fpsIn.setGeometry(x_cln2, 229, 40, h_lbl)
         codecTxt = QLabel('Codec:', parametersBox)
-        codecTxt.setGeometry(x_cln1, 225, 100, h_txt)
+        codecTxt.setGeometry(x_cln1, 255, 100, h_txt)
         self.codecIn = QLineEdit('mp4v', parametersBox)
-        self.codecIn.setGeometry(x_cln2, 229, 40, h_lbl)
+        self.codecIn.setGeometry(x_cln2, 259, 40, h_lbl)
         formatTxt = QLabel('Format:', parametersBox)
-        formatTxt.setGeometry(x_cln1, 255, 100, h_txt)
+        formatTxt.setGeometry(x_cln1, 285, 100, h_txt)
         self.formatIn = QLineEdit('mp4', parametersBox)
-        self.formatIn.setGeometry(x_cln2, 259, 40, h_lbl)
+        self.formatIn.setGeometry(x_cln2, 289, 40, h_lbl)
         self.exportVideoBtn = QPushButton('Export video', parametersBox)
-        self.exportVideoBtn.setGeometry(x_cln1 - 10, 285, 150, h_btn)
+        self.exportVideoBtn.setGeometry(x_cln1 - 10, 315, 150, h_btn)
         self.exportVideoBtn.clicked.connect(self.exportVideoBtn_clicked)
 
         # preview label
