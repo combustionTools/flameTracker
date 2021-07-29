@@ -59,7 +59,7 @@ class Window(QWidget):
         the Free Software Foundation, either version 3 of the License, or
         (at your option) any later version.''')
 
-        self.setWindowTitle('Flame Tracker (v1.0.5)')
+        self.setWindowTitle('Flame Tracker (v1.0.6)')
         self.setGeometry(25, 25, 1070, 740) #10,10,1000,720
         #Box to choose video parameters, widgets are listed below
         parametersBox = QGroupBox('Preview box', self)
@@ -338,7 +338,6 @@ class Window(QWidget):
                 self.lumaTrackingValue = False
                 self.colorTrackingValue = False
                 self.editFrame = False
-                self.colorTrackingValue = False
                 self.rotationValue = False
                 self.fVideo.set(1, 0)
                 ret, frame = self.fVideo.read()
@@ -398,7 +397,6 @@ class Window(QWidget):
                 self.lumaTrackingValue = False
                 self.colorTrackingValue = False
                 self.editFrame = False
-                self.colorTrackingValue = False
                 self.rotationValue = False
                 frameNumber = self.imagesList[0]
                 frame = cv2.imread(frameNumber)
@@ -679,8 +677,8 @@ class Window(QWidget):
                             self.perspectiveValue = True
                             self.sample = []
                             for i in range(1,5): #x,y are the pixel values for each corner
-                                point = re.findall('^\[(.+)\]$', row[i]) #this creates a list without '[]'
-                                point = points[0].strip() #gets rid of white spaces
+                                points = re.findall('^\[(.+)\]$', row[i]) #this creates a list without '[]'
+                                points = points[0].strip() #gets rid of white spaces
                                 x = re.findall('(^[0-9]+.[0-9]*\s)', points)
                                 y = re.findall('\s([0-9]+.[0-9]*$)', points)
                                 self.sample.append([np.float32(x[0]), np.float32(y[0])])
@@ -688,8 +686,8 @@ class Window(QWidget):
                         if 'sampleMod' in row:
                             self.sampleMod = []
                             for i in range(1,5):
-                                point = re.findall('^\[(.+)\]$', row[i]) #this creates a list without '[]'
-                                point = points[0].strip() #gets rid of white spaces
+                                points = re.findall('^\[(.+)\]$', row[i]) #this creates a list without '[]'
+                                points = points[0].strip() #gets rid of white spaces
                                 x = re.findall('(^[0-9]+.[0-9]*\s)', points)
                                 y = re.findall('\s([0-9]+.[0-9]*$)', points)
                                 self.sampleMod.append([np.float32(x[0]), np.float32(y[0])])

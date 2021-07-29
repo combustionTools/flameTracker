@@ -53,9 +53,9 @@ def createLumaTrackingBox(self):
     self.filterParticleSldr_LT.setGeometry(x_cln1, 125, 135, 15)
     self.filterParticleSldr_LT.setMinimum(1)
     try:
-        self.filterParticleSldr_LT.setMaximum((int(self.roiThreeIn.text()) * int(self.roiFourIn.text())) / 4)
+        self.filterParticleSldr_LT.setMaximum((int(self.roiThreeIn.text()) * int(self.roiFourIn.text())) / 20)
     except:
-        self.filterParticleSldr_LT.setMaximum(20000)
+        self.filterParticleSldr_LT.setMaximum(2000)
     self.filterParticleSldr_LT.setValue(10)
     self.filterParticleSldr_LT.sliderReleased.connect(self.filterParticleSldr_LT_released)
     avgLE_txt = QLabel('#px to locate edges:', self.lumaTrackingBox)
