@@ -143,9 +143,9 @@ def createColorTrackingBox(self):
     self.filterParticleSldr_CT.setGeometry(10, 305, 170, 25)
     self.filterParticleSldr_CT.setMinimum(1)
     try:
-        self.filterParticleSldr_CT.setMaximum((int(self.roiThreeIn.text()) * int(self.roiFourIn.text())) / 4)
+        self.filterParticleSldr_CT.setMaximum((int(self.roiThreeIn.text()) * int(self.roiFourIn.text())) / 20)
     except:
-        self.filterParticleSldr_CT.setMaximum(20000)
+        self.filterParticleSldr_CT.setMaximum(2000)
     self.filterParticleSldr_CT.setValue(10)
     self.filterParticleSldr_CT.sliderReleased.connect(self.filterParticleSldr_CT_released)
     avgLE_txt = QLabel('#px to locate edges:', self.colorTrackingBox)

@@ -59,7 +59,7 @@ class Window(QWidget):
         the Free Software Foundation, either version 3 of the License, or
         (at your option) any later version.''')
 
-        self.setWindowTitle('Flame Tracker (v1.0.6)')
+        self.setWindowTitle('Flame Tracker (v1.0.7)')
         self.setGeometry(25, 25, 1070, 740) #10,10,1000,720
         #Box to choose video parameters, widgets are listed below
         parametersBox = QGroupBox('Preview box', self)
@@ -711,18 +711,24 @@ class Window(QWidget):
         if selection == 'Choose analysis':
             for children in self.analysisGroupBox.findChildren(QGroupBox):
                 children.setParent(None)
+            self.lumaTrackingValue = False
+            self.colorTrackingValue = False
         elif selection == 'Manual tracking':
             for children in self.analysisGroupBox.findChildren(QGroupBox):
                 children.setParent(None)
             createManualTrackingBox(self)
+            self.lumaTrackingValue = False
+            self.colorTrackingValue = False
         elif selection == 'Luma tracking':
             for children in self.analysisGroupBox.findChildren(QGroupBox):
                 children.setParent(None)
             createLumaTrackingBox(self)
+            self.colorTrackingValue = False
         elif selection == 'Color tracking':
             for children in self.analysisGroupBox.findChildren(QGroupBox):
                 children.setParent(None)
             createColorTrackingBox(self)
+            self.lumaTrackingValue = False
 
     def measureScaleBtn_clicked(self, text):
         try:
