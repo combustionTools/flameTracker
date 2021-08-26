@@ -1,6 +1,7 @@
 """
 Flame Tracker. This program is designed to track flames or bright objects in videos or images.
 Copyright (C) 2020,2021  Luca Carmignani
+Modified by Charles Scudiere (C) 2021
 
 This file is part of Flame Tracker.
 
@@ -18,6 +19,7 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 Author: Luca Carmignani, PhD
+Modifications by: Charles Scudiere, PhD
 Contact: flameTrackerContact@gmail.com
 """
 
@@ -39,6 +41,7 @@ from pyqtgraph import PlotWidget, plot
 from manualTracking import *
 from lumaTracking import *
 from colorTracking import *
+from HSVTracking import *
 
 #To make sure the resolution is correct also in Windows
 if hasattr(Qt, 'AA_EnableHighDpiScaling'):
@@ -240,6 +243,7 @@ class Window(QWidget):
         self.analysisSelectionBox.addItem('Manual tracking')
         self.analysisSelectionBox.addItem('Luma tracking')
         self.analysisSelectionBox.addItem('Color tracking')
+        self.analysisSelectionBox.addItem('HSV tracking')
         self.analysisSelectionBox.activated[str].connect(self.analysis_click)
         saveLoadTxt = QLabel('Save/Load:', parametersBox)
         saveLoadTxt.setGeometry(x_cln1, 70, w_cln1, h_txt)
@@ -324,7 +328,7 @@ class Window(QWidget):
                 self.roiFourIn.setText(str(self.vHeight - 1))
                 self.firstFrameIn.setText('0')
                 self.lastFrameIn.setText(str(self.vFrames - 1))
-                self.skipFrameIn.setText('0')
+                self.skipFrameIn.setText('30') #default was 0, but better to just default to 30...
                 self.previewSlider.setMinimum(int(self.firstFrameIn.text()))
                 self.previewSlider.setMaximum(int(self.lastFrameIn.text()))
                 self.previewSlider.setValue(int(self.frameIn.text()))
@@ -336,6 +340,7 @@ class Window(QWidget):
                 self.rotationValue = False
                 self.lumaTrackingValue = False
                 self.colorTrackingValue = False
+                self.HSVTrackingValue = False
                 self.editFrame = False
                 self.rotationValue = False
                 self.fVideo.set(1, 0)
@@ -395,6 +400,7 @@ class Window(QWidget):
                 self.rotationValue = False
                 self.lumaTrackingValue = False
                 self.colorTrackingValue = False
+                self.HSVTrackingValue = False
                 self.editFrame = False
                 self.rotationValue = False
                 frameNumber = self.imagesList[0]
@@ -466,6 +472,8 @@ class Window(QWidget):
             self.filterParticleSldr_CT.setMaximum(int((int(self.roiThreeIn.text()) * int(self.roiFourIn.text())) / 20))
         elif self.lumaTrackingValue == True:
             self.filterParticleSldr_LT.setMaximum(int((int(self.roiThreeIn.text()) * int(self.roiFourIn.text())) / 20))
+        elif self.HSVTrackingValue == True:
+            self.filterParticleSldr_CT.setMaximum(int((int(self.roiThreeIn.text()) * int(self.roiFourIn.text())) / 20))
 
     def perspectiveBtn_clicked(self):
         if self.sLengthIn.text() == '-' or self.sWidthIn.text() == '-':
@@ -697,21 +705,31 @@ class Window(QWidget):
                 children.setParent(None)
             self.lumaTrackingValue = False
             self.colorTrackingValue = False
+            self.HSVTrackingValue = False
         elif selection == 'Manual tracking':
             for children in self.analysisGroupBox.findChildren(QGroupBox):
                 children.setParent(None)
             createManualTrackingBox(self)
             self.lumaTrackingValue = False
             self.colorTrackingValue = False
+            self.HSVTrackingValue = False
         elif selection == 'Luma tracking':
             for children in self.analysisGroupBox.findChildren(QGroupBox):
                 children.setParent(None)
             createLumaTrackingBox(self)
             self.colorTrackingValue = False
+            self.HSVTrackingValue = False
         elif selection == 'Color tracking':
             for children in self.analysisGroupBox.findChildren(QGroupBox):
                 children.setParent(None)
             createColorTrackingBox(self)
+            self.lumaTrackingValue = False
+            self.HSVTrackingValue = False
+        elif selection == 'HSV tracking':
+            for children in self.analysisGroupBox.findChildren(QGroupBox):
+                children.setParent(None)
+            createHSVTrackingBox(self)
+            self.colorTrackingValue = False
             self.lumaTrackingValue = False
 
     def measureScaleBtn_clicked(self, text):
@@ -782,7 +800,9 @@ class Window(QWidget):
         vFormat = str(self.formatIn.text())
         vName = QFileDialog.getSaveFileName(self, 'Save File')
         vName = vName[0]
-        vName = str(vName) + '.' + str(vFormat) # alternative: 'output.{}'.format(vFormat)
+        if not vName[-len(vFormat):] == vFormat:
+            print('Appending', vFormat, 'to filename')
+            vName = str(vName) + '.' + str(vFormat) # alternative: 'output.{}'.format(vFormat)
         fourcc = cv2.VideoWriter_fourcc(*codec)
         size = (int(self.roiThreeIn.text()), int(self.roiFourIn.text()))
 
@@ -808,7 +828,26 @@ class Window(QWidget):
 
                 frame = checkEditing(self, frame)
                 frameCrop = frame[int(self.roiTwoIn.text()) : (int(self.roiTwoIn.text()) + int(self.roiFourIn.text())), int(self.roiOneIn.text()) : (int(self.roiOneIn.text()) + int(self.roiThreeIn.text()))]
-                vout.write(frameCrop)
+                # CAS Add tracking line
+                if self.HSVTrackingValue == True:
+                    # Start tracking for export
+                    #HSVTracking(self)
+                    # #findFlameEdges_CT(self, frameBW, flamePx)
+                    getHSVFilteredFrame(self, currentFrame)
+                    trackframe = frameCrop # frame is 1080 x 1920
+                    import numpy
+                    #print(type(frame), numpy.size(frame, 0), 'x', numpy.size(frame, 1))
+                    #print(type(frameCrop), numpy.size(frameCrop, 0), 'x', numpy.size(frameCrop, 1))
+                    trackframe[:, min(self.xRight-1 - int(self.roiOneIn.text()), numpy.size(trackframe,1))] = 255 # white out line to mark where tracked flame, using relative distance
+                    #if self.xRight-1 > numpy.size(trackframe,1):
+                    #    print('xRight would have errored here with value:', self.xRight)
+                    #cv2.imshow('Frame_With_255_TrackLine', trackframe)
+
+                else:
+                    trackframe = frameCrop
+                    
+                #vout.write(frameCrop)
+                vout.write(trackframe) #CAS Add tracking
                 print('Progress: ', round((currentFrame - firstFrame)/(lastFrame - firstFrame) * 10000)/100, '%')
                 currentFrame = currentFrame + 1 + int(self.skipFrameIn.text())
 
@@ -913,6 +952,55 @@ class Window(QWidget):
         showFrameLarge_CT(self)
     def helpBtn_CT_clicked(self):
         helpBtn_CT(self)
+
+    ### HSV tracking methods (defined in HSVTracking.py)
+    def singleHSVSlider_released(self):
+        HSVSlider_released(self)
+    def redMinLeftBtn_CT_clicked(self):
+        redMinLeftBtn_CT(self)
+    def redMinRightBtn_CT_clicked(self):
+        redMinRightBtn_CT(self)
+    def redMaxLeftBtn_CT_clicked(self):
+        redMaxLeftBtn_CT(self)
+    def redMaxRightBtn_CT_clicked(self):
+        redMaxRightBtn_CT(self)
+    def greenMinLeftBtn_CT_clicked(self):
+        greenMinLeftBtn_CT(self)
+    def greenMinRightBtn_CT_clicked(self):
+        greenMinRightBtn_CT(self)
+    def greenMaxLeftBtn_CT_clicked(self):
+        greenMaxLeftBtn_CT(self)
+    def greenMaxRightBtn_CT_clicked(self):
+        greenMaxRightBtn_CT(self)
+    def blueMinLeftBtn_CT_clicked(self):
+        blueMinLeftBtn_CT(self)
+    def blueMinRightBtn_CT_clicked(self):
+        blueMinRightBtn_CT(self)
+    def blueMaxLeftBtn_CT_clicked(self):
+        blueMaxLeftBtn_CT(self)
+    def blueMaxRightBtn_CT_clicked(self):
+        blueMaxRightBtn_CT(self)
+    def filterParticleSldr_CT_released(self):
+        filterParticleSldr_CT(self)
+    def directionCT_clicked(self, text):
+        chooseFlameDirection_CT(self, text)
+    def connectivityBoxCT_clicked(self, text):
+        connectivityBox_CT(self, text)
+    def saveChannelsBtn_CT_clicked(self):
+        saveChannelsBtn_CT(self)
+    def loadChannelsBtn_CT_clicked(self):
+        loadChannelsBtn_CT(self)
+    def HSVTrackingBtn_clicked(self):
+        HSVTracking(self)
+    def absValBtn_CT_clicked(self):
+        absValBtn_CT(self)
+    def saveBtn_CT_clicked(self):
+        saveBtn_CT(self)
+    def showFrameLargeBtn_CT_clicked(self):
+        showFrameLarge_CT(self)
+    def helpBtn_CT_clicked(self):
+        helpBtn_CT(self)
+
 
     def helpBtn_clicked(self):
         msg = QMessageBox(self)
@@ -1040,6 +1128,21 @@ def checkAnalysisBox(self, newFrame):
         if self.grayscale.isChecked() == True:
             self.msgLabel.setText('Grayscale images not supported with this feature')
         getColorFilteredFrame(self, newFrame)
+        self.lbl1_CT.setPixmap(QPixmap.fromImage(self.frame))
+        self.lbl2_CT.setPixmap(QPixmap.fromImage(self.frameBW))
+        self.lbl1_CT.show()
+        self.lbl2_CT.show()
+
+    if self.HSVTrackingValue == True:
+        self.lbl1_CT = QLabel(self.HSVTrackingBox)
+        self.lbl1_CT.setGeometry(370, 25, 330, 250)
+        self.lbl1_CT.setStyleSheet('background-color: white')
+        self.lbl2_CT = QLabel(self.HSVTrackingBox)
+        self.lbl2_CT.setGeometry(710, 25, 330, 250)
+        self.lbl2_CT.setStyleSheet('background-color: white')
+        if self.grayscale.isChecked() == True:
+            self.msgLabel.setText('Grayscale images not supported with this feature')
+        getHSVFilteredFrame(self, newFrame)
         self.lbl1_CT.setPixmap(QPixmap.fromImage(self.frame))
         self.lbl2_CT.setPixmap(QPixmap.fromImage(self.frameBW))
         self.lbl1_CT.show()
