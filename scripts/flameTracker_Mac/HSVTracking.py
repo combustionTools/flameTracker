@@ -239,6 +239,11 @@ def createHSVTrackingBox(self):
     self.showEdges.setChecked(True)
     self.exportEdges_CT = QCheckBox('Output video analysis', self.HSVTrackingBox)
     self.exportEdges_CT.setGeometry(780, 300, 135, h_btn)
+    #CAS Export with tracking line
+    self.exportTrackOverlay_CT = QCheckBox('Video Tracking Overlay', self.HSVTrackingBox)
+    self.exportTrackOverlay_CT.setGeometry(780, 325, 100, h_btn)
+
+    
 
     # second label
     self.lbl2_CT = QLabel(self.HSVTrackingBox)
@@ -280,7 +285,8 @@ def getHSVFilteredFrame(self, frameNumber):
         frame = cv2.convertScaleAbs(frame, alpha=alpha, beta=beta)
 
     # crop frame (after rotation)
-    frameCrop = frame[int(self.roiTwoIn.text()) : (int(self.roiTwoIn.text()) + int(self.roiFourIn.text())), int(self.roiOneIn.text()) : (int(self.roiOneIn.text()) + int(self.roiThreeIn.text()))]
+    #frameCrop = frame[int(self.roiTwoIn.text()) : (int(self.roiTwoIn.text()) + int(self.roiFourIn.text())), int(self.roiOneIn.text()) : (int(self.roiOneIn.text()) + int(self.roiThreeIn.text()))]
+    self.frameCrop = frame[int(self.roiTwoIn.text()) : (int(self.roiTwoIn.text()) + int(self.roiFourIn.text())), int(self.roiOneIn.text()) : (int(self.roiOneIn.text()) + int(self.roiThreeIn.text()))]
 
     # Filter here: #CAS Modified for HSV tracking instead of color tracking
     blueLow = self.blueMinSlider.value()
@@ -299,8 +305,8 @@ def getHSVFilteredFrame(self, frameNumber):
     low = np.array(low, dtype = 'uint8') #this conversion is necessary
     high = np.array(high, dtype = 'uint8')
     #newMask = cv2.inRange(frameCrop, low, high)
-    newMask = cv2.inRange(cv2.cvtColor(frameCrop, cv2.COLOR_BGR2HSV), low, high)
-    frame = cv2.bitwise_and(frameCrop, frameCrop, mask = newMask)
+    newMask = cv2.inRange(cv2.cvtColor(self.frameCrop, cv2.COLOR_BGR2HSV), low, high)
+    frame = cv2.bitwise_and(self.frameCrop, self.frameCrop, mask = newMask)
     grayFrame = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
     (threshold, frameBW) = cv2.threshold(grayFrame, 0, 255, cv2.THRESH_BINARY)
 
@@ -392,7 +398,7 @@ def HSVTracking(self):
     self.frameCount = list()
     flameArea = list()
 
-    if self.exportEdges_CT.isChecked():
+    if self.exportEdges_CT.isChecked() or self.exportTrackOverlay_CT.isChecked():
         fps = (float(self.vFpsLbl.text()))/(int(self.skipFrameIn.text()) + 1) #fps(new) = fps(original)/(skipframes + 1)
         codec = str(self.codecIn.text())
         vFormat = str(self.formatIn.text())
@@ -404,14 +410,21 @@ def HSVTracking(self):
         vout.open(vName, fourcc, fps, size, True)
 
     if scale: #this condition prevents crashes in case the scale is not specified
+        import numpy #CAS Added for tracking line
         while (currentFrame < lastFrame):
             getHSVFilteredFrame(self, currentFrame)
             self.xRight_mm.append(self.xRight / float(self.scaleIn.text()))
             self.xLeft_mm.append(self.xLeft / float(self.scaleIn.text()))
             flameArea.append(self.flameArea)
             self.frameCount.append(currentFrame)
-            if self.exportEdges_CT.isChecked():
+            if self.exportEdges_CT.isChecked() and not self.exportTrackOverlay_CT.isChecked():
                 vout.write(self.currentFrameRGB_CT)
+            elif self.exportTrackOverlay_CT.isChecked():
+                #CAS Add Track lines over cropped video
+                trackframe = numpy.copy(self.frameCrop) # frame is 1080 x 1920
+                trackframe[:, min(self.xRight-1 - int(self.roiOneIn.text()), numpy.size(trackframe,1))] = 255 # white out line to mark where tracked flame, using relative distance
+                vout.write(trackframe)
+
             print('Progress: ', round((currentFrame - firstFrame)/(lastFrame - firstFrame) * 10000)/100, '%')
             currentFrame = currentFrame + 1 + int(self.skipFrameIn.text())
 
@@ -423,6 +436,22 @@ def HSVTracking(self):
         except:
             pass
 
+            # CAS Add tracking line from flameTracker.py
+            #if self.HSVTrackingValue == True:
+            #    # Start tracking for export
+            #    #HSVTracking(self)
+            #    # #findFlameEdges_CT(self, frameBW, flamePx)
+            #    getHSVFilteredFrame(self, currentFrame)
+            #    trackframe = frameCrop # frame is 1080 x 1920
+            #    import numpy
+            #    #print(type(frame), numpy.size(frame, 0), 'x', numpy.size(frame, 1))
+            #    #print(type(frameCrop), numpy.size(frameCrop, 0), 'x', numpy.size(frameCrop, 1))
+            #    trackframe[:, min(self.xRight-1 - int(self.roiOneIn.text()), numpy.size(trackframe,1))] = 255 # white out line to mark where tracked flame, using relative distance
+            #    #if self.xRight-1 > numpy.size(trackframe,1):
+            #    #    print('xRight would have errored here with value:', self.xRight)
+            #    #cv2.imshow('Frame_With_255_TrackLine', trackframe)
+
+
         for i in range(len(self.xRight_mm)):
             flameLength_mm.append(abs(self.xRight_mm[i] - self.xLeft_mm[i]))
 
@@ -431,7 +460,7 @@ def HSVTracking(self):
         print('Progress: 100 % - Tracking completed')
         self.msgLabel.setText('Tracking completed')
 
-        if self.exportEdges_CT.isChecked():
+        if self.exportEdges_CT.isChecked() or self.exportTrackOverlay_CT.isChecked():
             vout.release()
             self.msgLabel.setText('Tracking completed and video created.')
 

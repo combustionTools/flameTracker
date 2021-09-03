@@ -53,7 +53,7 @@ if hasattr(Qt, 'AA_UseHighDpiPixmaps'):
 class Window(QWidget):
     def __init__(self, parent=None):
         super(Window, self).__init__(parent)
-
+        """
         print('''Flame Tracker - Copyright (C) 2020,2021 Luca Carmignani
         This program comes with ABSOLUTELY NO WARRANTY; See the GNU General
         Public License for more details.
@@ -61,6 +61,7 @@ class Window(QWidget):
         it under the terms of the GNU General Public License as published by
         the Free Software Foundation, either version 3 of the License, or
         (at your option) any later version.''')
+        """
 
         self.setStyleSheet('font: 12pt Helvetica')
         self.setWindowTitle('Flame Tracker (v1.0.7)')
@@ -139,22 +140,47 @@ class Window(QWidget):
         h_lbl = 22
         clmn2_Txt = QLabel('Video parameters:', parametersBox)
         clmn2_Txt.setGeometry(x_cln1, 20, 120, h_txt)
+        #self.firstFrameTxt = QLabel('First frame:', parametersBox)
+        #self.firstFrameTxt.setGeometry(x_cln1, 45, w_cln1, h_txt)
+        #self.firstFrameIn = QLineEdit(parametersBox)
+        #self.firstFrameIn.setGeometry(x_cln2, 49, w_cln2, h_lbl)
+        #self.lastFrameTxt = QLabel('Last frame:', parametersBox)
+        #self.lastFrameTxt.setGeometry(x_cln1, 75, w_cln1, h_txt)
+        #self.lastFrameIn = QLineEdit(parametersBox)
+        #self.lastFrameIn.setGeometry(x_cln2, 79, w_cln2, h_lbl)
+        #self.skipFrameTxt = QLabel('Skip frames:', parametersBox)
+        #self.skipFrameTxt.setGeometry(x_cln1, 105, w_cln1, h_txt)
+        #self.skipFrameIn = QLineEdit(parametersBox)
+        #self.skipFrameIn.setGeometry(x_cln2, 109, w_cln2, h_lbl)
+        #self.scaleTxt = QLabel('Scale (px/mm):', parametersBox)
+        #self.scaleTxt.setGeometry(x_cln1, 135, w_cln1, h_txt)
+        #self.scaleIn = QLineEdit(parametersBox)
+        #self.scaleIn.setGeometry(x_cln2, 139, w_cln2, h_lbl)
+
+        #CAS Squish to fit xrefpix to display
         self.firstFrameTxt = QLabel('First frame:', parametersBox)
-        self.firstFrameTxt.setGeometry(x_cln1, 45, w_cln1, h_txt)
+        self.firstFrameTxt.setGeometry(x_cln1, 40, w_cln1, h_txt)
         self.firstFrameIn = QLineEdit(parametersBox)
-        self.firstFrameIn.setGeometry(x_cln2, 49, w_cln2, h_lbl)
+        self.firstFrameIn.setGeometry(x_cln2, 44, w_cln2, h_lbl)
         self.lastFrameTxt = QLabel('Last frame:', parametersBox)
-        self.lastFrameTxt.setGeometry(x_cln1, 75, w_cln1, h_txt)
+        self.lastFrameTxt.setGeometry(x_cln1, 65, w_cln1, h_txt)
         self.lastFrameIn = QLineEdit(parametersBox)
-        self.lastFrameIn.setGeometry(x_cln2, 79, w_cln2, h_lbl)
+        self.lastFrameIn.setGeometry(x_cln2, 69, w_cln2, h_lbl)
         self.skipFrameTxt = QLabel('Skip frames:', parametersBox)
-        self.skipFrameTxt.setGeometry(x_cln1, 105, w_cln1, h_txt)
+        self.skipFrameTxt.setGeometry(x_cln1, 90, w_cln1, h_txt)
         self.skipFrameIn = QLineEdit(parametersBox)
-        self.skipFrameIn.setGeometry(x_cln2, 109, w_cln2, h_lbl)
+        self.skipFrameIn.setGeometry(x_cln2, 94, w_cln2, h_lbl)
         self.scaleTxt = QLabel('Scale (px/mm):', parametersBox)
-        self.scaleTxt.setGeometry(x_cln1, 135, w_cln1, h_txt)
+        self.scaleTxt.setGeometry(x_cln1, 115, w_cln1, h_txt)
         self.scaleIn = QLineEdit(parametersBox)
-        self.scaleIn.setGeometry(x_cln2, 139, w_cln2, h_lbl)
+        self.scaleIn.setGeometry(x_cln2, 119, w_cln2, h_lbl)
+
+        #CAS add xref line
+        self.xrefTxt = QLabel('xref (px):', parametersBox)
+        self.xrefTxt.setGeometry(x_cln1, 140, w_cln1, h_txt)
+        self.xref = QLineEdit(parametersBox)
+        self.xref.setGeometry(x_cln2, 144, w_cln2, h_lbl)
+
         self.measureScaleBtn = QPushButton('Measure scale', parametersBox)
         self.measureScaleBtn.setGeometry(x_cln1 - 10, 165, 150, h_btn)
         self.measureScaleBtn.clicked.connect(self.measureScaleBtn_clicked)
@@ -622,6 +648,9 @@ class Window(QWidget):
                         writer.writerow(['sample', self.sample[0], self.sample[1], self.sample[2], self.sample[3]])
                         writer.writerow(['sampleMod', self.sampleMod[0], self.sampleMod[1], self.sampleMod[2], self.sampleMod[3]])
 
+                    #CAS Add to save reference txt
+                    writer.writerow([self.xrefTxt.text(), str(self.xref.text())]) #CAS Add to save reference txt
+                
                 self.msgLabel.setText('Parameters saved.')
             except:
                 self.msgLabel.setText('Ops! Parameters were not saved.')
@@ -685,9 +714,15 @@ class Window(QWidget):
                             self.sampleMod.append([np.float32(x[0]), np.float32(y[0])])
                         self.sampleMod = np.array(self.sampleMod)
 
+                    #CAS Add to save reference txt
+                    if self.xrefTxt.text() in row:
+                        self.xref.setText(row[1]) #CAS Add to save reference txt.
+                        #print('xRef loaded:', self.xrefTxt.text(), '=', self.xref.text())
+
             self.previewSlider.setMinimum(int(self.firstFrameIn.text()))
             self.previewSlider.setMaximum(int(self.lastFrameIn.text()))
             self.previewSlider.setValue(int(self.frameIn.text()))
+
             if self.perspectiveValue == True:
                 self.msgLabel.setText('Parameters loaded. Perspective correction detected and applied')
             else:
@@ -767,7 +802,24 @@ class Window(QWidget):
 
                     if cv2.waitKey(1) == 27: #ord('q')
                         cv2.destroyAllWindows()
+
+                        #CAS Add to save reference txt, relative to frameCrop...
+                        if ('xPos' in globals()): # or 'xPos' in locals()): # and xPos:
+                            # If selected a point, interpreted as a reference point usually stored in globals, (but could also check locals just in case?)
+                            #print('Saving xPos, (', xPos, '), yPos (', yPos,') of type', type(xPos))
+                            #print('relative to', '[roiTwo : (roiTwo + roiFour), roiOne : (roiOne + roiThree)] -> ', roiTwo, ':', (roiTwo + roiFour), ',', roiOne, ':', (roiOne + roiThree))
+                            #print('Converted: xPos, (', xPos+roiOne, '), yPos (', yPos+roiTwo,') of type', type(xPos))
+                            refLoc_x = xPos + roiOne
+                            refLoc_y = yPos + roiTwo
+                            #self.xref.setText(str([xPos, yPos])) #CAS May Use relative values as this is what is output by position...
+                            self.xref.setText(str([refLoc_x, refLoc_y])) #CAS Use absolute and convert on own...to prevent issues with different cropping
+                            self.msgLabel.setText('xRef measured.')
+                        #else:
+                        #    print('Do not see xPos in locals, not saving xRef')
+                        #    #print('I see xPos, (', xPos, '), yPos (', yPos,') of type', type(xPos)) 
+
                         return
+
                 # update each position and frame list for the current click
                 points.append(xPos)
                 points.append(yPos)
@@ -776,11 +828,21 @@ class Window(QWidget):
             length_px = ((points[3]-points[1])**2 + (points[2]-points[0])**2)**0.5
             scale = length_px / float(length_mm)
             scale = np.round(scale, 3)
+
+            ##CAS Add to save reference txt, but now defaulting to location of second TC so no longer applicable
+            #refLoc_x = points[0] + roiOne
+            #refLoc_y = points[1] + roiTwo
+            ##self.xref.setText(str([points[0], points[1]])) #CAS May Use relative values as this is what is output by position...
+            #self.xref.setText(str([refLoc_x, refLoc_y])) #CAS Use absolute and convert on own...to prevent issues with different cropping
+
             self.scaleIn.setText(str(scale))
-            self.msgLabel.setText('Scale succesfully measured')
+            self.msgLabel.setText('Scale & Ref succesfully measured')
             cv2.destroyAllWindows()
         except:
+            #print("Unexpected error:", sys.exc_info()[0])
+            print("Unexpected error:", sys.exc_info())
             self.msgLabel.setText('Something went wrong and the scale was not measured.')
+                
 
     def editFramesSlider_released(self):
         frameNumber = self.previewSlider.value()
@@ -828,20 +890,16 @@ class Window(QWidget):
 
                 frame = checkEditing(self, frame)
                 frameCrop = frame[int(self.roiTwoIn.text()) : (int(self.roiTwoIn.text()) + int(self.roiFourIn.text())), int(self.roiOneIn.text()) : (int(self.roiOneIn.text()) + int(self.roiThreeIn.text()))]
-                # CAS Add tracking line
-                if self.HSVTrackingValue == True:
+
+                # CAS Add tracking line - Moving to a click box...
+                if False: #self.HSVTrackingValue == True:
                     # Start tracking for export
                     #HSVTracking(self)
                     # #findFlameEdges_CT(self, frameBW, flamePx)
                     getHSVFilteredFrame(self, currentFrame)
                     trackframe = frameCrop # frame is 1080 x 1920
                     import numpy
-                    #print(type(frame), numpy.size(frame, 0), 'x', numpy.size(frame, 1))
-                    #print(type(frameCrop), numpy.size(frameCrop, 0), 'x', numpy.size(frameCrop, 1))
                     trackframe[:, min(self.xRight-1 - int(self.roiOneIn.text()), numpy.size(trackframe,1))] = 255 # white out line to mark where tracked flame, using relative distance
-                    #if self.xRight-1 > numpy.size(trackframe,1):
-                    #    print('xRight would have errored here with value:', self.xRight)
-                    #cv2.imshow('Frame_With_255_TrackLine', trackframe)
 
                 else:
                     trackframe = frameCrop
