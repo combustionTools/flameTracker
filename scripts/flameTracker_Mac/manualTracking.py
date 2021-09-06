@@ -24,9 +24,10 @@ Contact: flameTrackerContact@gmail.com
 from flameTracker import *
 
 def createManualTrackingBox(self):
-    manualTrackingBox = QGroupBox(' ', self.analysisGroupBox)
-    manualTrackingBox.setGeometry(0,0, 1050, 390)
-    manualTrackingBox.setStyleSheet('background-color: None')
+    self.manualTrackingValue = True
+    self.manualTrackingBox = QGroupBox(' ', self.analysisGroupBox)
+    self.manualTrackingBox.setGeometry(0,0, 1050, 390)
+    self.manualTrackingBox.setStyleSheet('background-color: None')
 
     #first column
     x_cln1 = 10
@@ -36,72 +37,119 @@ def createManualTrackingBox(self):
     h_lbl = 22
     w_cln1 = 80
     w_cln2 = 50
-    directionBoxTxt = QLabel('Flame direction:', manualTrackingBox)
+    directionBoxTxt = QLabel('Flame direction:', self.manualTrackingBox)
     directionBoxTxt.setGeometry(x_cln1, 20, 100, h_txt)
-    self.directionBox = QComboBox(manualTrackingBox)
+    self.directionBox = QComboBox(self.manualTrackingBox)
     self.directionBox.setGeometry(x_cln1 - 5, 45, 150, h_btn)
     self.directionBox.addItem('Left to right')
     self.directionBox.addItem('Right to left')
     self.directionBox.activated.connect(self.directionMT_clicked)
-    lightTxt = QLabel('Flashing light (optional):', manualTrackingBox)
+    lightTxt = QLabel('Flashing light (optional):', self.manualTrackingBox)
     lightTxt.setGeometry(x_cln1, 70, 150, h_txt)
-    self.filterLight = QComboBox(manualTrackingBox)
-    self.filterLight.setGeometry(x_cln1 - 5, 95, 150, h_btn)
-    self.filterLight.addItem('Track every frame')
-    self.filterLight.addItem('Frames light on')
-    self.filterLight.addItem('Frames light off')
-    self.filterLight.activated.connect(self.filterLightMT_clicked)
-    nClicksTxt = QLabel('Tracking points #:', manualTrackingBox)
-    nClicksTxt.setGeometry(x_cln1, 125, 100, h_txt)
-    self.nClicksLbl = QLineEdit('1', manualTrackingBox)
-    self.nClicksLbl.setGeometry(x_cln2, 129, 30, h_lbl)
-    self.showEdges_MT = QCheckBox('Show tracking lines', manualTrackingBox)
-    self.showEdges_MT.setGeometry(x_cln1, 150, 140, h_btn)
+    self.lightROIBtn_MT = QPushButton('Pick bright region', self.manualTrackingBox)
+    self.lightROIBtn_MT.setGeometry(x_cln1 - 5, 95, 150, h_btn)
+    self.lightROIBtn_MT.clicked.connect(self.lightROIBtn_MT_clicked)
+    self.filterLight_MT = QComboBox(self.manualTrackingBox)
+    self.filterLight_MT.setGeometry(x_cln1 - 5, 120, 150, h_btn)
+    self.filterLight_MT.addItem('Track every frame')
+    self.filterLight_MT.addItem('Frames light on')
+    self.filterLight_MT.addItem('Frames light off')
+    self.filterLight_MT.activated.connect(self.filterLight_MT_clicked)
+    nClicksTxt = QLabel('Tracking points #:', self.manualTrackingBox)
+    nClicksTxt.setGeometry(x_cln1, 150, 100, h_txt)
+    self.nClicksLbl = QLineEdit('1', self.manualTrackingBox)
+    self.nClicksLbl.setGeometry(x_cln2, 154, 30, h_lbl)
+    self.showEdges_MT = QCheckBox('Show tracking lines', self.manualTrackingBox)
+    self.showEdges_MT.setGeometry(x_cln1, 180, 140, h_btn)
     self.showEdges_MT.setChecked(True)
-    self.manualTrackingBtn = QPushButton('Start Tracking', manualTrackingBox)
-    self.manualTrackingBtn.setGeometry(x_cln1 - 5, 180, 150, h_btn)
+    self.manualTrackingBtn = QPushButton('Start Tracking', self.manualTrackingBox)
+    self.manualTrackingBtn.setGeometry(x_cln1 - 5, 210, 150, h_btn)
     self.manualTrackingBtn.clicked.connect(self.manualTrackingBtn_clicked)
-    self.absValBtn = QPushButton('Absolute values', manualTrackingBox)
-    self.absValBtn.setGeometry(x_cln1 - 5, 210, 150, h_btn)
-    self.absValBtn.clicked.connect(self.absValBtnMT_clicked)
-    self.save_MT_Btn = QPushButton('Save data', manualTrackingBox)
-    self.save_MT_Btn.setGeometry(x_cln1 - 5, 240, 150, h_btn)
-    self.save_MT_Btn.clicked.connect(self.saveData_clicked)
-    self.helpBtn_MT = QPushButton('Help', manualTrackingBox)
-    self.helpBtn_MT.setGeometry(x_cln1 - 5, 270, 150, h_btn)
+    self.absValBtn = QPushButton('Absolute values', self.manualTrackingBox)
+    self.absValBtn.setGeometry(x_cln1 - 5, 240, 150, h_btn)
+    self.absValBtn.clicked.connect(self.absValBtn_MT_clicked)
+    self.saveBtn_MT = QPushButton('Save data', self.manualTrackingBox)
+    self.saveBtn_MT.setGeometry(x_cln1 - 5, 270, 150, h_btn)
+    self.saveBtn_MT.clicked.connect(self.saveBtn_MT_clicked)
+    self.helpBtn_MT = QPushButton('Help', self.manualTrackingBox)
+    self.helpBtn_MT.setGeometry(x_cln1 - 5, 300, 150, h_btn)
     self.helpBtn_MT.clicked.connect(self.helpBtn_MT_clicked)
 
     # first label
-    self.label1 = pg.PlotWidget(manualTrackingBox)
-    self.label1.setGeometry(190, 25, 420, 300)
-    self.label1.setBackground('w')
-    self.label1.setLabel('left', 'Position [mm]', color='black', size=14)
-    self.label1.setLabel('bottom', 'Time [s]', color='black', size=14)
-    self.label1.getAxis('bottom').setPen(color=(0, 0, 0))
-    self.label1.getAxis('left').setPen(color=(0, 0, 0))
+    self.lbl1_MT = QLabel(self.manualTrackingBox)
+    self.lbl1_MT.setGeometry(190, 25, 420, 300)
+    self.lbl1_MT.setStyleSheet('background-color: white')
 
     # second label
-    self.label2 = pg.PlotWidget(manualTrackingBox)
-    self.label2.setGeometry(620, 25, 420, 300)
-    self.label2.setBackground('w')
-    self.label2.setLabel('left', 'Spread Rate [mm/s]', color='black', size=14)
-    self.label2.setLabel('bottom', 'Time [s]', color='black', size=14)
-    self.label2.getAxis('bottom').setPen(color=(0, 0, 0))
-    self.label2.getAxis('left').setPen(color=(0, 0, 0))
+    self.lbl2_MT = pg.PlotWidget(self.manualTrackingBox)
+    self.lbl2_MT.setGeometry(620, 25, 420, 300)
+    self.lbl2_MT.setBackground('w')
+    self.lbl2_MT.setLabel('left', 'Spread Rate [mm/s]', color='black', size=14)
+    self.lbl2_MT.setLabel('bottom', 'Time [s]', color='black', size=14)
+    self.lbl2_MT.getAxis('bottom').setPen(color=(0, 0, 0))
+    self.lbl2_MT.getAxis('left').setPen(color=(0, 0, 0))
 
     # these are default values for the relative selections
     self.flameDir = 'toRight'
     self.lightStatus = 'None'
+    self.lightROI_MT_recorded = False
 
-    manualTrackingBox.show()
+    self.manualTrackingBox.show()
 
-def manualTracking(self):
-    firstFrame = int(self.firstFrameIn.text())
-    lastFrame = int(self.lastFrameIn.text())
+def checkEditing_MT(self, frameNumber):
     roiOne = int(self.roiOneIn.text())
     roiTwo = int(self.roiTwoIn.text())
     roiThree = int(self.roiThreeIn.text())
     roiFour = int(self.roiFourIn.text())
+
+    if self.openSelection == 'video':
+        self.fVideo.set(1, int(frameNumber))
+        ret, frame = self.fVideo.read()
+    elif self.openSelection == 'image(s)':
+        imageNumber = self.imagesList[int(frameNumber)]
+        frame = cv2.imread(imageNumber)
+
+    try:
+        if self.perspectiveValue == True:
+            if self.rotationValue == True:
+                frame = rotationCorrection_MT(self, frame, self.anglePerspective)
+            frame = perspectiveCorrection_MT(self, frame)
+            #the rotation has already been included in the perspective correction, but it could happen that a further rotation is needed after the correction (e.g. for the analysis)
+            if self.anglePerspective != float(self.rotationAngleIn.text()):
+                angle = float(self.rotationAngleIn.text()) - self.anglePerspective
+                frame = rotationCorrection_MT(self, frame, angle)
+        elif float(self.rotationAngleIn.text()) != 0: #in case there is no perspective correction
+                angle = float(self.rotationAngleIn.text())
+                frame = rotationCorrection_MT(self, frame, angle)
+        if self.brightnessLbl.text() != '0' or self.contrastLbl.text() != '0':
+            frameContainer = np.zeros(frame.shape, frame.dtype)
+            alpha = (int(self.contrastSlider.value()) + 100) * 2 / 200
+            beta = int(self.brightnessSlider.value())    # Simple brightness control [0-100]. Instead, we have [-50-50]
+            frame = cv2.convertScaleAbs(frame, alpha=alpha, beta=beta)
+        if self.grayscale.isChecked() == True:
+            frame = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+    except:
+        pass
+
+    # crop image
+    frameCrop = frame[roiTwo : (roiTwo + roiFour), roiOne : (roiOne + roiThree)]
+
+    return(frame, frameCrop)
+
+def manualTracking(self):
+    # transforming the first label into a plot
+    self.lbl1_MT = pg.PlotWidget(self.manualTrackingBox)
+    self.lbl1_MT.setGeometry(190, 25, 420, 300)
+    self.lbl1_MT.setBackground('w')
+    self.lbl1_MT.setLabel('left', 'Position [mm]', color='black', size=14)
+    self.lbl1_MT.setLabel('bottom', 'Time [s]', color='black', size=14)
+    self.lbl1_MT.getAxis('bottom').setPen(color=(0, 0, 0))
+    self.lbl1_MT.getAxis('left').setPen(color=(0, 0, 0))
+    self.lbl1_MT.addLegend(offset = [1, 0.1]) # background color modified in line 122 and 123 of Versions/3.7/lib/python3.7/site-packages/pyqtgraph/graphicsItems
+
+    firstFrame = int(self.firstFrameIn.text())
+    lastFrame = int(self.lastFrameIn.text())
+
     scale = True
 
     #Set up the first frame for analysis and clk for the mouse event
@@ -124,6 +172,7 @@ def manualTracking(self):
         self.msgLabel.setText('Clicks not specified (=1)')
 
     while (currentFrame < lastFrame):
+        print('Frame #:', currentFrame)
         if not self.scaleIn.text():
             scale = False
             msg = QMessageBox(self)
@@ -131,58 +180,32 @@ def manualTracking(self):
             msg.exec_()
             break
 
-        if self.openSelection == 'video':
-            self.fVideo.set(1, int(currentFrame))
-            ret, frame = self.fVideo.read()
-        elif self.openSelection == 'image(s)':
-            frame = self.imagesList[int(currentFrame)]
-            frame = cv2.imread(frame)
+        frame, frameCrop = checkEditing_MT(self, currentFrame)
 
-        try:
-            if self.perspectiveValue == True:
-                if self.rotationValue == True:
-                    frame = rotationCorrection_LT(self, frame, self.anglePerspective)
-                frame = perspectiveCorrectionMT(self, frame)
-                #the rotation has already been included in the perspective correction, but it could happen that a further rotation is needed after the correction (e.g. for the analysis)
-                if self.anglePerspective != float(self.rotationAngleIn.text()):
-                    angle = float(self.rotationAngleIn.text()) - self.anglePerspective
-                    frame = rotationCorrection_MT(self, frame, angle)
-            elif float(self.rotationAngleIn.text()) != 0: #in case there is no perspective correction
-                    angle = float(self.rotationAngleIn.text())
-                    frame = rotationCorrection_MT(self, frame, angle)
-            if self.brightnessLbl.text() != '0' or self.contrastLbl.text() != '0':
-                frameContainer = np.zeros(frame.shape, frame.dtype)
-                alpha = (int(self.contrastSlider.value()) + 100) * 2 / 200
-                beta = int(self.brightnessSlider.value())    # Simple brightness control [0-100]. Instead, we have [-50-50]
-                frame = cv2.convertScaleAbs(frame, alpha=alpha, beta=beta)
-            if self.grayscale.isChecked() == True: #the YCC lines below cannot execute in the Gray single channel
-                frameGray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
-        except:
-            pass
+        if self.lightROI_MT_recorded == True:
+            # looking for frames with a light on (which would increase the red and green channel values of the background)
+            # low and high are the thresholds for each color channel
+            low = ([5, 5, 10]) # blueLow, greenLow, redLow
+            high = ([255, 255, 255]) # blueHigh, greenHigh, redHigh
+            low = np.array(low, dtype = 'uint8') #this conversion is necessary
+            high = np.array(high, dtype = 'uint8')
 
-        # crop image
-        frameCrop = frame[roiTwo : (roiTwo + roiFour), roiOne : (roiOne + roiThree)]
+            currentLightROI = frame[self.lightROI_MT[1] : (self.lightROI_MT[1] + self.lightROI_MT[3]), self.lightROI_MT[0] : (self.lightROI_MT[0] + self.lightROI_MT[2])]
+            newMask = cv2.inRange(currentLightROI, low, high)
+            frame_light = cv2.bitwise_and(currentLightROI, currentLightROI, mask = newMask)
+            grayFrame_light = cv2.cvtColor(frame_light, cv2.COLOR_BGR2GRAY)
+            (thresh_light, BW_light) = cv2.threshold(grayFrame_light, 0, 255, cv2.THRESH_BINARY)
+            flamePx_light = np.where(BW_light == [255])
+            area_lightROI = int(self.lightROI_MT[3] * self.lightROI_MT[2])
 
-        #filtering the frames with the light on by considering the luma image (full code and comments in lumaTracking)
-        frameYCC = cv2.cvtColor(frameCrop, cv2.COLOR_BGR2YCR_CB)
-        Y, C, C = cv2.split(frameYCC)
-        (thresh, frameBW) = cv2.threshold(Y, 40, 255, cv2.THRESH_BINARY) #40 = threshold
-        noise_px = np.ones((3,3), np.uint8)
-        frameBW = cv2.morphologyEx(frameBW, cv2.MORPH_OPEN, noise_px)
-        flamePx = np.where(frameBW == [255])
-        roiArea = Y.shape[0] * Y.shape[1] # roiThree * roiFour #
-        # this condition skips frames if more than half area is illuminated by the light
-        if self.lightStatus == 'lightOff':
-            if len(flamePx[0]) > 0.5 * roiArea:
-                currentFrame = currentFrame + 1 + int(self.skipFrameIn.text())
-                continue
-        elif self.lightStatus == 'lightOn':
-            if len(flamePx[0]) < 0.5 * roiArea:
-                currentFrame = currentFrame + 1 + int(self.skipFrameIn.text())
-                continue
-
-        if self.grayscale.isChecked() == True:
-            frameCrop = frameGray[roiTwo : (roiTwo + roiFour), roiOne : (roiOne + roiThree)]
+            if self.lightStatus == 'lightOff':
+                if len(current_lightROI[0]) > 0.5 * area_lightROI:
+                    currentFrame = currentFrame + 1 + int(self.skipFrameIn.text())
+                    continue
+            elif self.lightStatus == 'lightOn':
+                if len(current_lightROI[0]) < 0.5 * area_lightROI:
+                    currentFrame = currentFrame + 1 + int(self.skipFrameIn.text())
+                    continue
 
         # create the window and the line over the first point clicked
         cv2.namedWindow('manualTracking', cv2.WINDOW_AUTOSIZE)
@@ -191,14 +214,11 @@ def manualTracking(self):
         if currentFrame > firstFrame:
             for n in range(self.nClicks):
                 if self.showEdges_MT.isChecked() == True:
-                    try:
-                        cv2.line(frameCrop, (0, int(posY[str(n+1)][0])),(roiThree, int(posY[str(n+1)][0])), (0, 245, 184), 2)
-                    except:
-                        pass
+                    cv2.line(frameCrop, (0, int(posY[str(n+1)][0])),(int(self.roiThreeIn.text()), int(posY[str(n+1)][0])), (0, 245, 184), 2)
 
         cv2.imshow('manualTracking',frameCrop)
 
-        self.msgLabel.setText('Start tracking, press (Esc) to quit.')
+        self.msgLabel.setText('Tracking started, press (Esc) to quit.')
         for n in range(self.nClicks):
             # wait for the mouse event or 'escape' key
             while (True):
@@ -206,9 +226,9 @@ def manualTracking(self):
                     clk = False
                     # the zero location changes based on the flame direction
                     if self.flameDir == 'toRight':
-                        xClick = xPos + roiOne
+                        xClick = xPos + int(self.roiOneIn.text())
                     elif self.flameDir == 'toLeft':
-                        xClick = self.vWidth - roiOne - xPos
+                        xClick = self.vWidth - int(self.roiOneIn.text()) - xPos
                     break
 
                 if cv2.waitKey(1) == 27: #ord('q')
@@ -247,7 +267,7 @@ def manualTracking(self):
     self.posX_plot = posX_mm
     self.frames_plot = frameCount
     self.time_plot = timeCount
-    # smoothing of the spread rate values
+    # moving average of the spread rate values
     self.spreadRate = dict()
     if scale:
         for n in range(self.nClicks):
@@ -261,11 +281,8 @@ def manualTracking(self):
             #repeat the last value
             self.spreadRate[str(n+1)].append(xCoeff[0])
 
-        # plotting code adjusted from lumaTracking
-        self.label1.clear()
-        self.label2.clear()
-        self.label1.addLegend(offset = [1, 0.1]) # background color modified in line 122 and 123 of python3.7/site-packages/pyqtgraph/graphicsItems
-        self.label2.addLegend(offset = [1, 0.1])
+        self.lbl2_MT.clear()
+        self.lbl2_MT.addLegend(offset = [1, 0.1]) # background color modified in line 122 and 123 of python3.7/site-packages/pyqtgraph/graphicsItems
         color = ['b', 'r', 'k', 'g', 'c', 'y']
         for n in range(self.nClicks):
             name = 'click{}'.format([n+1])
@@ -274,10 +291,25 @@ def manualTracking(self):
             except:
                 if n > len(color):
                     self.msgLabel.setText('Not enough colors for plotting.')
-            manualTrackingPlot(self.label1, self.time_plot['1'], self.posX_plot[str(n+1)], name, 'o', clr)
-            manualTrackingPlot(self.label2, self.time_plot['1'], self.spreadRate[str(n+1)], name, 'o', clr)
+            manualTrackingPlot(self.lbl1_MT, self.time_plot['1'], self.posX_plot[str(n+1)], name, 'o', clr)
+            manualTrackingPlot(self.lbl2_MT, self.time_plot['1'], self.spreadRate[str(n+1)], name, 'o', clr)
 
-def absValueMT(self):
+        self.lbl1_MT.show()
+
+# this function waits for the next mouse click
+def click(event, x, y, flags, param):
+    global xPos, yPos, clk
+
+    if event == cv2.EVENT_LBUTTONUP:
+        xPos = x
+        yPos = y
+        clk = True
+
+def manualTrackingPlot(label, x, y, lineName, symbol, color):
+    pen = pg.mkPen(color)
+    label.plot(x, y, pen = pen, name = lineName, symbol = symbol, symbolSize = 7, symbolBrush = (color))
+
+def absValue_MT(self):
       abs_frame = list()
       abs_time = list()
 
@@ -301,8 +333,8 @@ def absValueMT(self):
       self.frames_plot.update({'1': abs_frame})
       self.time_plot.update({'1': abs_time})
 
-      self.label1.clear()
-      self.label2.clear()
+      self.lbl1_MT.clear()
+      self.lbl2_MT.clear()
       color = ['b', 'r', 'k', 'g', 'c', 'y']
       for n in range(self.nClicks):
           name = 'click{}'.format([n+1])
@@ -311,21 +343,8 @@ def absValueMT(self):
           except:
               if n > len(color):
                   self.msgLabel.setText('Not enough colors for plotting.')
-          manualTrackingPlot(self.label1, self.time_plot['1'], self.posX_plot[str(n+1)], '', 'o', clr)
-          manualTrackingPlot(self.label2, self.time_plot['1'], self.spreadRate[str(n+1)], '', 'o', clr)
-
-# this function waits for the next mouse click
-def click(event, x, y, flags, param):
-    global xPos, yPos, clk
-
-    if event == cv2.EVENT_LBUTTONUP:
-        xPos = x
-        yPos = y
-        clk = True
-
-def manualTrackingPlot(label, x, y, lineName, symbol, color):
-    pen = pg.mkPen(color)
-    label.plot(x, y, pen = pen, name = lineName, symbol = symbol, symbolSize = 7, symbolBrush = (color))
+          manualTrackingPlot(self.lbl1_MT, self.time_plot['1'], self.posX_plot[str(n+1)], '', 'o', clr)
+          manualTrackingPlot(self.lbl2_MT, self.time_plot['1'], self.spreadRate[str(n+1)], '', 'o', clr)
 
 def chooseFlameDirection_MT(self, text):
     selection = self.directionBox.currentText()
@@ -334,8 +353,8 @@ def chooseFlameDirection_MT(self, text):
     elif selection == 'Right to left':
         self.flameDir = 'toLeft'
 
-def chooseLightFilterMT(self, text):
-    selection = self.filterLight.currentText()
+def chooseLightFilter_MT(self, text):
+    selection = self.filterLight_MT.currentText()
     if selection == 'Track every frame':
         self.lightStatus = 'None'
     elif selection == 'Frames light on':
@@ -343,7 +362,7 @@ def chooseLightFilterMT(self, text):
     elif selection == 'Frames light off':
         self.lightStatus = 'lightOff'
 
-def perspectiveCorrectionMT(self, frame):
+def perspectiveCorrection_MT(self, frame):
     # M is the matrix transformation calculated with the size of the sample (calculated from user input), and the sampleMod from the user clicks
     M = cv2.getPerspectiveTransform(self.sample, self.sampleMod)
     # If the perspective is done on a rotated video, the corrected image might have a much larger size than the original one, here we check this
@@ -377,7 +396,13 @@ def rotationCorrection_MT(self, frame, angle):
     frame = cv2. warpAffine(frame, matrix, (region_w, region_h)) #resolution is specified
     return(frame)
 
-def saveData_ManualTracking(self):
+def lightROIBtn_MT(self):
+    frame, frameCrop = checkEditing_MT(self, self.frameNumber)
+    self.lightROI_MT = cv2.selectROI(frame)
+    cv2.destroyAllWindows()
+    self.lightROI_MT_recorded = True
+
+def saveData_MT(self):
     fileName = QFileDialog.getSaveFileName(self, 'Save tracking data')
     fileName = fileName[0]
     if not fileName[-4:] == '.csv':
@@ -417,12 +442,14 @@ def saveData_ManualTracking(self):
 
 def helpBtn_MT(self):
     msg = QMessageBox(self)
-    msg.setText("""In Manual Tracking you can specify the number of points you want to track (the default is 1), and the spreading direction of the flame. If there is a flashing light in the video, the option 'Frames light on' allows to consider only the frames where it is on, whereas 'Frames light off' will consider only frames without the light. If nothing is selected, all frames are considered. Note: when the light option is used, the program discards frames based on the luminance intensity of the pixels in the ROI, therefore the ROI area should be selected accordingly.
+    msg.setText("""Manual Tracking allows you to click on the desired location(s) in the frames considered. You can select more than one click per frame by changing the 'Tracking points #:'.
 
-    With 'Start Tracking' the frames will show up in a new window (press 'Esc' to exit at any time), and horizontal lines corresponding to the points clicked on the first frame will show up in the following frames (they can be hidden by unchecking 'Show tracking lines'). After the tracking, the position vs time and spread rate values will be shown in the labels.
+    If there is a flashing or strobe light in the recorded video, the option 'Frames light on' will consider only the frames where it is on, whereas 'Frames light off' will consider only frames without the light. If nothing is selected, all the frames are considered. To determine which frames have the light on, click on 'Pick bright region' to select a (small) Region of Interest (ROI) where the effect of the light is visible. Note that this ROI is independent from the ROI specified in the 'Preview box', and it will be shown as a blue rectangle in the left window of the 'Analysis box' when it is used.
 
-    By clicking on 'Absolute values', the same data will be shifted in order to start from zero.
+    With 'Start Tracking' the frames will show up in a new window (press 'Esc' to exit at any time), and horizontal lines corresponding to the points clicked on the first frame will show up in the following frames (they can be hidden by unchecking 'Show tracking lines'). After the tracking, the position vs time and spread rate values will be shown in the windows in the 'Analysis box'.
 
-    'Save data' will create a csv file with all the tracked information.
+    By clicking on 'Absolute values', the x-axis of the tracked data will be shifted to the origin.
+
+    Click on 'Save data' to export a csv file with all the tracked information.
     """)
     msg.exec_()

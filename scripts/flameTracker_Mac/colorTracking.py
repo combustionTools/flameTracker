@@ -58,7 +58,6 @@ def createColorTrackingBox(self):
     self.redMinSlider.setMaximum(255)
     self.redMinSlider.setValue(10)
     self.redMinSlider.sliderReleased.connect(self.singleColorSlider_released)
-    self.redMinSlider.valueChanged.connect(self.singleColorSlider_released)
     redMaxTxt = QLabel('Max:', self.colorTrackingBox)
     redMaxTxt.setGeometry(x_cln1, 114, 100, h_txt)
     self.redMaxLeftBtn_CT = QPushButton('<', self.colorTrackingBox)
@@ -73,7 +72,6 @@ def createColorTrackingBox(self):
     self.redMaxSlider.setMaximum(255)
     self.redMaxSlider.setValue(255)
     self.redMaxSlider.sliderReleased.connect(self.singleColorSlider_released)
-    self.redMaxSlider.valueChanged.connect(self.singleColorSlider_released)
     greenChannelTxt = QLabel('Green channel:', self.colorTrackingBox)
     greenChannelTxt.setGeometry(x_cln1, 140, 100, h_txt)
     greenMinTxt = QLabel('Min:', self.colorTrackingBox)
@@ -90,7 +88,6 @@ def createColorTrackingBox(self):
     self.greenMinSlider.setMaximum(255)
     self.greenMinSlider.setValue(10)
     self.greenMinSlider.sliderReleased.connect(self.singleColorSlider_released)
-    self.greenMinSlider.valueChanged.connect(self.singleColorSlider_released)
     greenMaxTxt = QLabel('Max:', self.colorTrackingBox)
     greenMaxTxt.setGeometry(x_cln1, 184, 100, h_txt)
     self.greenMaxLeftBtn_CT = QPushButton('<', self.colorTrackingBox)
@@ -105,7 +102,6 @@ def createColorTrackingBox(self):
     self.greenMaxSlider.setMaximum(255)
     self.greenMaxSlider.setValue(255)
     self.greenMaxSlider.sliderReleased.connect(self.singleColorSlider_released)
-    self.greenMaxSlider.valueChanged.connect(self.singleColorSlider_released)
     blueChannelTxt = QLabel('Blue channel:', self.colorTrackingBox)
     blueChannelTxt.setGeometry(x_cln1, 210, 100, h_txt)
     blueMinTxt = QLabel('Min:', self.colorTrackingBox)
@@ -121,7 +117,6 @@ def createColorTrackingBox(self):
     self.blueMinSlider.setMinimum(0)
     self.blueMinSlider.setMaximum(255)
     self.blueMinSlider.sliderReleased.connect(self.singleColorSlider_released)
-    self.blueMinSlider.valueChanged.connect(self.singleColorSlider_released)
     blueMaxTxt = QLabel('Max:', self.colorTrackingBox)
     blueMaxTxt.setGeometry(x_cln1, 254, 100, h_txt)
     self.blueMaxLeftBtn_CT = QPushButton('<', self.colorTrackingBox)
@@ -136,16 +131,14 @@ def createColorTrackingBox(self):
     self.blueMaxSlider.setMaximum(255)
     self.blueMaxSlider.setValue(255)
     self.blueMaxSlider.sliderReleased.connect(self.singleColorSlider_released)
-    self.blueMaxSlider.valueChanged.connect(self.singleColorSlider_released)
-    filterParticleTxt = QLabel('Filter particles size:', self.colorTrackingBox)
+    filterParticleTxt = QLabel('Filter particles:', self.colorTrackingBox)
     filterParticleTxt.setGeometry(x_cln1, 280, 150, h_txt)
+    self.particleSldrMax = QLineEdit('1000', self.colorTrackingBox)
+    self.particleSldrMax.setGeometry(135, 283, 40, h_lbl)
     self.filterParticleSldr_CT = QSlider(Qt.Horizontal, self.colorTrackingBox)
     self.filterParticleSldr_CT.setGeometry(10, 305, 170, 25)
     self.filterParticleSldr_CT.setMinimum(1)
-    try:
-        self.filterParticleSldr_CT.setMaximum((int(self.roiThreeIn.text()) * int(self.roiFourIn.text())) / 20)
-    except:
-        self.filterParticleSldr_CT.setMaximum(2000)
+    self.filterParticleSldr_CT.setMaximum(1000)
     self.filterParticleSldr_CT.setValue(10)
     self.filterParticleSldr_CT.sliderReleased.connect(self.filterParticleSldr_CT_released)
     avgLE_txt = QLabel('#px to locate edges:', self.colorTrackingBox)
@@ -173,20 +166,23 @@ def createColorTrackingBox(self):
     self.helpBtn_CT.clicked.connect(self.helpBtn_CT_clicked)
     trackingTxt = QLabel('Flame tracking:', self.colorTrackingBox)
     trackingTxt.setGeometry(x_cln1, 120, 120, h_txt)
+    self.lightROIBtn_CT = QPushButton('Pick bright region', self.colorTrackingBox)
+    self.lightROIBtn_CT.setGeometry(x_cln1 - 10, 145, 150, h_btn)
+    self.lightROIBtn_CT.clicked.connect(self.lightROIBtn_CT_clicked)
     self.filterLight_CT = QCheckBox('Ignore flashing light', self.colorTrackingBox)
-    self.filterLight_CT.setGeometry(x_cln1, 145, 135, h_btn)
+    self.filterLight_CT.setGeometry(x_cln1, 170, 135, h_btn)
     movAvgTxt = QLabel('Moving avg points:', self.colorTrackingBox)
-    movAvgTxt.setGeometry(x_cln1, 170, 130, h_txt)
+    movAvgTxt.setGeometry(x_cln1, 200, 130, h_txt)
     self.movAvgIn_CT = QLineEdit('2', self.colorTrackingBox)
-    self.movAvgIn_CT.setGeometry(x_cln1 + 105, 174, 30, h_lbl)
+    self.movAvgIn_CT.setGeometry(x_cln1 + 105, 204, 30, h_lbl)
     self.colorTrackingBtn = QPushButton('Start tracking', self.colorTrackingBox)
-    self.colorTrackingBtn.setGeometry(x_cln1 - 10, 200, 150, h_btn)
+    self.colorTrackingBtn.setGeometry(x_cln1 - 10, 230, 150, h_btn)
     self.colorTrackingBtn.clicked.connect(self.colorTrackingBtn_clicked)
     self.absValBtn_CT = QPushButton('Absolute values', self.colorTrackingBox)
-    self.absValBtn_CT.setGeometry(x_cln1 - 10, 230, 150, h_btn)
+    self.absValBtn_CT.setGeometry(x_cln1 - 10, 260, 150, h_btn)
     self.absValBtn_CT.clicked.connect(self.absValBtn_CT_clicked)
     self.saveBtn_CT = QPushButton('Save data', self.colorTrackingBox)
-    self.saveBtn_CT.setGeometry(x_cln1 - 10, 260, 150, h_btn)
+    self.saveBtn_CT.setGeometry(x_cln1 - 10, 290, 150, h_btn)
     self.saveBtn_CT.clicked.connect(self.saveBtn_CT_clicked)
 
     # first label
@@ -209,22 +205,22 @@ def createColorTrackingBox(self):
 
     self.flameDir = 'toRight'
     self.connectivity_CT = 4
-    self.colorTrackingValue = True
+    self.lightROI_CT_recorded = False
 
     self.colorTrackingBox.show()
 
-def getColorFilteredFrame(self, frameNumber):
+def checkEditing_CT(self, frameNumber):
     if self.openSelection == 'video':
         self.fVideo.set(1, frameNumber)
         ret, frame = self.fVideo.read()
     elif self.openSelection == 'image(s)':
-        frame = self.imagesList[int(frameNumber)]
-        frame = cv2.imread(frame)
-
+        imageNumber = self.imagesList[int(frameNumber)]
+        frame = cv2.imread(imageNumber)
+    # check for previous corrections
     if self.perspectiveValue == True:
         if self.rotationValue == True:
             frame = rotationCorrection_CT(self, frame, self.anglePerspective)
-        frame = perspectiveCorrectionCT(self, frame)
+        frame = perspectiveCorrection_CT(self, frame)
         #the rotation has already been included in the perspective correction, but it could happen that a further rotation is needed after the correction (e.g. for the analysis)
         if self.anglePerspective != float(self.rotationAngleIn.text()):
             angle = float(self.rotationAngleIn.text()) - self.anglePerspective
@@ -238,9 +234,11 @@ def getColorFilteredFrame(self, frameNumber):
         beta = int(self.brightnessSlider.value())    # Simple brightness control [0-100]. Instead, we have [-50-50]
         frame = cv2.convertScaleAbs(frame, alpha=alpha, beta=beta)
 
-    # crop frame (after rotation)
+    # crop frame
     frameCrop = frame[int(self.roiTwoIn.text()) : (int(self.roiTwoIn.text()) + int(self.roiFourIn.text())), int(self.roiOneIn.text()) : (int(self.roiOneIn.text()) + int(self.roiThreeIn.text()))]
+    return(frame, frameCrop)
 
+def getColorFilteredFrame(self, frame):
     blueLow = self.blueMinSlider.value()
     blueHigh = self.blueMaxSlider.value()
     greenLow = self.greenMinSlider.value()
@@ -251,8 +249,8 @@ def getColorFilteredFrame(self, frameNumber):
     high = ([blueHigh, greenHigh, redHigh])
     low = np.array(low, dtype = 'uint8') #this conversion is necessary
     high = np.array(high, dtype = 'uint8')
-    newMask = cv2.inRange(frameCrop, low, high)
-    frame = cv2.bitwise_and(frameCrop, frameCrop, mask = newMask)
+    newMask = cv2.inRange(frame, low, high)
+    frame = cv2.bitwise_and(frame, frame, mask = newMask)
     grayFrame = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
     (threshold, frameBW) = cv2.threshold(grayFrame, 0, 255, cv2.THRESH_BINARY)
 
@@ -273,11 +271,7 @@ def getColorFilteredFrame(self, frameNumber):
 
     flamePx = np.where(frameBW == [255]) # total area in px
 
-    if self.filterLight_CT.isChecked() == True:
-        if len(flamePx[0]) < 0.5 * (int(self.roiThreeIn.text()) * int(self.roiFourIn.text())): #flamePx[0] = x; flamePx[1] = y
-            findFlameEdges_CT(self, frameBW, flamePx)
-    else:
-        findFlameEdges_CT(self, frameBW, flamePx)
+    findFlameEdges_CT(self, frameBW, flamePx)
 
     if self.showEdges.isChecked() == True:
         cv2.line(frame, (self.xMax, 0),(self.xMax, int(self.roiFourIn.text())), (255, 255, 255), 2)
@@ -357,7 +351,38 @@ def colorTracking(self):
 
     if scale: #this condition prevents crashes in case the scale is not specified
         while (currentFrame < lastFrame):
-            getColorFilteredFrame(self, currentFrame)
+            print('Frame #:', currentFrame) #beta
+            frame, frameCrop = checkEditing_CT(self, currentFrame)
+            if self.filterLight_CT.isChecked() == True:
+                if self.lightROI_CT_recorded == True: #beta
+                    # looking for frames with a light on (which would increase the red and green channel values of the background)
+                    low = ([5, 5, 10]) # blueLow, greenLow, redLow (see color tracking)
+                    high = ([255, 255, 255]) # blueHigh, greenHigh, redHigh
+                    low = np.array(low, dtype = 'uint8') #this conversion is necessary
+                    high = np.array(high, dtype = 'uint8')
+                    currentLightROI = frame[self.lightROI_CT[1] : (self.lightROI_CT[1] + self.lightROI_CT[3]), self.lightROI_CT[0] : (self.lightROI_CT[0] + self.lightROI_CT[2])]
+                    newMask = cv2.inRange(currentLightROI, low, high)
+                    frame_light = cv2.bitwise_and(currentLightROI, currentLightROI, mask = newMask)
+                    grayFrame_light = cv2.cvtColor(frame_light, cv2.COLOR_BGR2GRAY)
+                    (thresh_light, frameBW_light) = cv2.threshold(grayFrame_light, 0, 255, cv2.THRESH_BINARY)
+                    flamePx_light = np.where(frameBW_light == [255]) #beta
+                    area_lightROI = int(self.lightROI_CT[3] * self.lightROI_CT[2])
+                else:
+                    msg = QMessageBox(self)
+                    msg.setText('Before the tracking, please click on "Pick a bright region" to select a region where the light is visible.')
+                    msg.exec_()
+                    break
+
+                if len(flamePx_light[0]) < 0.5 * area_lightROI: #if the bright area is larger than the ROI area
+                    getColorFilteredFrame(self, frameCrop)
+                    print('frame counted')
+                else:
+                    currentFrame = currentFrame + 1 + int(self.skipFrameIn.text())
+                    print('frame not counted')
+                    continue
+            else:
+                getColorFilteredFrame(self, frameCrop)
+
             self.xRight_mm.append(self.xRight / float(self.scaleIn.text()))
             self.xLeft_mm.append(self.xLeft / float(self.scaleIn.text()))
             flameArea.append(self.flameArea)
@@ -454,18 +479,19 @@ def colorTrackingPlot(label, x, y, name, symbol, color):
     label.plot(x, y, pen = pen, name = name, symbol = symbol, symbolSize = 7, symbolBrush = (color))
 
 def colorSlider_released(self):
-    frame = self.previewSlider.value()
-    getColorFilteredFrame(self, frame)
+    frame, frameCrop = checkEditing_CT(self, self.frameNumber)
+    getColorFilteredFrame(self, frameCrop)
     self.lbl1_CT.setPixmap(QPixmap.fromImage(self.frame))
     self.lbl2_CT.setPixmap(QPixmap.fromImage(self.frameBW))
 
 def filterParticleSldr_CT(self):
-    frame = self.previewSlider.value()
-    getColorFilteredFrame(self, frame)
+    frame, frameCrop = checkEditing_CT(self, self.frameNumber)
+    getColorFilteredFrame(self, frameCrop)
     self.lbl1_CT.setPixmap(QPixmap.fromImage(self.frame))
     self.lbl2_CT.setPixmap(QPixmap.fromImage(self.frameBW))
+    self.filterParticleSldr_CT.setMaximum(int(self.particleSldrMax.text()))
 
-def perspectiveCorrectionCT(self, frame):
+def perspectiveCorrection_CT(self, frame):
     # M is the matrix transformation calculated with the size of the sample (calculated from user input), and the sampleMod from the user clicks
     M = cv2.getPerspectiveTransform(self.sample, self.sampleMod)
     # If the perspective is done on a rotated video, the corrected image might have a much larger size than the original one, here we check this
@@ -631,24 +657,11 @@ def showFrameLarge_CT(self):
             cv2.destroyAllWindows()
             return
 
-def helpBtn_CT(self):
-    msg = QMessageBox(self)
-    msg.setText("""In this analysis the flame is tracked based on the image colors. After specifying the video parameters and the flame direction, the flame region can be identified by choosing appropriate values of the RGB channels (and particle size filtering). The channel values vary between 0 and 255, and the code will consider the range between minimum and maximum of each channel adjusted with the sliders. Small particles can be filtered out; the maximum value of the 'Filter particles size' slider corresponds to 25% of the size of the Region Of Interest (ROI).
-
-    The preview box on the left shows the RGB image resulting from the filtering, while the preview box on the right shows the binary image with the particle filtering applied. The edges of the flame region are calculated as maximum and minimum locations.
-
-    If there is a flashing light in the video, it can be filtered out by checking 'Ignore flashing light'.
-
-    Flame position and spread rates are calculated automatically once 'Start tracking' is clicked. The instantaneous spread rates are averaged according to the number of points specified by the user ('Moving Avg'). Note that the 'Moving Avg points' value is doubled for the calculation of the spread rate (i.e. 'Moving Avg points' = 2 considers two points before and two points after the instantaneous value).
-
-    'Absolute values' can be used to make the counts of flame position and time starting from zero.
-
-    By clicking on 'Save data' a csv file containing all the information is generated. The channel values and particle size are saved separately with 'Save filter values'.
-
-    By checking 'Video output' all the considered frames in the analysis (filtered images) will be exported as a video.
-
-    """)
-    msg.exec_()
+def lightROIBtn_CT(self):
+    frame, frameCrop = checkEditing_CT(self, self.frameNumber)
+    self.lightROI_CT = cv2.selectROI(frame)
+    cv2.destroyAllWindows()
+    self.lightROI_CT_recorded = True
 
 def redMinLeftBtn_CT(self):
     currentValue = self.redMinSlider.value()
@@ -698,3 +711,24 @@ def blueMaxRightBtn_CT(self):
     currentValue = self.blueMaxSlider.value()
     self.blueMaxSlider.setValue(currentValue + 1)
     colorSlider_released(self)
+
+def helpBtn_CT(self):
+    msg = QMessageBox(self)
+    msg.setText("""In this analysis the flame is tracked based on the image colors. After specifying the video parameters and the flame direction, the flame region can be identified by choosing appropriate values of the RGB channels. The channel values vary between 0 and 255, and the code will consider the range between minimum and maximum of each channel adjusted with the sliders.
+
+    Small bright regions can be filtered out with the 'Filter particles' slider. The value of the slider indicates the area (in px^2) of the regions to remove from the images, and you can change the maximum value by typing a number in the text box next to 'Filter particles'.
+
+    The preview window on the left shows the RGB image resulting from the filtering, while the window on the right shows the binary image with the particle filtering applied. The edges of the flame region are calculated as maximum and minimum locations of the binary image. The number of points considered to calculate these locations ('#px to locate edges:') can be adjusted as needed.
+
+    If there is a flashing light in the video, the illuminated frames can be discarded in the analysis by checking the 'Ignore flashing light' box. Before starting the analysis, click on 'Pick bright region' to select a (small) Region of Interest (ROI) where the effect of the light is visible. Note that this ROI is independent from the ROI specified in the 'Preview box'.
+
+    Flame position and spread rates are calculated automatically once 'Start tracking' is clicked. The instantaneous spread rates are averaged according to the number of points specified by the user ('Moving avg points'). Note that the 'Moving avg points' value is doubled for the calculation of the spread rate (i.e. 'Moving avg points' = 2 considers two points before and two points after the instantaneous value).
+
+    'Absolute values' can be used to make the counts of flame position and time starting from zero.
+
+    Click on 'Save data' to export a csv file with all the tracked information. The channel values and particle size are saved separately with 'Save filter values'.
+
+    By checking 'Video output' all the considered frames in the analysis (filtered images) will be exported as a video.
+
+    """)
+    msg.exec_()

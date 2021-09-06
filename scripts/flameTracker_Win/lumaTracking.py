@@ -47,15 +47,14 @@ def createLumaTrackingBox(self):
     thresholdTxt.setGeometry(x_cln1, 70, 80, h_txt)
     self.thresholdIn = QLineEdit('30', self.lumaTrackingBox)
     self.thresholdIn.setGeometry(x_cln2, 75, w_lbl, h_lbl)
-    filterParticleTxt = QLabel('Filter particles size:', self.lumaTrackingBox)
+    filterParticleTxt = QLabel('Filter particles:', self.lumaTrackingBox)
     filterParticleTxt.setGeometry(x_cln1, 95, 150, h_txt)
+    self.particleSldrMax = QLineEdit('1000', self.lumaTrackingBox)
+    self.particleSldrMax.setGeometry(x_cln2 - 10, 103, 45, h_lbl) #beta
     self.filterParticleSldr_LT = QSlider(Qt.Horizontal, self.lumaTrackingBox)
     self.filterParticleSldr_LT.setGeometry(x_cln1, 125, 135, 15)
     self.filterParticleSldr_LT.setMinimum(1)
-    try:
-        self.filterParticleSldr_LT.setMaximum((int(self.roiThreeIn.text()) * int(self.roiFourIn.text())) / 20)
-    except:
-        self.filterParticleSldr_LT.setMaximum(2000)
+    self.filterParticleSldr_LT.setMaximum(1000)
     self.filterParticleSldr_LT.setValue(10)
     self.filterParticleSldr_LT.sliderReleased.connect(self.filterParticleSldr_LT_released)
     avgLE_txt = QLabel('#px to locate edges:', self.lumaTrackingBox)
@@ -64,23 +63,27 @@ def createLumaTrackingBox(self):
     self.avgLEIn_LT.setGeometry(x_cln2, 145, w_lbl, h_lbl)
     trackingTxt = QLabel('Flame tracking:', self.lumaTrackingBox)
     trackingTxt.setGeometry(x_cln1, 165, 120, h_txt)
+    self.lightROIBtn_LT = QPushButton('Pick bright region', self.lumaTrackingBox)
+    self.lightROIBtn_LT.setGeometry(x_cln1, 190, 140, h_btn)
+    self.lightROIBtn_LT.clicked.connect(self.lightROIBtn_LT_clicked)
     self.filterLight = QCheckBox('Ignore flashing light', self.lumaTrackingBox)
-    self.filterLight.setGeometry(x_cln1, 190, 140, h_btn)
+    self.filterLight.setGeometry(x_cln1, 215, 140, h_btn)
     movAvgTxt = QLabel('Moving avg points:', self.lumaTrackingBox)
-    movAvgTxt.setGeometry(x_cln1, 210, 100, h_txt)
+    movAvgTxt.setGeometry(x_cln1, 240, 100, h_txt)
     self.movAvgIn_LT = QLineEdit('2', self.lumaTrackingBox)
-    self.movAvgIn_LT.setGeometry(x_cln2, 215, w_lbl, h_lbl)
+    self.movAvgIn_LT.setGeometry(x_cln2, 245, w_lbl, h_lbl)
     self.lumaTrackingBtn = QPushButton('Start Tracking', self.lumaTrackingBox)
-    self.lumaTrackingBtn.setGeometry(x_cln1, 245, 140, h_btn)
+    self.lumaTrackingBtn.setGeometry(x_cln1, 275, 140, h_btn)
     self.lumaTrackingBtn.clicked.connect(self.lumaTrackingBtn_clicked)
     self.absValBtn = QPushButton('Absolute values', self.lumaTrackingBox)
-    self.absValBtn.setGeometry(x_cln1, 275, 140, h_btn)
-    self.absValBtn.clicked.connect(self.absValBtnLT_clicked)
+    self.absValBtn.setGeometry(x_cln1, 305, 140, h_btn)
+    self.absValBtn.clicked.connect(self.absValBtn_LT_clicked)
     self.saveBtn_LT = QPushButton('Save data', self.lumaTrackingBox)
-    self.saveBtn_LT.setGeometry(x_cln1, 305, 140, h_btn)
-    self.saveBtn_LT.clicked.connect(self.lumaSaveData_clicked)
+    self.saveBtn_LT.setGeometry(x_cln1, 335, 140, h_btn)
+    self.saveBtn_LT.clicked.connect(self.saveDataBtn_LT_clicked)
+
     self.helpBtn_LT = QPushButton('Help', self.lumaTrackingBox)
-    self.helpBtn_LT.setGeometry(x_cln1, 335, 140, h_btn)
+    self.helpBtn_LT.setGeometry(190, 335, 140, h_btn)
     self.helpBtn_LT.clicked.connect(self.helpBtn_LT_clicked)
 
     self.showEdges = QCheckBox('Show edges location', self.lumaTrackingBox)
@@ -105,25 +108,26 @@ def createLumaTrackingBox(self):
     self.flameDir = 'toRight' #default value
     self.lumaTrackingBox.show()
 
-def getLumaFrame(self, frameNumber):
+def checkEditing_LT(self, frameNumber):
+    # open the frame selected
     if self.openSelection == 'video':
         self.fVideo.set(1, frameNumber)
         ret, frame = self.fVideo.read()
     elif self.openSelection == 'image(s)':
-        frame = self.imagesList[int(frameNumber)]
-        frame = cv2.imread(frame)
-
+        imageNumber = self.imagesList[int(frameNumber)]
+        frame = cv2.imread(imageNumber)
+    # check for previous corrections
     if self.perspectiveValue == True:
         if self.rotationValue == True:
             frame = rotationCorrection_LT(self, frame, self.anglePerspective)
-        frame = perspectiveCorrectionLT(self, frame)
+        frame = perspectiveCorrection_LT(self, frame)
         #the rotation has already been included in the perspective correction, but it could happen that a further rotation is needed after the correction (e.g. for the analysis)
         if self.anglePerspective != float(self.rotationAngleIn.text()):
             angle = float(self.rotationAngleIn.text()) - self.anglePerspective
             frame = rotationCorrection_LT(self, frame, angle)
     elif float(self.rotationAngleIn.text()) != 0: #in case there is no perspective correction
-            angle = float(self.rotationAngleIn.text())
-            frame = rotationCorrection_LT(self, frame, angle)
+        angle = float(self.rotationAngleIn.text())
+        frame = rotationCorrection_LT(self, frame, angle)
     if int(self.brightnessSlider.value()) != 0 or int(self.contrastSlider.value()) != 0:
         frameContainer = np.zeros(frame.shape, frame.dtype)
         alpha = (int(self.contrastSlider.value()) + 100) * 2 / 200
@@ -132,8 +136,11 @@ def getLumaFrame(self, frameNumber):
 
     # crop frame
     frameCrop = frame[int(self.roiTwoIn.text()) : (int(self.roiTwoIn.text()) + int(self.roiFourIn.text())), int(self.roiOneIn.text()) : (int(self.roiOneIn.text()) + int(self.roiThreeIn.text()))]
+    return(frame, frameCrop)
+
+def getLumaFrame(self, frame):
     # Transform the frame into the YCC space
-    frameYCC = cv2.cvtColor(frameCrop, cv2.COLOR_BGR2YCR_CB)
+    frameYCC = cv2.cvtColor(frame, cv2.COLOR_BGR2YCR_CB)
     Y, C, C = cv2.split(frameYCC)
 
     # Isolate flame region with user specified threshold
@@ -156,12 +163,7 @@ def getLumaFrame(self, frameNumber):
 
     flamePx = np.where(frameBW == [255])
 
-    roiArea = Y.shape[0] * Y.shape[1]
-    if self.filterLight.isChecked() == True:
-        if len(flamePx[0]) < 0.5 * roiArea: #flamePx[0] = x; flamePx[1] = y
-            findFlameEdges(self, frameBW, flamePx)
-    else:
-        findFlameEdges(self, frameBW, flamePx)
+    findFlameEdges(self, frameBW, flamePx)
 
     if self.showEdges.isChecked() == True:
         cv2.line(Y, (self.xMax, 0),(self.xMax, int(self.roiFourIn.text())), (255, 255, 255), 2)
@@ -219,7 +221,7 @@ def lumaTracking(self):
         msg = QMessageBox(self)
         msg.setText('The scale [px/mm] has not been specified')
         msg.exec_()
-    self.lbl2_LT = QLabel(self.lumaTrackingBox)
+    self.lbl2_LT = QLabel(self.lumaTrackingBox) #beta
     firstFrame = int(self.firstFrameIn.text())
     lastFrame = int(self.lastFrameIn.text())
     currentFrame = firstFrame
@@ -242,7 +244,39 @@ def lumaTracking(self):
 
     if scale: #this condition prevents crashes in case the scale is not specified
         while (currentFrame < lastFrame):
-            getLumaFrame(self, currentFrame)
+            print('Frame #:', currentFrame)
+            frame, frameCrop = checkEditing_LT(self, currentFrame)
+            if self.filterLight.isChecked() == True:
+                if self.lightROI_LT_recorded == True:
+                    # looking for frames with a light on (which would increase the red and green channel values of the background)
+                    # low and high are the thresholds for each color channel
+                    low = ([5, 5, 10]) # blueLow, greenLow, redLow
+                    high = ([255, 255, 255]) # blueHigh, greenHigh, redHigh
+                    low = np.array(low, dtype = 'uint8') #this conversion is necessary
+                    high = np.array(high, dtype = 'uint8')
+                    currentLightROI = frame[self.lightROI_LT[1] : (self.lightROI_LT[1] + self.lightROI_LT[3]), self.lightROI_LT[0] : (self.lightROI_LT[0] + self.lightROI_LT[2])]
+                    newMask = cv2.inRange(currentLightROI, low, high)
+                    frame_light = cv2.bitwise_and(currentLightROI, currentLightROI, mask = newMask)
+                    grayFrame_light = cv2.cvtColor(frame_light, cv2.COLOR_BGR2GRAY)
+                    (thresh_light, frameBW_light) = cv2.threshold(grayFrame_light, 0, 255, cv2.THRESH_BINARY)
+                    flamePx_light = np.where(frameBW_light == [255])
+                    area_light = int(self.lightROI_LT[3] * self.lightROI_LT[2])
+                else:
+                    msg = QMessageBox(self)
+                    msg.setText('Before the tracking, please click on "Pick a bright region" to select a region where the light is visible.')
+                    msg.exec_()
+                    break
+
+                if len(flamePx_light[0]) < 0.5 * area_light:
+                    getLumaFrame(self, frameCrop)
+                    print('frame counted')
+                else:
+                    currentFrame = currentFrame + 1 + int(self.skipFrameIn.text())
+                    print('frame not counted')
+                    continue
+            else:
+                getLumaFrame(self, frameCrop)
+
             self.xRight_mm.append(self.xRight / float(self.scaleIn.text()))
             self.xLeft_mm.append(self.xLeft / float(self.scaleIn.text()))
             flameArea.append(self.flameArea)
@@ -348,7 +382,7 @@ def chooseFlameDirection_LT(self, text):
     elif selection == 'Right to left':
         self.flameDir = 'toLeft'
 
-def lumaSaveData(self):
+def saveData_LT(self):
     fileName = QFileDialog.getSaveFileName(self, 'Save tracking data')
     fileName = fileName[0]
     if not fileName[-4:] == '.csv':
@@ -366,7 +400,7 @@ def lumaSaveData(self):
             writer.writerow(row)
         self.msgLabel.setText('Data succesfully saved.')
 
-def absValueLT(self):
+def absValue_LT(self):
     abs_frames = list()
     abs_time = list()
     abs_xRight_mm = list()
@@ -397,7 +431,7 @@ def absValueLT(self):
     lumaTrackingPlot(self.lbl2_LT, self.timeCount, self.spreadRateRight, '', 'o', 'b')
     lumaTrackingPlot(self.lbl2_LT, self.timeCount, self.spreadRateLeft, '', 't', 'r')
 
-def perspectiveCorrectionLT(self, frame):
+def perspectiveCorrection_LT(self, frame):
     # M is the matrix transformation calculated with the size of the sample (calculated from user input), and the sampleMod from the user clicks
     M = cv2.getPerspectiveTransform(self.sample, self.sampleMod)
     # If the perspective is done on a rotated video, the corrected image might have a much larger size than the original one, here we check this
@@ -414,10 +448,11 @@ def perspectiveCorrectionLT(self, frame):
     return(frame)
 
 def filterParticleSldr_LT(self):
-    frame = self.previewSlider.value()
-    getLumaFrame(self, frame)
+    frame, frameCrop = checkEditing_LT(self, self.frameNumber)
+    getLumaFrame(self, frameCrop)
     self.lbl1_LT.setPixmap(QPixmap.fromImage(self.frameY))
     self.lbl2_LT.setPixmap(QPixmap.fromImage(self.frameBW))
+    self.filterParticleSldr_LT.setMaximum(int(self.particleSldrMax.text()))
 
 def rotationCorrection_LT(self, frame, angle):
     # rotation matrix:
@@ -447,22 +482,32 @@ def showFrameLarge_LT(self):
             cv2.destroyAllWindows()
             return
 
+def lightROIBtn_LT(self):
+    frame, frameCrop = checkEditing_LT(self, self.frameNumber)
+    self.lightROI_LT = cv2.selectROI(frame)
+    cv2.destroyAllWindows()
+#    lightROI_crop = frame[self.lightROI_LT[1] : (self.lightROI_LT[1] + self.lightROI_LT[3]), self.lightROI_LT[0] : (self.lightROI_LT[0] + self.lightROI_LT[2])]
+    self.lightROI_LT_recorded = True
+
 def helpBtn_LT(self):
     msg = QMessageBox(self)
-    msg.setText("""In this analysis the luminance intensity of each pixel is used to isolate the flame. After specifying the video parameters and the flame direction, the frames are transformed from the RGB to the YCC color space. Only the Y (luma intensity) component is considered, and the threshold to filter the flame from the background can be adjusted by the user (from 0 to 255).
-    The Y channel of the image is shown in the preview box on the left, while the corresponding binary image is shown on the right. Small bright points can be filtered out with 'Filter particle size'. The maximum value of the 'Filter particles size' slider corresponds to 25% of the size of the Region Of Interest (ROI).
+    msg.setText("""In this analysis the luminance intensity of each pixel is used to isolate the flame. The frames are transformed from the RGB to the YCC color space. Only the Y (luma intensity) component is considered, and the threshold to filter the flame from the background can be adjusted by the user (from 0 to 255).
 
-    The edges of the flame region are calculated as maximum and minimum locations, which can be adjusted by increasing the number of points considered ('#px to locate edges:').
+    The Y channel of the image is shown in the window on the left, while the corresponding binary image is shown on the right.
 
-    If there is a flashing light in the video, the bright frames can be discarded in the analysis by checking the 'Ignore flashing light' box.
+    Small bright regions can be filtered out with the 'Filter particles' slider. The value of the slider indicates the area (in px^2) of the regions to remove from the images, and you can change the maximum value by typing a number in the text box next to 'Filter particles'.
+
+    The edges of the flame region are calculated as maximum and minimum locations of the binary image. The number of points considered to calculate these locations ('#px to locate edges:') can be adjusted as needed.
+
+    If there is a flashing light in the video, the illuminated frames can be discarded in the analysis by checking the 'Ignore flashing light' box. Before starting the analysis, click on 'Pick bright region' to select a (small) Region of Interest (ROI) where the effect of the light is visible. Note that this ROI is independent from the ROI specified in the 'Preview box'.
 
     Flame position and spread rates are calculated automatically by clicking on 'Start Tracking'. The instantaneous spread rates are averaged according to the number of points specified by the user ('Moving avg points'). Note that the 'Moving avg points' value is doubled for the calculation of the spread rate (i.e. 'Moving avg points' = 2 considers two points before and two points after the instantaneous value).
 
     'Absolute values' can be used to make the counts of flame position and time starting from zero.
 
-    By clicking on 'Save data' a csv file containing all the information is generated.
+    Click on 'Save data' to export a csv file with all the tracked information.
 
-    By checking 'Video output' all the considered frames in the analysis (Y channel) will be exported as a video for further analysis.
+    By checking 'Video output', all the considered frames in the analysis (Y channel) will be exported as a video to visually check the tracking.
 
     """)
     msg.exec_()
