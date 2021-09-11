@@ -179,10 +179,13 @@ class Window(QWidget):
         self.xrefTxt = QLabel('xref (px):', parametersBox)
         self.xrefTxt.setGeometry(x_cln1, 140, w_cln1, h_txt)
         self.xref = QLineEdit(parametersBox)
-        self.xref.setGeometry(x_cln2, 144, w_cln2, h_lbl)
+        xRefGUI_shiftBackAmnt = 20
+        xRefGUI_extendAmnt = 20
+        self.xref.setGeometry(x_cln2-xRefGUI_shiftBackAmnt, 144, w_cln2+xRefGUI_shiftBackAmnt+xRefGUI_extendAmnt, h_lbl)
 
         self.measureScaleBtn = QPushButton('Measure scale', parametersBox)
-        self.measureScaleBtn.setGeometry(x_cln1 - 10, 165, 150, h_btn)
+        #self.measureScaleBtn.setGeometry(x_cln1 - 10, 165, 150, h_btn)
+        self.measureScaleBtn.setGeometry(x_cln1 - 10, 168, 150, h_btn-2)
         self.measureScaleBtn.clicked.connect(self.measureScaleBtn_clicked)
         self.roiOneTxt = QLabel('ROI, x:', parametersBox)
         self.roiOneTxt.setGeometry(x_cln1, 195, w_cln1, h_txt)
@@ -451,6 +454,7 @@ class Window(QWidget):
             imageName = self.imagesList[newFrame]
             frame = cv2.imread(imageName)
 
+        self.previewSlider.setValue(int(newFrame)) #CAS - update slider to reflect new goto frame value
         showFrame(self, frame, newFrame)
         checkAnalysisBox(self, newFrame)
 
@@ -1193,10 +1197,12 @@ def checkAnalysisBox(self, newFrame):
 
     if self.HSVTrackingValue == True:
         self.lbl1_CT = QLabel(self.HSVTrackingBox)
-        self.lbl1_CT.setGeometry(370, 25, 330, 250)
+        #self.lbl1_CT.setGeometry(370, 25, 330, 250)
+        self.lbl1_CT.setGeometry(370, 25, 670, 125) #CAS Changed geometry for fitting lengthwise
         self.lbl1_CT.setStyleSheet('background-color: white')
         self.lbl2_CT = QLabel(self.HSVTrackingBox)
-        self.lbl2_CT.setGeometry(710, 25, 330, 250)
+        #self.lbl2_CT.setGeometry(710, 25, 330, 250)
+        self.lbl2_CT.setGeometry(370, 150, 670, 125) #CAS Changed geometry for fitting lengthwise
         self.lbl2_CT.setStyleSheet('background-color: white')
         if self.grayscale.isChecked() == True:
             self.msgLabel.setText('Grayscale images not supported with this feature')

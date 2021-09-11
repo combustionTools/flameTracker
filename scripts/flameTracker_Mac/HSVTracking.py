@@ -69,7 +69,7 @@ def createHSVTrackingBox(self):
     self.directionBox.addItem('Left to right')
     self.directionBox.addItem('Right to left')
     self.directionBox.activated.connect(self.directionCT_clicked)
-    redChannelTxt = QLabel('H channel:', self.HSVTrackingBox)
+    redChannelTxt = QLabel('Hue:', self.HSVTrackingBox)
     redChannelTxt.setGeometry(x_cln1, 70, 100, h_txt)
     redMinTxt = QLabel('Min:', self.HSVTrackingBox)
     redMinTxt.setGeometry(x_cln1, 92, 80, h_txt)
@@ -107,7 +107,7 @@ def createHSVTrackingBox(self):
     self.redMaxSlider.setValue(163) # Default to include blue values - 130=~260 deg Max Hue
     self.redMaxSlider.sliderReleased.connect(self.singleHSVSlider_released)
     self.redMaxSlider.valueChanged.connect(self.singleHSVSlider_released)
-    greenChannelTxt = QLabel('S channel:', self.HSVTrackingBox)
+    greenChannelTxt = QLabel('Saturation:', self.HSVTrackingBox)
     greenChannelTxt.setGeometry(x_cln1, 140, 100, h_txt)
     greenMinTxt = QLabel('Min:', self.HSVTrackingBox)
     greenMinTxt.setGeometry(x_cln1, 162, 100, h_txt)
@@ -143,7 +143,7 @@ def createHSVTrackingBox(self):
     self.greenMaxSlider.setValue(255) # Default to some blue value - 255=~100% max Saturation
     self.greenMaxSlider.sliderReleased.connect(self.singleHSVSlider_released)
     self.greenMaxSlider.valueChanged.connect(self.singleHSVSlider_released)
-    blueChannelTxt = QLabel('V channel:', self.HSVTrackingBox)
+    blueChannelTxt = QLabel('Value:', self.HSVTrackingBox)
     blueChannelTxt.setGeometry(x_cln1, 210, 100, h_txt)
     blueMinTxt = QLabel('Min:', self.HSVTrackingBox)
     blueMinTxt.setGeometry(x_cln1, 232, 100, h_txt)
@@ -230,9 +230,13 @@ def createHSVTrackingBox(self):
     self.saveBtn_CT.setGeometry(x_cln1 - 10, 260, 150, h_btn)
     self.saveBtn_CT.clicked.connect(self.saveBtn_CT_clicked)
 
+    # Add time/frame plotting toggle - CAS
+    self.isPlotTimevsFrame = False #True
+
     # first label
     self.lbl1_CT = QLabel(self.HSVTrackingBox)
-    self.lbl1_CT.setGeometry(370, 25, 330, 250)
+    #self.lbl1_CT.setGeometry(370, 25, 330, 250)
+    self.lbl1_CT.setGeometry(370, 25, 670, 125) # Changed geometry as removed BW image display
     self.lbl1_CT.setStyleSheet('background-color: white')
     self.showEdges = QCheckBox('Show edges location', self.HSVTrackingBox)
     self.showEdges.setGeometry(780, 275, 135, h_btn)
@@ -241,13 +245,15 @@ def createHSVTrackingBox(self):
     self.exportEdges_CT.setGeometry(780, 300, 135, h_btn)
     #CAS Export with tracking line
     self.exportTrackOverlay_CT = QCheckBox('Video Tracking Overlay', self.HSVTrackingBox)
-    self.exportTrackOverlay_CT.setGeometry(780, 325, 100, h_btn)
+    self.exportTrackOverlay_CT.setGeometry(780, 325, 200, h_btn)
 
     
 
     # second label
     self.lbl2_CT = QLabel(self.HSVTrackingBox)
-    self.lbl2_CT.setGeometry(710, 25, 330, 250)
+    #self.lbl2_CT.setGeometry(710, 25, 330, 250)
+    self.lbl2_CT.setGeometry(370, 150, 670, 125)
+    #print('Geometry set to', self.lbl2_CT.viewGeometry()) # Error: 'AttributeError: 'QLabel' object has not attribute 'viewGeometry'
     self.lbl2_CT.setStyleSheet('background-color: white')
     self.showFrameLargeBtn_CT = QPushButton('Show frames', self.HSVTrackingBox)
     self.showFrameLargeBtn_CT.setGeometry(930, 275, 115, h_btn)
@@ -502,27 +508,52 @@ def HSVTracking(self):
         self.spreadRateLeft = self.spreadRateLeft.tolist()
 
         self.lbl1_CT = pg.PlotWidget(self.HSVTrackingBox)
-        self.lbl1_CT.setGeometry(370, 25, 330, 250)
+        #self.lbl1_CT.setGeometry(370, 25, 330, 250)
+        self.lbl1_CT.setGeometry(370, 25, 670, 125) # Changed geometry as removed BW image display
         self.lbl1_CT.setBackground('w')
         self.lbl1_CT.setLabel('left', 'Position [mm]', color='black', size=14)
-        self.lbl1_CT.setLabel('bottom', 'Time [s]', color='black', size=14)
+        if self.isPlotTimevsFrame:
+            ## Plot in terms of time
+            self.lbl1_CT.setLabel('bottom', 'Time [s]', color='black', size=14)
+        else:
+            ## CAS Plot in terms of frame:
+            self.lbl1_CT.setLabel('bottom', 'Frame', color='black', size=14)
+
         self.lbl1_CT.getAxis('bottom').setPen(color=(0, 0, 0))
         self.lbl1_CT.getAxis('left').setPen(color=(0, 0, 0))
         self.lbl1_CT.addLegend(offset = [1, 0.1]) # background color modified in line 122 and 123 of Versions/3.7/lib/python3.7/site-packages/pyqtgraph/graphicsItems
         self.lbl2_CT = pg.PlotWidget(self.HSVTrackingBox)
-        self.lbl2_CT.setGeometry(710, 25, 330, 250)
+        #self.lbl2_CT.setGeometry(710, 25, 330, 250)
+        self.lbl2_CT.setGeometry(370, 150, 670, 125) #(370, 25, 670, 250)
+        #print('\nView rect=', self.lbl2_CT.viewRect() )
+        #print('\nGeometry set to', self.lbl2_CT.viewGeometry())
         self.lbl2_CT.setBackground('w')
         self.lbl2_CT.setLabel('left', 'Spread Rate [mm/s]', color='black', size=14)
-        self.lbl2_CT.setLabel('bottom', 'Time [s]', color='black', size=14)
+        if self.isPlotTimevsFrame:
+            ## Plot in terms of time
+            self.lbl2_CT.setLabel('bottom', 'Time [s]', color='black', size=14)
+        else:
+            ## CAS Plot in terms of frame:
+            self.lbl2_CT.setLabel('bottom', 'Frame', color='black', size=14)
+
         self.lbl2_CT.getAxis('bottom').setPen(color=(0, 0, 0))
         self.lbl2_CT.getAxis('left').setPen(color=(0, 0, 0))
         self.lbl2_CT.addLegend(offset = [1, 0.1]) # background color modified in line 122 and 123 of Versions/3.7/lib/python3.7/site-packages/pyqtgraph/graphicsItems
 
-        HSVTrackingPlot(self.lbl1_CT, self.timeCount, self.xRight_mm, 'right edge', 'o', 'b')
-        HSVTrackingPlot(self.lbl1_CT, self.timeCount, self.xLeft_mm, 'left edge', 't', 'r')
-        HSVTrackingPlot(self.lbl2_CT, self.timeCount, self.spreadRateRight, 'right edge', 'o', 'b')
-        HSVTrackingPlot(self.lbl2_CT, self.timeCount, self.spreadRateLeft, 'left edge', 't', 'r')
+        if self.isPlotTimevsFrame:
+            ## Plot in terms of time
+            HSVTrackingPlot(self.lbl1_CT, self.timeCount, self.xRight_mm, 'right edge', 'o', 'b')
+            HSVTrackingPlot(self.lbl1_CT, self.timeCount, self.xLeft_mm, 'left edge', 't', 'r')
+            HSVTrackingPlot(self.lbl2_CT, self.timeCount, self.spreadRateRight, 'right edge', 'o', 'b')
+            HSVTrackingPlot(self.lbl2_CT, self.timeCount, self.spreadRateLeft, 'left edge', 't', 'r')
+        else:
+            ## CAS Plot in terms of frame:
+            HSVTrackingPlot(self.lbl1_CT, self.frameCount, self.xRight_mm, 'right edge', 'o', 'b')
+            HSVTrackingPlot(self.lbl1_CT, self.frameCount, self.xLeft_mm, 'left edge', 't', 'r')
+            HSVTrackingPlot(self.lbl2_CT, self.frameCount, self.spreadRateRight, 'right edge', 'o', 'b')
+            HSVTrackingPlot(self.lbl2_CT, self.frameCount, self.spreadRateLeft, 'left edge', 't', 'r')
 
+        print('Showing!')
         self.lbl1_CT.show()
         self.lbl2_CT.show()
 
@@ -671,10 +702,17 @@ def absValBtn_CT(self):
     self.lbl1_CT.clear()
     self.lbl2_CT.clear()
 
-    HSVTrackingPlot(self.lbl1_CT, self.timeCount, self.xRight_mm, '', 'o', 'b')
-    HSVTrackingPlot(self.lbl1_CT, self.timeCount, self.xLeft_mm, '','t', 'r')
-    HSVTrackingPlot(self.lbl2_CT, self.timeCount, self.spreadRateRight, '', 'o', 'b')
-    HSVTrackingPlot(self.lbl2_CT, self.timeCount, self.spreadRateLeft, '','t', 'r')
+    ## Plot in terms of time:
+    #HSVTrackingPlot(self.lbl1_CT, self.timeCount, self.xRight_mm, '', 'o', 'b')
+    #HSVTrackingPlot(self.lbl1_CT, self.timeCount, self.xLeft_mm, '','t', 'r')
+    #HSVTrackingPlot(self.lbl2_CT, self.timeCount, self.spreadRateRight, '', 'o', 'b')
+    #HSVTrackingPlot(self.lbl2_CT, self.timeCount, self.spreadRateLeft, '','t', 'r')
+
+    ## CAS Plot in terms of frame:
+    HSVTrackingPlot(self.lbl1_CT, self.frameCount, self.xRight_mm, '', 'o', 'b')
+    HSVTrackingPlot(self.lbl1_CT, self.frameCount, self.xLeft_mm, '','t', 'r')
+    HSVTrackingPlot(self.lbl2_CT, self.frameCount, self.spreadRateRight, '', 'o', 'b')
+    HSVTrackingPlot(self.lbl2_CT, self.frameCount, self.spreadRateLeft, '','t', 'r')
 
 def saveBtn_CT(self):
     fileName = QFileDialog.getSaveFileName(self, 'Save tracking data')
@@ -703,8 +741,8 @@ def saveBtn_CT(self):
 def showFrameLarge_CT(self):
     cv2.namedWindow(('Frame (RGB): ' + self.frameIn.text()), cv2.WINDOW_AUTOSIZE)
     cv2.imshow(('Frame (RGB): ' + self.frameIn.text()), self.currentFrameRGB_CT)
-    cv2.namedWindow(('Frame (black/white): ' + self.frameIn.text()), cv2.WINDOW_AUTOSIZE)
-    cv2.imshow(('Frame (black/white): ' + self.frameIn.text()), self.currentFrameBW_CT)
+    #cv2.namedWindow(('Frame (black/white): ' + self.frameIn.text()), cv2.WINDOW_AUTOSIZE)
+    #cv2.imshow(('Frame (black/white): ' + self.frameIn.text()), self.currentFrameBW_CT)
     while True:
         if cv2.waitKey(1) == 27: #ord('Esc')
             cv2.destroyAllWindows()
