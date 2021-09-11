@@ -1018,30 +1018,30 @@ class Window(QWidget):
     ### HSV tracking methods (defined in HSVTracking.py)
     def singleHSVSlider_released(self):
         HSVSlider_released(self)
-    def redMinLeftBtn_CT_clicked(self):
-        redMinLeftBtn_CT(self)
-    def redMinRightBtn_CT_clicked(self):
-        redMinRightBtn_CT(self)
-    def redMaxLeftBtn_CT_clicked(self):
-        redMaxLeftBtn_CT(self)
-    def redMaxRightBtn_CT_clicked(self):
-        redMaxRightBtn_CT(self)
-    def greenMinLeftBtn_CT_clicked(self):
-        greenMinLeftBtn_CT(self)
-    def greenMinRightBtn_CT_clicked(self):
-        greenMinRightBtn_CT(self)
-    def greenMaxLeftBtn_CT_clicked(self):
-        greenMaxLeftBtn_CT(self)
-    def greenMaxRightBtn_CT_clicked(self):
-        greenMaxRightBtn_CT(self)
-    def blueMinLeftBtn_CT_clicked(self):
-        blueMinLeftBtn_CT(self)
-    def blueMinRightBtn_CT_clicked(self):
-        blueMinRightBtn_CT(self)
-    def blueMaxLeftBtn_CT_clicked(self):
-        blueMaxLeftBtn_CT(self)
-    def blueMaxRightBtn_CT_clicked(self):
-        blueMaxRightBtn_CT(self)
+    def hueMinLeftBtn_CT_clicked(self):
+        hueMinLeftBtn_CT(self)
+    def hueMinRightBtn_CT_clicked(self):
+        hueMinRightBtn_CT(self)
+    def hueMaxLeftBtn_CT_clicked(self):
+        hueMaxLeftBtn_CT(self)
+    def hueMaxRightBtn_CT_clicked(self):
+        hueMaxRightBtn_CT(self)
+    def satMinLeftBtn_CT_clicked(self):
+        satMinLeftBtn_CT(self)
+    def satMinRightBtn_CT_clicked(self):
+        satMinRightBtn_CT(self)
+    def satMaxLeftBtn_CT_clicked(self):
+        satMaxLeftBtn_CT(self)
+    def satMaxRightBtn_CT_clicked(self):
+        satMaxRightBtn_CT(self)
+    def valMinLeftBtn_CT_clicked(self):
+        valMinLeftBtn_CT(self)
+    def valMinRightBtn_CT_clicked(self):
+        valMinRightBtn_CT(self)
+    def valMaxLeftBtn_CT_clicked(self):
+        valMaxLeftBtn_CT(self)
+    def valMaxRightBtn_CT_clicked(self):
+        valMaxRightBtn_CT(self)
     def filterParticleSldr_CT_released(self):
         filterParticleSldr_CT(self)
     def directionCT_clicked(self, text):

@@ -1,10 +1,6 @@
 """
-CAS:	HSL and HSV
+Note on implementation of HSL and HSV
 Hue, the angular dimension, starting at the red primary at 0°, passing through the green primary at 120° and the blue primary at 240°, and then wrapping back to red at 360°
-
-Central vertical axis comprises the neutral, achromatic, or gray colors ranging, from top to bottom, white at lightness 1 (value 1) to black at lightness 0 (value 0). 
-
-In both geometries, the additive primary and secondary colors—red, yellow, green, cyan, blue and magenta—and linear mixtures between adjacent pairs of them, sometimes called pure colors, are arranged around the outside edge of the cylinder with saturation 1. These saturated colors have lightness 0.5 in HSL, while in HSV they have value 1.
 
 OpenCV Implementation: RGB to HSV
 In case of 8-bit and 16-bit images, R, G, and B are converted to the floating-point format and scaled to fit the 0 to 1 range.
@@ -14,22 +10,8 @@ If H<0 then H <- +360 . On output 0≤V≤1, 0≤S≤1, 0≤H≤360 .
 The values are then converted to the destination data type:
 
     8-bit images: V <- 255V, S <- 255S,H <- H/2(to fit to 0 to 255)
-    16-bit images: (currently not supported) V < -65535V, S < 65535S, H < −H
+    16-bit images: (currently not supported) V < -65535V, S < 65535S, H <− H
     32-bit images: H, S, and V are left as is
-
-
-Switching to HSV from color 
-H - Red
-S - Green
-V - Blue
-
-:CAS
-
-
-Flame Tracker. This program is designed to track flames or bright objects in videos or images.
-Copyright (C) 2021  Luca Carmignani and Charles Scudiere
-
-This file is part of Flame Tracker.
 
 Flame Tracker is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -44,7 +26,7 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-Author: Luca Carmignani, PhD, Charles Scudiere, PhD
+Author: Charles Scudiere, PhD, adapted from code written by Luca Carmignani, PhD
 Contact: flameTrackerContact@gmail.com
 """
 
@@ -69,115 +51,115 @@ def createHSVTrackingBox(self):
     self.directionBox.addItem('Left to right')
     self.directionBox.addItem('Right to left')
     self.directionBox.activated.connect(self.directionCT_clicked)
-    redChannelTxt = QLabel('Hue:', self.HSVTrackingBox)
-    redChannelTxt.setGeometry(x_cln1, 70, 100, h_txt)
-    redMinTxt = QLabel('Min:', self.HSVTrackingBox)
-    redMinTxt.setGeometry(x_cln1, 92, 80, h_txt)
-    self.redMinLeftBtn_CT = QPushButton('<', self.HSVTrackingBox)
-    self.redMinLeftBtn_CT.setGeometry(35, 90, w_btn2, h_btn)
-    self.redMinLeftBtn_CT.clicked.connect(self.redMinLeftBtn_CT_clicked)
-    self.redMinRightBtn_CT = QPushButton('>', self.HSVTrackingBox)
-    self.redMinRightBtn_CT.setGeometry(175, 90, w_btn2, h_btn)
-    self.redMinRightBtn_CT.clicked.connect(self.redMinRightBtn_CT_clicked)
-    # CAS slider setting: H - Red, S - Green, V - Blue
-    self.redMinSlider = QSlider(Qt.Horizontal, self.HSVTrackingBox)
-    self.redMinSlider.setGeometry(60, 95, 120, 25)
-    self.redMinSlider.setMinimum(0)
-    #self.redMinSlider.setMaximum(255)
-    self.redMinSlider.setMaximum(180) # since stored as H/2 for 8-bit (normally 0-360)
-    #self.redMinSlider.setValue(10)
-    self.redMinSlider.setValue(80) # Default to include blue values - 92=~185 deg Min Hue
-    self.redMinSlider.sliderReleased.connect(self.singleHSVSlider_released)
-    self.redMinSlider.valueChanged.connect(self.singleHSVSlider_released)
-    redMaxTxt = QLabel('Max:', self.HSVTrackingBox)
-    redMaxTxt.setGeometry(x_cln1, 114, 100, h_txt)
-    self.redMaxLeftBtn_CT = QPushButton('<', self.HSVTrackingBox)
-    self.redMaxLeftBtn_CT.setGeometry(35, 112, w_btn2, h_btn)
-    self.redMaxLeftBtn_CT.clicked.connect(self.redMaxLeftBtn_CT_clicked)
-    self.redMaxRightBtn_CT = QPushButton('>', self.HSVTrackingBox)
-    self.redMaxRightBtn_CT.setGeometry(175, 112, w_btn2, h_btn)
-    self.redMaxRightBtn_CT.clicked.connect(self.redMaxRightBtn_CT_clicked)
-    # CAS slider setting: H - Red, S - Green, V - Blue
-    self.redMaxSlider = QSlider(Qt.Horizontal, self.HSVTrackingBox)
-    self.redMaxSlider.setGeometry(60, 117, 120, 25)
-    self.redMaxSlider.setMinimum(0)
-    #self.redMaxSlider.setMaximum(255)
-    self.redMaxSlider.setMaximum(180) # since stored as H/2 for 8-bit (normally 0-360)
-    #self.redMaxSlider.setValue(255)
-    self.redMaxSlider.setValue(163) # Default to include blue values - 130=~260 deg Max Hue
-    self.redMaxSlider.sliderReleased.connect(self.singleHSVSlider_released)
-    self.redMaxSlider.valueChanged.connect(self.singleHSVSlider_released)
-    greenChannelTxt = QLabel('Saturation:', self.HSVTrackingBox)
-    greenChannelTxt.setGeometry(x_cln1, 140, 100, h_txt)
-    greenMinTxt = QLabel('Min:', self.HSVTrackingBox)
-    greenMinTxt.setGeometry(x_cln1, 162, 100, h_txt)
-    self.greenMinLeftBtn_CT = QPushButton('<', self.HSVTrackingBox)
-    self.greenMinLeftBtn_CT.setGeometry(35, 160, w_btn2, h_btn)
-    self.greenMinLeftBtn_CT.clicked.connect(self.greenMinLeftBtn_CT_clicked)
-    self.greenMinRightBtn_CT = QPushButton('>', self.HSVTrackingBox)
-    self.greenMinRightBtn_CT.setGeometry(175, 160, w_btn2, h_btn)
-    self.greenMinRightBtn_CT.clicked.connect(self.greenMinRightBtn_CT_clicked)
-    # CAS slider setting: H - Red, S - Green, V - Blue
-    self.greenMinSlider = QSlider(Qt.Horizontal, self.HSVTrackingBox)
-    self.greenMinSlider.setGeometry(60, 165, 120, 25)
-    self.greenMinSlider.setMinimum(0)
-    self.greenMinSlider.setMaximum(255)
-    #self.greenMinSlider.setValue(10)
-    self.greenMinSlider.setValue(30) # Default to include blue values - 100=~40% min Saturation
-    self.greenMinSlider.sliderReleased.connect(self.singleHSVSlider_released)
-    self.greenMinSlider.valueChanged.connect(self.singleHSVSlider_released)
-    greenMaxTxt = QLabel('Max:', self.HSVTrackingBox)
-    greenMaxTxt.setGeometry(x_cln1, 184, 100, h_txt)
-    self.greenMaxLeftBtn_CT = QPushButton('<', self.HSVTrackingBox)
-    self.greenMaxLeftBtn_CT.setGeometry(35, 182, w_btn2, h_btn)
-    self.greenMaxLeftBtn_CT.clicked.connect(self.greenMaxLeftBtn_CT_clicked)
-    self.greenMaxRightBtn_CT = QPushButton('>', self.HSVTrackingBox)
-    self.greenMaxRightBtn_CT.setGeometry(175, 182, w_btn2, h_btn)
-    self.greenMaxRightBtn_CT.clicked.connect(self.greenMaxRightBtn_CT_clicked)
-    # CAS slider setting: H - Red, S - Green, V - Blue
-    self.greenMaxSlider = QSlider(Qt.Horizontal, self.HSVTrackingBox)
-    self.greenMaxSlider.setGeometry(60, 187, 120, 25)
-    self.greenMaxSlider.setMinimum(0)
-    self.greenMaxSlider.setMaximum(255)
-    #self.greenMaxSlider.setValue(255)
-    self.greenMaxSlider.setValue(255) # Default to some blue value - 255=~100% max Saturation
-    self.greenMaxSlider.sliderReleased.connect(self.singleHSVSlider_released)
-    self.greenMaxSlider.valueChanged.connect(self.singleHSVSlider_released)
-    blueChannelTxt = QLabel('Value:', self.HSVTrackingBox)
-    blueChannelTxt.setGeometry(x_cln1, 210, 100, h_txt)
-    blueMinTxt = QLabel('Min:', self.HSVTrackingBox)
-    blueMinTxt.setGeometry(x_cln1, 232, 100, h_txt)
-    self.blueMinLeftBtn_CT = QPushButton('<', self.HSVTrackingBox)
-    self.blueMinLeftBtn_CT.setGeometry(35, 230, w_btn2, h_btn)
-    self.blueMinLeftBtn_CT.clicked.connect(self.blueMinLeftBtn_CT_clicked)
-    self.blueMinRightBtn_CT = QPushButton('>', self.HSVTrackingBox)
-    self.blueMinRightBtn_CT.setGeometry(175, 230, w_btn2, h_btn)
-    self.blueMinRightBtn_CT.clicked.connect(self.blueMinRightBtn_CT_clicked)
-    # CAS slider setting: H - Red, S - Green, V - Blue
-    self.blueMinSlider = QSlider(Qt.Horizontal, self.HSVTrackingBox)
-    self.blueMinSlider.setGeometry(60, 235, 120, 25)
-    self.blueMinSlider.setMinimum(0)
-    self.blueMinSlider.setMaximum(255)
-    self.blueMinSlider.setValue(20) # Default to some blue value - 63=~25% min Value
-    self.blueMinSlider.sliderReleased.connect(self.singleHSVSlider_released)
-    self.blueMinSlider.valueChanged.connect(self.singleHSVSlider_released)
-    blueMaxTxt = QLabel('Max:', self.HSVTrackingBox)
-    blueMaxTxt.setGeometry(x_cln1, 254, 100, h_txt)
-    self.blueMaxLeftBtn_CT = QPushButton('<', self.HSVTrackingBox)
-    self.blueMaxLeftBtn_CT.setGeometry(35, 252, w_btn2, h_btn)
-    self.blueMaxLeftBtn_CT.clicked.connect(self.blueMaxLeftBtn_CT_clicked)
-    self.blueMaxRightBtn_CT = QPushButton('>', self.HSVTrackingBox)
-    self.blueMaxRightBtn_CT.setGeometry(175, 252, w_btn2, h_btn)
-    self.blueMaxRightBtn_CT.clicked.connect(self.blueMaxRightBtn_CT_clicked)
-    # CAS slider setting: H - Red, S - Green, V - Blue
-    self.blueMaxSlider = QSlider(Qt.Horizontal, self.HSVTrackingBox)
-    self.blueMaxSlider.setGeometry(60, 257, 120, 25)
-    self.blueMaxSlider.setMinimum(0)
-    self.blueMaxSlider.setMaximum(255)
-    #self.blueMaxSlider.setValue(255)
-    self.blueMaxSlider.setValue(255) # Default to some blue value - 255=~100% max Value
-    self.blueMaxSlider.sliderReleased.connect(self.singleHSVSlider_released)
-    self.blueMaxSlider.valueChanged.connect(self.singleHSVSlider_released)
+    hueChannelTxt = QLabel('Hue:', self.HSVTrackingBox)
+    hueChannelTxt.setGeometry(x_cln1, 70, 100, h_txt)
+    hueMinTxt = QLabel('Min:', self.HSVTrackingBox)
+    hueMinTxt.setGeometry(x_cln1, 92, 80, h_txt)
+    self.hueMinLeftBtn_CT = QPushButton('<', self.HSVTrackingBox)
+    self.hueMinLeftBtn_CT.setGeometry(35, 90, w_btn2, h_btn)
+    self.hueMinLeftBtn_CT.clicked.connect(self.hueMinLeftBtn_CT_clicked)
+    self.hueMinRightBtn_CT = QPushButton('>', self.HSVTrackingBox)
+    self.hueMinRightBtn_CT.setGeometry(175, 90, w_btn2, h_btn)
+    self.hueMinRightBtn_CT.clicked.connect(self.hueMinRightBtn_CT_clicked)
+    # CAS slider setting:
+    self.hueMinSlider = QSlider(Qt.Horizontal, self.HSVTrackingBox)
+    self.hueMinSlider.setGeometry(60, 95, 120, 25)
+    self.hueMinSlider.setMinimum(0)
+    #self.hueMinSlider.setMaximum(255)
+    self.hueMinSlider.setMaximum(180) # since stored as H/2 for 8-bit (normally 0-360)
+    #self.hueMinSlider.setValue(10)
+    self.hueMinSlider.setValue(80) # Default to include blue values - 92=~185 deg Min Hue
+    self.hueMinSlider.sliderReleased.connect(self.singleHSVSlider_released)
+    self.hueMinSlider.valueChanged.connect(self.singleHSVSlider_released)
+    hueMaxTxt = QLabel('Max:', self.HSVTrackingBox)
+    hueMaxTxt.setGeometry(x_cln1, 114, 100, h_txt)
+    self.hueMaxLeftBtn_CT = QPushButton('<', self.HSVTrackingBox)
+    self.hueMaxLeftBtn_CT.setGeometry(35, 112, w_btn2, h_btn)
+    self.hueMaxLeftBtn_CT.clicked.connect(self.hueMaxLeftBtn_CT_clicked)
+    self.hueMaxRightBtn_CT = QPushButton('>', self.HSVTrackingBox)
+    self.hueMaxRightBtn_CT.setGeometry(175, 112, w_btn2, h_btn)
+    self.hueMaxRightBtn_CT.clicked.connect(self.hueMaxRightBtn_CT_clicked)
+    # CAS slider setting:
+    self.hueMaxSlider = QSlider(Qt.Horizontal, self.HSVTrackingBox)
+    self.hueMaxSlider.setGeometry(60, 117, 120, 25)
+    self.hueMaxSlider.setMinimum(0)
+    #self.hueMaxSlider.setMaximum(255)
+    self.hueMaxSlider.setMaximum(180) # since stored as H/2 for 8-bit (normally 0-360)
+    #self.hueMaxSlider.setValue(255)
+    self.hueMaxSlider.setValue(163) # Default to include blue values - 130=~260 deg Max Hue
+    self.hueMaxSlider.sliderReleased.connect(self.singleHSVSlider_released)
+    self.hueMaxSlider.valueChanged.connect(self.singleHSVSlider_released)
+    satChannelTxt = QLabel('Saturation:', self.HSVTrackingBox)
+    satChannelTxt.setGeometry(x_cln1, 140, 100, h_txt)
+    satMinTxt = QLabel('Min:', self.HSVTrackingBox)
+    satMinTxt.setGeometry(x_cln1, 162, 100, h_txt)
+    self.satMinLeftBtn_CT = QPushButton('<', self.HSVTrackingBox)
+    self.satMinLeftBtn_CT.setGeometry(35, 160, w_btn2, h_btn)
+    self.satMinLeftBtn_CT.clicked.connect(self.satMinLeftBtn_CT_clicked)
+    self.satMinRightBtn_CT = QPushButton('>', self.HSVTrackingBox)
+    self.satMinRightBtn_CT.setGeometry(175, 160, w_btn2, h_btn)
+    self.satMinRightBtn_CT.clicked.connect(self.satMinRightBtn_CT_clicked)
+    # CAS slider setting:
+    self.satMinSlider = QSlider(Qt.Horizontal, self.HSVTrackingBox)
+    self.satMinSlider.setGeometry(60, 165, 120, 25)
+    self.satMinSlider.setMinimum(0)
+    self.satMinSlider.setMaximum(255)
+    #self.satMinSlider.setValue(10)
+    self.satMinSlider.setValue(30) # Default to include blue values - 100=~40% min Saturation
+    self.satMinSlider.sliderReleased.connect(self.singleHSVSlider_released)
+    self.satMinSlider.valueChanged.connect(self.singleHSVSlider_released)
+    satMaxTxt = QLabel('Max:', self.HSVTrackingBox)
+    satMaxTxt.setGeometry(x_cln1, 184, 100, h_txt)
+    self.satMaxLeftBtn_CT = QPushButton('<', self.HSVTrackingBox)
+    self.satMaxLeftBtn_CT.setGeometry(35, 182, w_btn2, h_btn)
+    self.satMaxLeftBtn_CT.clicked.connect(self.satMaxLeftBtn_CT_clicked)
+    self.satMaxRightBtn_CT = QPushButton('>', self.HSVTrackingBox)
+    self.satMaxRightBtn_CT.setGeometry(175, 182, w_btn2, h_btn)
+    self.satMaxRightBtn_CT.clicked.connect(self.satMaxRightBtn_CT_clicked)
+    # CAS slider setting:
+    self.satMaxSlider = QSlider(Qt.Horizontal, self.HSVTrackingBox)
+    self.satMaxSlider.setGeometry(60, 187, 120, 25)
+    self.satMaxSlider.setMinimum(0)
+    self.satMaxSlider.setMaximum(255)
+    #self.satMaxSlider.setValue(255)
+    self.satMaxSlider.setValue(255) # Default to some blue value - 255=~100% max Saturation
+    self.satMaxSlider.sliderReleased.connect(self.singleHSVSlider_released)
+    self.satMaxSlider.valueChanged.connect(self.singleHSVSlider_released)
+    valChannelTxt = QLabel('Value:', self.HSVTrackingBox)
+    valChannelTxt.setGeometry(x_cln1, 210, 100, h_txt)
+    valMinTxt = QLabel('Min:', self.HSVTrackingBox)
+    valMinTxt.setGeometry(x_cln1, 232, 100, h_txt)
+    self.valMinLeftBtn_CT = QPushButton('<', self.HSVTrackingBox)
+    self.valMinLeftBtn_CT.setGeometry(35, 230, w_btn2, h_btn)
+    self.valMinLeftBtn_CT.clicked.connect(self.valMinLeftBtn_CT_clicked)
+    self.valMinRightBtn_CT = QPushButton('>', self.HSVTrackingBox)
+    self.valMinRightBtn_CT.setGeometry(175, 230, w_btn2, h_btn)
+    self.valMinRightBtn_CT.clicked.connect(self.valMinRightBtn_CT_clicked)
+    # CAS slider setting:
+    self.valMinSlider = QSlider(Qt.Horizontal, self.HSVTrackingBox)
+    self.valMinSlider.setGeometry(60, 235, 120, 25)
+    self.valMinSlider.setMinimum(0)
+    self.valMinSlider.setMaximum(255)
+    self.valMinSlider.setValue(20) # Default to some blue value - 63=~25% min Value
+    self.valMinSlider.sliderReleased.connect(self.singleHSVSlider_released)
+    self.valMinSlider.valueChanged.connect(self.singleHSVSlider_released)
+    valMaxTxt = QLabel('Max:', self.HSVTrackingBox)
+    valMaxTxt.setGeometry(x_cln1, 254, 100, h_txt)
+    self.valMaxLeftBtn_CT = QPushButton('<', self.HSVTrackingBox)
+    self.valMaxLeftBtn_CT.setGeometry(35, 252, w_btn2, h_btn)
+    self.valMaxLeftBtn_CT.clicked.connect(self.valMaxLeftBtn_CT_clicked)
+    self.valMaxRightBtn_CT = QPushButton('>', self.HSVTrackingBox)
+    self.valMaxRightBtn_CT.setGeometry(175, 252, w_btn2, h_btn)
+    self.valMaxRightBtn_CT.clicked.connect(self.valMaxRightBtn_CT_clicked)
+    # CAS slider setting:
+    self.valMaxSlider = QSlider(Qt.Horizontal, self.HSVTrackingBox)
+    self.valMaxSlider.setGeometry(60, 257, 120, 25)
+    self.valMaxSlider.setMinimum(0)
+    self.valMaxSlider.setMaximum(255)
+    #self.valMaxSlider.setValue(255)
+    self.valMaxSlider.setValue(255) # Default to some blue value - 255=~100% max Value
+    self.valMaxSlider.sliderReleased.connect(self.singleHSVSlider_released)
+    self.valMaxSlider.valueChanged.connect(self.singleHSVSlider_released)
     filterParticleTxt = QLabel('Filter particles size:', self.HSVTrackingBox)
     filterParticleTxt.setGeometry(x_cln1, 280, 150, h_txt)
     self.filterParticleSldr_CT = QSlider(Qt.Horizontal, self.HSVTrackingBox)
@@ -295,19 +277,14 @@ def getHSVFilteredFrame(self, frameNumber):
     self.frameCrop = frame[int(self.roiTwoIn.text()) : (int(self.roiTwoIn.text()) + int(self.roiFourIn.text())), int(self.roiOneIn.text()) : (int(self.roiOneIn.text()) + int(self.roiThreeIn.text()))]
 
     # Filter here: #CAS Modified for HSV tracking instead of color tracking
-    blueLow = self.blueMinSlider.value()
-    blueHigh = self.blueMaxSlider.value()
-    greenLow = self.greenMinSlider.value()
-    greenHigh = self.greenMaxSlider.value()
-    redLow = self.redMinSlider.value()
-    redHigh = self.redMaxSlider.value()
-    # H - Red
-    # S - Green
-    # V - Blue
-    #low = ([blueLow, greenLow, redLow])
-    #high = ([blueHigh, greenHigh, redHigh])
-    low = ([redLow, greenLow, blueLow])
-    high = ([redHigh, greenHigh, blueHigh])
+    valLow = self.valMinSlider.value()
+    valHigh = self.valMaxSlider.value()
+    satLow = self.satMinSlider.value()
+    satHigh = self.satMaxSlider.value()
+    hueLow = self.hueMinSlider.value()
+    hueHigh = self.hueMaxSlider.value()
+    low = ([hueLow, satLow, valLow])
+    high = ([hueHigh, satHigh, valHigh])
     low = np.array(low, dtype = 'uint8') #this conversion is necessary
     high = np.array(high, dtype = 'uint8')
     #newMask = cv2.inRange(frameCrop, low, high)
@@ -634,10 +611,10 @@ def saveChannelsBtn_CT(self):
                 writer = csv.writer(csvfile, delimiter = ',')
                 writer.writerow(['File', self.fNameLbl.text()])
                 writer.writerow(['Channel', 'Minimum', 'Maximum'])
-                # CAS slider setting: H - Red, S - Green, V - Blue
-                writer.writerow(['H', str(self.redMinSlider.value()), str(self.redMaxSlider.value())])
-                writer.writerow(['S', str(self.greenMinSlider.value()), str(self.greenMaxSlider.value())])
-                writer.writerow(['V', str(self.blueMinSlider.value()), str(self.blueMaxSlider.value())])
+                # CAS slider setting:
+                writer.writerow(['H', str(self.hueMinSlider.value()), str(self.hueMaxSlider.value())])
+                writer.writerow(['S', str(self.satMinSlider.value()), str(self.satMaxSlider.value())])
+                writer.writerow(['V', str(self.valMinSlider.value()), str(self.valMaxSlider.value())])
                 writer.writerow([''])
                 writer.writerow(['Particle size', str(self.filterParticleSldr_CT.value())])
                 writer.writerow(['Moving average', str(self.movAvgIn_CT.text())])
@@ -653,16 +630,16 @@ def loadChannelsBtn_CT(self):
         with open(name[0], 'r') as csvfile:
             reader = csv.reader(csvfile, delimiter = ',')
             for row in reader:
-                # CAS slider setting: H - Red, S - Green, V - Blue
+                # CAS slider setting:
                 if 'H' in row:
-                    self.redMinSlider.setValue(int(row[1]))
-                    self.redMaxSlider.setValue(int(row[2]))
+                    self.hueMinSlider.setValue(int(row[1]))
+                    self.hueMaxSlider.setValue(int(row[2]))
                 elif 'S' in row:
-                    self.greenMinSlider.setValue(int(row[1]))
-                    self.greenMaxSlider.setValue(int(row[2]))
+                    self.satMinSlider.setValue(int(row[1]))
+                    self.satMaxSlider.setValue(int(row[2]))
                 elif 'V' in row:
-                    self.blueMinSlider.setValue(int(row[1]))
-                    self.blueMaxSlider.setValue(int(row[2]))
+                    self.valMinSlider.setValue(int(row[1]))
+                    self.valMaxSlider.setValue(int(row[2]))
                 elif 'Particle size' in row:
                     self.filterParticleSldr_CT.setValue(int(row[1]))
                 elif 'Moving average' in row:
@@ -750,7 +727,8 @@ def showFrameLarge_CT(self):
 
 def helpBtn_CT(self):
     msg = QMessageBox(self)
-    msg.setText("""In this analysis the flame is tracked based on the image HSV colors. After specifying the video parameters and the flame direction, the flame region can be identified by choosing appropriate values of the RGB channels (and particle size filtering). The channel values vary between 0 and 255, and the code will consider the range between minimum and maximum of each channel adjusted with the sliders. Small particles can be filtered out; the maximum value of the 'Filter particles size' slider corresponds to 25% of the size of the Region Of Interest (ROI).
+    msg.setText("""In this analysis the flame is tracked based on the image HSV colors. After specifying the video parameters and the flame direction, the flame region can be identified by choosing appropriate values of the HSV parameters (and particle size filtering). The HSV values vary depending on the colorspace of the frame/image - current implemntation uses a hue from 0-180 (since 0-360 deg hue is stored as H/2 for 8-bit), value and saturation are set from 0 to 255.
+    The code will consider the range between minimum and maximum of each of the HSV as adjusted with the sliders. Small particles can be filtered out; the maximum value of the 'Filter particles size' slider corresponds to 25% of the size of the Region Of Interest (ROI).
 
     The preview box on the left shows the RGB image resulting from the filtering, while the preview box on the right shows the binary image with the particle filtering applied. The edges of the flame region are calculated as maximum and minimum locations.
 
@@ -767,51 +745,51 @@ def helpBtn_CT(self):
     """)
     msg.exec_()
 
-def redMinLeftBtn_CT(self):
-    currentValue = self.redMinSlider.value()
-    self.redMinSlider.setValue(currentValue - 1)
+def hueMinLeftBtn_CT(self):
+    currentValue = self.hueMinSlider.value()
+    self.hueMinSlider.setValue(currentValue - 1)
     HSVSlider_released(self)
-def redMinRightBtn_CT(self):
-    currentValue = self.redMinSlider.value()
-    self.redMinSlider.setValue(currentValue + 1)
+def hueMinRightBtn_CT(self):
+    currentValue = self.hueMinSlider.value()
+    self.hueMinSlider.setValue(currentValue + 1)
     HSVSlider_released(self)
-def redMaxLeftBtn_CT(self):
-    currentValue = self.redMaxSlider.value()
-    self.redMaxSlider.setValue(currentValue - 1)
+def hueMaxLeftBtn_CT(self):
+    currentValue = self.hueMaxSlider.value()
+    self.hueMaxSlider.setValue(currentValue - 1)
     HSVSlider_released(self)
-def redMaxRightBtn_CT(self):
-    currentValue = self.redMaxSlider.value()
-    self.redMaxSlider.setValue(currentValue + 1)
+def hueMaxRightBtn_CT(self):
+    currentValue = self.hueMaxSlider.value()
+    self.hueMaxSlider.setValue(currentValue + 1)
     HSVSlider_released(self)
-def greenMinLeftBtn_CT(self):
-    currentValue = self.greenMinSlider.value()
-    self.greenMinSlider.setValue(currentValue - 1)
+def satMinLeftBtn_CT(self):
+    currentValue = self.satMinSlider.value()
+    self.satMinSlider.setValue(currentValue - 1)
     HSVSlider_released(self)
-def greenMinRightBtn_CT(self):
-    currentValue = self.greenMinSlider.value()
-    self.greenMinSlider.setValue(currentValue + 1)
+def satMinRightBtn_CT(self):
+    currentValue = self.satMinSlider.value()
+    self.satMinSlider.setValue(currentValue + 1)
     HSVSlider_released(self)
-def greenMaxLeftBtn_CT(self):
-    currentValue = self.greenMaxSlider.value()
-    self.greenMaxSlider.setValue(currentValue - 1)
+def satMaxLeftBtn_CT(self):
+    currentValue = self.satMaxSlider.value()
+    self.satMaxSlider.setValue(currentValue - 1)
     HSVSlider_released(self)
-def greenMaxRightBtn_CT(self):
-    currentValue = self.greenMaxSlider.value()
-    self.greenMaxSlider.setValue(currentValue + 1)
+def satMaxRightBtn_CT(self):
+    currentValue = self.satMaxSlider.value()
+    self.satMaxSlider.setValue(currentValue + 1)
     HSVSlider_released(self)
-def blueMinLeftBtn_CT(self):
-    currentValue = self.blueMinSlider.value()
-    self.blueMinSlider.setValue(currentValue - 1)
+def valMinLeftBtn_CT(self):
+    currentValue = self.valMinSlider.value()
+    self.valMinSlider.setValue(currentValue - 1)
     HSVSlider_released(self)
-def blueMinRightBtn_CT(self):
-    currentValue = self.blueMinSlider.value()
-    self.blueMinSlider.setValue(currentValue + 1)
+def valMinRightBtn_CT(self):
+    currentValue = self.valMinSlider.value()
+    self.valMinSlider.setValue(currentValue + 1)
     HSVSlider_released(self)
-def blueMaxLeftBtn_CT(self):
-    currentValue = self.blueMaxSlider.value()
-    self.blueMaxSlider.setValue(currentValue - 1)
+def valMaxLeftBtn_CT(self):
+    currentValue = self.valMaxSlider.value()
+    self.valMaxSlider.setValue(currentValue - 1)
     HSVSlider_released(self)
-def blueMaxRightBtn_CT(self):
-    currentValue = self.blueMaxSlider.value()
-    self.blueMaxSlider.setValue(currentValue + 1)
+def valMaxRightBtn_CT(self):
+    currentValue = self.valMaxSlider.value()
+    self.valMaxSlider.setValue(currentValue + 1)
     HSVSlider_released(self)
