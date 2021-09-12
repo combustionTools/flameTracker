@@ -59,7 +59,7 @@ class Window(QWidget):
         the Free Software Foundation, either version 3 of the License, or
         (at your option) any later version.''')
 
-        self.setWindowTitle('Flame Tracker (v1.0.8)')
+        self.setWindowTitle('Flame Tracker (v1.0.9)')
         self.setGeometry(25, 25, 1070, 740) #10,10,1000,720
         #Box to choose video parameters, widgets are listed below
         parametersBox = QGroupBox('Preview box', self)
@@ -582,12 +582,14 @@ class Window(QWidget):
         self.rotationValue = False
         self.brightnessSlider.setValue(0)
         self.contrastSlider.setValue(0)
+        self.brightnessLbl.setText(str(self.brightnessSlider.value()))
+        self.contrastLbl.setText(str(self.contrastSlider.value()))
         if self.openSelection == 'video':
             self.fVideo.set(1, self.frameNumber)
             ret, frame = self.fVideo.read()
         elif self.openSelection == 'image(s)':
-            frame = self.imagesList[int(self.frameNumber)]
-            frame = cv2.imread(frame)
+            imageNumber = self.imagesList[int(self.frameNumber)]
+            frame = cv2.imread(imageNumber)
         showFrame(self, frame, self.frameNumber)
 
     def saveParBtn_clicked(self):

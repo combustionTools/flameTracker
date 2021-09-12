@@ -60,7 +60,7 @@ class Window(QWidget):
         (at your option) any later version.''')
 
         self.setStyleSheet('font: 12pt Helvetica')
-        self.setWindowTitle('Flame Tracker (v1.0.8)')
+        self.setWindowTitle('Flame Tracker (v1.0.9)')
         self.setGeometry(10, 10, 1070, 755)
         #Box to choose video parameters, the widgets are listed below
         parametersBox = QGroupBox('Preview box', self)
@@ -552,7 +552,7 @@ class Window(QWidget):
             self.sampleMod = np.float32([self.topLeftMod, self.topRightMod, self.bottomRightMod, self.bottomLeftMod])
             self.perspectiveValue = True # this value tells us if a flame is distorted or not
             self.msgLabel.setText('Image successfully corrected')
-            showFrame(self, frame, chooseLightFilter_MT.frameNumber)
+            showFrame(self, frame, self.frameNumber)
             # The rotation value has to be set after showing the frame to avoid double editing in the first preview
             if float(self.rotationAngleIn.text()) != 0:
                 self.rotationValue = True
@@ -565,12 +565,14 @@ class Window(QWidget):
         self.rotationValue = False
         self.brightnessSlider.setValue(0)
         self.contrastSlider.setValue(0)
+        self.brightnessLbl.setText(str(self.brightnessSlider.value()))
+        self.contrastLbl.setText(str(self.contrastSlider.value()))
         if self.openSelection == 'video':
             self.fVideo.set(1, self.frameNumber)
             ret, frame = self.fVideo.read()
         elif self.openSelection == 'image(s)':
-            frame = self.imagesList[int(self.frameNumber)]
-            frame = cv2.imread(frame)
+            imageNumber = self.imagesList[int(self.frameNumber)]
+            frame = cv2.imread(imageNumber)
         showFrame(self, frame, self.frameNumber)
 
     def saveParBtn_clicked(self):

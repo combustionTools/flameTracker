@@ -232,7 +232,8 @@ def lumaTracking(self):
     flameArea = list()
 
     if self.exportEdges_LT.isChecked():
-        fps = (float(self.vFpsLbl.text()))/(int(self.skipFrameIn.text()) + 1) #fps(new) = fps(original)/(skipframes + 1)
+        #fps = (float(self.vFpsLbl.text()))/(int(self.skipFrameIn.text()) + 1) #fps(new) = fps(original)/(skipframes + 1)
+        fps = float(self.fpsIn.text())
         codec = str(self.codecIn.text())
         vFormat = str(self.formatIn.text())
         vName = self.fPath + '-Yvideo.' + str(vFormat) # alternative: 'output.{}'.format(vFormat); + self.fNameLbl.text()
@@ -295,7 +296,7 @@ def lumaTracking(self):
             pass
 
         for i in range(len(self.xRight_mm)):
-            flameLength_mm.append(self.xRight_mm[i] - self.xLeft_mm[i])
+            flameLength_mm.append(abs(self.xRight_mm[i] - self.xLeft_mm[i]))
 
         flameLength_mm = np.round(flameLength_mm, 2)
         self.flameLength_mm = flameLength_mm.tolist()
