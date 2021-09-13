@@ -25,6 +25,7 @@ import cv2
 import numpy as np
 import csv
 import sys
+import platform
 import time
 import re
 import pyqtgraph as pg
@@ -39,6 +40,7 @@ from pyqtgraph import PlotWidget, plot
 from manualTracking import *
 from lumaTracking import *
 from colorTracking import *
+from boxesGUI_OS import *
 
 #To make sure the resolution is correct also in Windows
 if hasattr(Qt, 'AA_EnableHighDpiScaling'):
@@ -59,237 +61,12 @@ class Window(QWidget):
         the Free Software Foundation, either version 3 of the License, or
         (at your option) any later version.''')
 
-        self.setWindowTitle('Flame Tracker (v1.0.9)')
-        self.setGeometry(25, 25, 1070, 740) #10,10,1000,720
-        #Box to choose video parameters, widgets are listed below
-        parametersBox = QGroupBox('Preview box', self)
-        parametersBox.setGeometry(10, 5, 1050, 350)
-        #This box changes for each analysis;
-        #widgets must be declared in the specific py file
-        self.analysisGroupBox = QGroupBox('Analysis box', self)
-        self.analysisGroupBox.setGeometry(10, 360, 1050, 370)
-
-        # this text box is only shown at the beginning
-        tempBox = QGroupBox(' ', self.analysisGroupBox)
-        tempBox.setGeometry(0, 0, 1050, 390)
-        introTxt = QLabel('Select the analysis method from -Choose analysis- to activate this panel', tempBox)
-        introTxt.setGeometry(100, 100, 600, 100)
-        introTxt.setStyleSheet('font: 12pt Helvetica')
-
-        ### parametersBox
-        # first column
-        x_cln1 = 10
-        x_cln2 = 105
-        h_lbl = 20
-        h_txt = 30
-        h_btn = 25
-        self.msgLabel = QLabel('Welcome to the Flame Tracker! \n\n Click on the Help button to get started.', parametersBox)
-        self.msgLabel.setGeometry(x_cln1, 20, 140, h_btn + 55)
-        self.msgLabel.setStyleSheet('background-color: white')
-        self.msgLabel.setWordWrap(True)
-        self.helpBtn = QPushButton('Help', parametersBox)
-        self.helpBtn.setGeometry(x_cln1, 105, 140, h_btn)
-        self.helpBtn.clicked.connect(self.helpBtn_clicked)
-        self.openBtn = QPushButton('Open', parametersBox)
-        self.openBtn.setGeometry(x_cln1, 135, 50, h_btn)
-        self.openBtn.clicked.connect(self.openBtn_clicked)
-        self.openSelectionBox = QComboBox(parametersBox)
-        self.openSelectionBox.setGeometry(65, 136, 85, h_btn - 1)
-        self.openSelectionBox.addItem('Video')
-        self.openSelectionBox.addItem('Image(s)')
-        self.openSelectionBox.activated[str].connect(self.openSelection_click)
-        self.fNameLbl = QLabel('(file name)', parametersBox)
-        self.fNameLbl.setGeometry(x_cln1, 170, 140, h_lbl)
-        self.fNameLbl.setStyleSheet('background-color: white')
-        vWidthTxt = QLabel('Width (px):', parametersBox)
-        vWidthTxt.setGeometry(x_cln1, 195, 60, h_txt)
-        self.vWidthLbl = QLabel(parametersBox)
-        self.vWidthLbl.setGeometry(x_cln2, 200, 45, h_lbl)
-        self.vWidthLbl.setStyleSheet('background-color: white')
-        vHeightTxt = QLabel('Height (px):', parametersBox)
-        vHeightTxt.setGeometry(x_cln1, 225, 60, h_txt)
-        self.vHeightLbl = QLabel(parametersBox)
-        self.vHeightLbl.setGeometry(x_cln2, 230, 45, h_lbl)
-        self.vHeightLbl.setStyleSheet('background-color: white')
-        vFpsTxt = QLabel('Frame rate (fps):', parametersBox)
-        vFpsTxt.setGeometry(x_cln1, 255, 85, h_txt)
-        self.vFpsLbl = QLabel(parametersBox)
-        self.vFpsLbl.setGeometry(x_cln2, 260, 45, h_lbl)
-        self.vFpsLbl.setStyleSheet('background-color: white')
-        vFramesTxt = QLabel('Frames #:', parametersBox)
-        vFramesTxt.setGeometry(x_cln1, 285, 65, h_txt)
-        self.vFramesLbl = QLabel(parametersBox)
-        self.vFramesLbl.setGeometry(x_cln2, 290, 45, h_lbl)
-        self.vFramesLbl.setStyleSheet('background-color: white')
-        vDurationTxt = QLabel('Duration (s):', parametersBox)
-        vDurationTxt.setGeometry(x_cln1, 315, 65, h_txt)
-        self.vDurationLbl = QLabel(parametersBox)
-        self.vDurationLbl.setGeometry(x_cln2, 320, 45, h_lbl)
-        self.vDurationLbl.setStyleSheet('background-color: white')
-
-        #second column
-        x_cln1 = 170
-        x_cln2 = 260
-        w_cln1 = 80
-        w_cln2 = 50
-        clmn2_Txt = QLabel(parametersBox)
-        clmn2_Txt.setText('Video parameters:')
-        clmn2_Txt.setGeometry(x_cln1, 10, 120, h_txt)
-        self.firstFrameTxt = QLabel('First frame:', parametersBox)
-        self.firstFrameTxt.setGeometry(x_cln1, 35, w_cln1, h_txt)
-        self.firstFrameIn = QLineEdit(parametersBox)
-        self.firstFrameIn.setGeometry(x_cln2, 40, w_cln2, h_lbl)
-        self.lastFrameTxt = QLabel('Last frame:', parametersBox)
-        self.lastFrameTxt.setGeometry(x_cln1, 65, w_cln1, h_txt)
-        self.lastFrameIn = QLineEdit(parametersBox)
-        self.lastFrameIn.setGeometry(x_cln2, 70, w_cln2, h_lbl)
-        self.skipFrameTxt = QLabel('Skip frames:', parametersBox)
-        self.skipFrameTxt.setGeometry(x_cln1, 95, w_cln1, h_txt)
-        self.skipFrameIn = QLineEdit(parametersBox)
-        self.skipFrameIn.setGeometry(x_cln2, 100, w_cln2, h_lbl)
-        self.scaleTxt = QLabel('Scale (px/mm):', parametersBox)
-        self.scaleTxt.setGeometry(x_cln1, 125, w_cln1, h_txt)
-        self.scaleIn = QLineEdit(parametersBox)
-        self.scaleIn.setGeometry(x_cln2, 130, w_cln2, h_lbl)
-        self.measureScaleBtn = QPushButton('Measure scale', parametersBox)
-        self.measureScaleBtn.setGeometry(x_cln1, 160, 140, h_btn)
-        self.measureScaleBtn.clicked.connect(self.measureScaleBtn_clicked)
-        self.roiOneTxt = QLabel('ROI, x:', parametersBox)
-        self.roiOneTxt.setGeometry(x_cln1, 195, w_cln1, h_txt)
-        self.roiOneIn = QLineEdit(parametersBox)
-        self.roiOneIn.setGeometry(x_cln2, 200, w_cln2, h_lbl)
-        self.roiTwoTxt = QLabel('ROI, y:', parametersBox)
-        self.roiTwoTxt.setGeometry(x_cln1, 225, w_cln1, h_txt)
-        self.roiTwoIn = QLineEdit(parametersBox)
-        self.roiTwoIn.setGeometry(x_cln2, 230, w_cln2, h_lbl)
-        self.roiThreeTxt = QLabel('ROI, w:', parametersBox)
-        self.roiThreeTxt.setGeometry(x_cln1, 255, w_cln1, h_txt)
-        self.roiThreeIn = QLineEdit(parametersBox)
-        self.roiThreeIn.setGeometry(x_cln2, 260, w_cln2, h_lbl)
-        self.roiFourTxt = QLabel('ROI, h:', parametersBox)
-        self.roiFourTxt.setGeometry(x_cln1, 285, w_cln1, h_txt)
-        self.roiFourIn = QLineEdit(parametersBox)
-        self.roiFourIn.setGeometry(x_cln2, 290, w_cln2, h_lbl)
-        self.roiBtn = QPushButton('Select ROI', parametersBox)
-        self.roiBtn.setGeometry(x_cln1, 317, 140, h_btn)
-        self.roiBtn.clicked.connect(self.roiBtn_clicked)
-
-        #third column
-        x_cln1 = 330
-        x_cln2 = 420
-        w_cln1 = 60
-        w_cln2 = 50
-        adjustFramesTxt = QLabel('Adjust frames:', parametersBox)
-        adjustFramesTxt.setGeometry(x_cln1, 10, 100, h_txt)
-        self.rotationAngleInTxt = QLabel('Rotation (deg):', parametersBox)
-        self.rotationAngleInTxt.setGeometry(x_cln1, 35, 120, h_txt)
-        self.rotationAngleIn = QLineEdit(parametersBox)
-        self.rotationAngleIn.setGeometry(x_cln2, 39, w_cln2, h_lbl)
-        self.brightnessTxt = QLabel('Brightness:', parametersBox)
-        self.brightnessTxt.setGeometry(x_cln1, 65, 150, h_txt)
-        self.brightnessSlider = QSlider(Qt.Horizontal, parametersBox)
-        self.brightnessSlider.setGeometry(x_cln1, 95, 137, 15)
-        self.brightnessSlider.setMinimum(-50)
-        self.brightnessSlider.setMaximum(50)
-        self.brightnessSlider.setValue(0)
-        self.brightnessSlider.sliderReleased.connect(self.editFramesSlider_released)
-        self.brightnessSlider.valueChanged.connect(self.editFramesSlider_released)
-        self.brightnessLbl = QLabel('0', parametersBox)
-        self.brightnessLbl.setGeometry(x_cln2, 70, w_cln2, h_lbl - 2)
-        self.brightnessLbl.setStyleSheet('background-color: white')
-        self.contrastTxt = QLabel('Contrast:', parametersBox)
-        self.contrastTxt.setGeometry(x_cln1, 110, 150, h_txt)
-        self.contrastSlider = QSlider(Qt.Horizontal, parametersBox)
-        self.contrastSlider.setGeometry(x_cln1, 140, 137, 15)
-        self.contrastSlider.setMinimum(-100)
-        self.contrastSlider.setMaximum(+100)
-        self.contrastSlider.setValue(0)
-        self.contrastSlider.sliderReleased.connect(self.editFramesSlider_released)
-        self.contrastSlider.valueChanged.connect(self.editFramesSlider_released)
-        self.contrastLbl = QLabel('0', parametersBox)
-        self.contrastLbl.setGeometry(x_cln2, 115, w_cln2, h_lbl - 2)
-        self.contrastLbl.setStyleSheet('background-color: white')
-        self.grayscale = QCheckBox('Grayscale', parametersBox)
-        self.grayscale.setGeometry(x_cln1, 165, 100, h_btn)
-        self.correctionTxt = QLabel('Correction lengths (mm):', parametersBox)
-        self.correctionTxt.setGeometry(x_cln1, 195, 140, h_txt)
-        self.sLengthTxt = QLabel('Horizontal:', parametersBox)
-        self.sLengthTxt.setGeometry(x_cln1, 220, 130, h_txt)
-        self.sLengthIn = QLineEdit('-', parametersBox)
-        self.sLengthIn.setGeometry(x_cln2, 225, w_cln2, h_lbl)
-        self.sWidthTxt = QLabel('Vertical:', parametersBox)
-        self.sWidthTxt.setGeometry(x_cln1, 250, w_cln1, h_txt)
-        self.sWidthIn = QLineEdit('-', parametersBox)
-        self.sWidthIn.setGeometry(x_cln2, 255, w_cln2, h_lbl)
-        self.perspectiveBtn = QPushButton('Correct Perspective', parametersBox)
-        self.perspectiveBtn.setGeometry(x_cln1, 280, 140, h_btn)
-        self.perspectiveBtn.clicked.connect(self.perspectiveBtn_clicked)
-        self.originalBtn = QPushButton('Restore original', parametersBox)
-        self.originalBtn.setGeometry(x_cln1, 315, 140, h_btn)
-        self.originalBtn.clicked.connect(self.originalBtn_clicked)
-
-        # fourth column
-        x_cln1 = 490
-        x_cln2 = 580
-        analysisTxt = QLabel('Analysis:', parametersBox)
-        analysisTxt.setGeometry(x_cln1, 10, w_cln1, h_txt)
-        self.analysisSelectionBox = QComboBox(parametersBox)
-        self.analysisSelectionBox.setGeometry(x_cln1, 35, 140, h_btn)
-        self.analysisSelectionBox.addItem('Choose analysis')
-        self.analysisSelectionBox.addItem('Manual tracking')
-        self.analysisSelectionBox.addItem('Luma tracking')
-        self.analysisSelectionBox.addItem('Color tracking')
-        self.analysisSelectionBox.activated[str].connect(self.analysis_click)
-        saveLoadTxt = QLabel('Save/Load:', parametersBox)
-        saveLoadTxt.setGeometry(x_cln1, 60, w_cln1, h_txt)
-        self.saveParBtn = QPushButton('Save Parameters', parametersBox)
-        self.saveParBtn.setGeometry(x_cln1, 85, 140, h_btn)
-        self.saveParBtn.clicked.connect(self.saveParBtn_clicked)
-        self.loadParBtn = QPushButton('Load Parameters', parametersBox)
-        self.loadParBtn.setGeometry(x_cln1, 115, 140, h_btn)
-        self.loadParBtn.clicked.connect(self.loadParBtn_clicked)
-        self.figSize = QCheckBox('Half-size figures', parametersBox)
-        self.figSize.setGeometry(x_cln1, 155, 150, h_btn)
-        exportTxt = QLabel('Save edited video:', parametersBox)
-        exportTxt.setGeometry(x_cln1, 190, 140, h_txt)
-        self.newVideoHelpBtn = QPushButton('?', parametersBox)
-        self.newVideoHelpBtn.setGeometry(x_cln2 + 30, 195, 20, h_btn - 5)
-        self.newVideoHelpBtn.clicked.connect(self.newVideoHelpBtn_clicked)
-        fpsTxt = QLabel('Frame rate (fps):', parametersBox)
-        fpsTxt.setGeometry(x_cln1, 220, 120, h_txt)
-        self.fpsIn = QLineEdit('24', parametersBox)
-        self.fpsIn.setGeometry(x_cln2, 225, 50, h_lbl)
-        codecTxt = QLabel('Codec:', parametersBox)
-        codecTxt.setGeometry(x_cln1, 250, 100, h_txt)
-        self.codecIn = QLineEdit('mp4v', parametersBox)
-        self.codecIn.setGeometry(x_cln2, 255, 50, h_lbl)
-        formatTxt = QLabel('Format:', parametersBox)
-        formatTxt.setGeometry(x_cln1, 280, 100, h_txt)
-        self.formatIn = QLineEdit('mp4', parametersBox)
-        self.formatIn.setGeometry(x_cln2, 285, 50, h_lbl)
-        self.exportVideoBtn = QPushButton('Export video', parametersBox)
-        self.exportVideoBtn.setGeometry(x_cln1, 315, 140, h_btn)
-        self.exportVideoBtn.clicked.connect(self.exportVideoBtn_clicked)
-
-        # preview label
-        x_cln1 = 650
-        self.win1 = QLabel(parametersBox)
-        self.win1.setGeometry(x_cln1, 15, 390, 270)
-        self.win1.setStyleSheet('background-color: white')
-        self.frameTxt = QLabel('Current frame:', parametersBox)
-        self.frameTxt.setGeometry(x_cln1, 290, 120, h_txt)
-        self.frameIn = QLineEdit('0', parametersBox)
-        self.frameIn.setGeometry(x_cln1 + 90, 296, w_cln2, h_lbl)
-        self.goToFrameBtn = QPushButton('Go to frame', parametersBox)
-        self.goToFrameBtn.setGeometry(x_cln1 + 165, 293, 100, h_btn - 2)
-        self.goToFrameBtn.clicked.connect(self.goToFrameBtn_clicked)
-        self.previewSlider = QSlider(Qt.Horizontal, parametersBox)
-        self.previewSlider.setGeometry(x_cln1, 325, 390, 15)
-        self.previewSlider.sliderReleased.connect(self.sliderValue_released)
-        self.previewSlider.valueChanged.connect(self.sliderValue_released) #in Windows these two events are very different
-        self.showFrameLargeBtn = QPushButton('Show frame', parametersBox)
-        self.showFrameLargeBtn.setGeometry(945, 293, 90, h_btn - 2)
-        self.showFrameLargeBtn.clicked.connect(self.showFrameLargeBtn_clicked)
+        if sys.platform == 'darwin' or sys.platform == 'linux':
+            previewBox_Mac(self)
+            self.OStype = 'mac'
+        elif sys.platform == 'win32':
+            previewBox_Win(self)
+            self.OStype = 'win'
 
         #default variables
         self.openSelection = 'video'
@@ -442,6 +219,7 @@ class Window(QWidget):
 
     def roiBtn_clicked(self):
         try:
+            #betaWin
             if self.openSelection == 'video':
                 self.fVideo.set(1, int(self.frameNumber))
                 ret, frame = self.fVideo.read()
@@ -505,14 +283,7 @@ class Window(QWidget):
             frameCrop = frame[roiTwo : (roiTwo + roiFour), roiOne : (roiOne + roiThree)]
             cv2.namedWindow('Perspective correction', cv2.WINDOW_AUTOSIZE)
             cv2.setMouseCallback('Perspective correction', click)
-            if self.figSize.isChecked() == True:
-                newWidth = int(frameCrop.shape[1] / 2) #original width divided by 2
-                newHeight = int(frameCrop.shape[0] / 2) #original height divided by 2
-                halfFig = cv2.resize(frameCrop, (newWidth, newHeight))
-                cv2.imshow('Perspective correction', halfFig)
-            else:
-                cv2.imshow('Perspective correction', frameCrop)
-
+            cv2.imshow('Perspective correction', frameCrop)
             global clk
             clk = False # False unless the mouse is clicked
             posX = dict()
@@ -530,19 +301,11 @@ class Window(QWidget):
                         return
                 # update each position and frame list for the current click
                 if str(n+1) in posX:
-                    if self.figSize.isChecked() == True:
-                        posX[str(n+1)].append(xPos * 2)
-                        posY[str(n+1)].append(yPos * 2)
-                    else:
-                        posX[str(n+1)].append(xPos)
-                        posY[str(n+1)].append(yPos)
+                    posX[str(n+1)].append(xPos)
+                    posY[str(n+1)].append(yPos)
                 else:
-                    if self.figSize.isChecked() == True:
-                        posX[str(n+1)] = [xPos * 2]
-                        posY[str(n+1)] = [yPos * 2]
-                    else:
-                        posX[str(n+1)] = [xPos]
-                        posY[str(n+1)] = [yPos]
+                    posX[str(n+1)] = [xPos]
+                    posY[str(n+1)] = [yPos]
 
             cv2.destroyAllWindows()
             self.topRight = [(posX['1'][0] + roiOne), (posY['1'][0] + roiTwo)]
@@ -593,7 +356,7 @@ class Window(QWidget):
         showFrame(self, frame, self.frameNumber)
 
     def saveParBtn_clicked(self):
-        name = QFileDialog.getSaveFileName(self, 'Save Parameters')
+        name = QFileDialog.getSaveFileName(self, 'Save parameters')
         name = name[0]
         if not name[-4:] == '.csv':
             name = name + '.csv'
@@ -632,63 +395,63 @@ class Window(QWidget):
                 self.msgLabel.setText('Ops! Parameters were not saved.')
 
     def loadParBtn_clicked(self):
-        name = QFileDialog.getOpenFileName(self, 'Open Parameters')
+        name = QFileDialog.getOpenFileName(self, 'Open parameters')
         try:
             with open(name[0], 'r') as csvfile:
-                    reader = csv.reader(csvfile, delimiter = ',')
-                    for row in reader:
-                        if self.roiOneTxt.text() in row:
-                            self.roiOneIn.setText(row[1])
-                        if self.roiTwoTxt.text() in row:
-                            self.roiTwoIn.setText(row[1])
-                        if self.roiThreeTxt.text() in row:
-                            self.roiThreeIn.setText(row[1])
-                        if self.roiFourTxt.text() in row:
-                            self.roiFourIn.setText(row[1])
-                        if self.firstFrameTxt.text() in row:
-                            self.firstFrameIn.setText(row[1])
-                        if self.lastFrameTxt.text() in row:
-                            self.lastFrameIn.setText(row[1])
-                        if self.firstFrameTxt.text() in row:
-                            self.firstFrameIn.setText(row[1])
-                        if self.skipFrameTxt.text() in row:
-                            self.skipFrameIn.setText(row[1])
-                        if self.scaleTxt.text() in row:
-                            self.scaleIn.setText(row[1])
-                        if self.sLengthTxt.text() in row:
-                            self.sLengthIn.setText(row[1])
-                        if self.sWidthTxt.text() in row:
-                            self.sWidthIn.setText(row[1])
-                        if self.frameTxt.text() in row:
-                            self.frameIn.setText(row[1])
-                        if self.rotationAngleInTxt.text() in row:
-                            self.rotationAngleIn.setText(row[1])
-                        if self.brightnessTxt.text() in row:
-                            self.brightnessLbl.setText(row[1])
-                        if self.contrastTxt.text() in row:
-                            self.contrastLbl.setText(row[1])
-                        if 'anglePerspective' in row:
-                            self.rotationValue = True
-                            self.anglePerspective = float(row[1])
-                        if 'sample' in row:
-                            self.perspectiveValue = True
-                            self.sample = []
-                            for i in range(1,5): #x,y are the pixel values for each corner
-                                points = re.findall('^\[(.+)\]$', row[i]) #this creates a list without '[]'
-                                points = points[0].strip() #gets rid of white spaces
-                                x = re.findall('(^[0-9]+.[0-9]*\s)', points)
-                                y = re.findall('\s([0-9]+.[0-9]*$)', points)
-                                self.sample.append([np.float32(x[0]), np.float32(y[0])])
-                            self.sample = np.array(self.sample)
-                        if 'sampleMod' in row:
-                            self.sampleMod = []
-                            for i in range(1,5):
-                                points = re.findall('^\[(.+)\]$', row[i]) #this creates a list without '[]'
-                                points = points[0].strip() #gets rid of white spaces
-                                x = re.findall('(^[0-9]+.[0-9]*\s)', points)
-                                y = re.findall('\s([0-9]+.[0-9]*$)', points)
-                                self.sampleMod.append([np.float32(x[0]), np.float32(y[0])])
-                            self.sampleMod = np.array(self.sampleMod)
+                reader = csv.reader(csvfile, delimiter = ',')
+                for row in reader:
+                    if self.roiOneTxt.text() in row:
+                        self.roiOneIn.setText(row[1])
+                    if self.roiTwoTxt.text() in row:
+                        self.roiTwoIn.setText(row[1])
+                    if self.roiThreeTxt.text() in row:
+                        self.roiThreeIn.setText(row[1])
+                    if self.roiFourTxt.text() in row:
+                        self.roiFourIn.setText(row[1])
+                    if self.firstFrameTxt.text() in row:
+                        self.firstFrameIn.setText(row[1])
+                    if self.lastFrameTxt.text() in row:
+                        self.lastFrameIn.setText(row[1])
+                    if self.firstFrameTxt.text() in row:
+                        self.firstFrameIn.setText(row[1])
+                    if self.skipFrameTxt.text() in row:
+                        self.skipFrameIn.setText(row[1])
+                    if self.scaleTxt.text() in row:
+                        self.scaleIn.setText(row[1])
+                    if self.sLengthTxt.text() in row:
+                        self.sLengthIn.setText(row[1])
+                    if self.sWidthTxt.text() in row:
+                        self.sWidthIn.setText(row[1])
+                    if self.frameTxt.text() in row:
+                        self.frameIn.setText(row[1])
+                    if self.rotationAngleInTxt.text() in row:
+                        self.rotationAngleIn.setText(row[1])
+                    if self.brightnessTxt.text() in row:
+                        self.brightnessLbl.setText(row[1])
+                    if self.contrastTxt.text() in row:
+                        self.contrastLbl.setText(row[1])
+                    if 'anglePerspective' in row:
+                        self.rotationValue = True
+                        self.anglePerspective = float(row[1])
+                    if 'sample' in row:
+                        self.perspectiveValue = True
+                        self.sample = []
+                        for i in range(1,5): #x,y are the pixel values for each corner
+                            points = re.findall('^\[(.+)\]$', row[i]) #this creates a list without '[]'
+                            points = points[0].strip() #gets rid of white spaces
+                            x = re.findall('(^[0-9]+.[0-9]*\s)', points)
+                            y = re.findall('\s([0-9]+.[0-9]*$)', points)
+                            self.sample.append([np.float32(x[0]), np.float32(y[0])])
+                        self.sample = np.array(self.sample)
+                    if 'sampleMod' in row:
+                        self.sampleMod = []
+                        for i in range(1,5):
+                            points = re.findall('^\[(.+)\]$', row[i]) #this creates a list without '[]'
+                            points = points[0].strip() #gets rid of white spaces
+                            x = re.findall('(^[0-9]+.[0-9]*\s)', points)
+                            y = re.findall('\s([0-9]+.[0-9]*$)', points)
+                            self.sampleMod.append([np.float32(x[0]), np.float32(y[0])])
+                        self.sampleMod = np.array(self.sampleMod)
 
             self.previewSlider.setMinimum(int(self.firstFrameIn.text()))
             self.previewSlider.setMaximum(int(self.lastFrameIn.text()))
@@ -727,8 +490,8 @@ class Window(QWidget):
             for children in self.analysisGroupBox.findChildren(QGroupBox):
                 children.setParent(None)
             createColorTrackingBox(self)
-            self.manualTrackingValue = False
             self.lumaTrackingValue = False
+            self.manualTrackingValue = False
 
     def measureScaleBtn_clicked(self, text):
         try:
@@ -754,14 +517,7 @@ class Window(QWidget):
 
             cv2.namedWindow('MeasureScale', cv2.WINDOW_AUTOSIZE)
             cv2.setMouseCallback('MeasureScale', click)
-            if self.figSize.isChecked() == True:
-                newWidth = int(frameCrop.shape[1] / 2) #original width divided by 2
-                newHeight = int(frameCrop.shape[0] / 2) #original height divided by 2
-                halfFig = cv2.resize(frameCrop, (newWidth, newHeight))
-                cv2.imshow('MeasureScale', halfFig)
-            else:
-                cv2.imshow('MeasureScale', frameCrop)
-
+            cv2.imshow('MeasureScale',frameCrop)
             for n in range(2):
                 # wait for the mouse event or 'escape' key to quit
                 while (True):
@@ -772,14 +528,9 @@ class Window(QWidget):
                     if cv2.waitKey(1) == 27: #ord('q')
                         cv2.destroyAllWindows()
                         return
-
                 # update each position and frame list for the current click
-                if self.figSize.isChecked() == True:
-                    points.append(xPos * 2)
-                    points.append(yPos * 2)
-                else:
-                    points.append(xPos)
-                    points.append(yPos)
+                points.append(xPos)
+                points.append(yPos)
 
             length_mm, done1 = QInputDialog.getText(self, 'Measure scale', 'Measured length in mm:')
             length_px = ((points[3]-points[1])**2 + (points[2]-points[0])**2)**0.5
@@ -856,15 +607,7 @@ class Window(QWidget):
 
     def showFrameLargeBtn_clicked(self):
         cv2.namedWindow(('Frame: ' + str(self.frameNumber)), cv2.WINDOW_AUTOSIZE)
-        cv2.setMouseCallback(('Frame: ' + str(self.frameNumber)), click)
-        if self.figSize.isChecked() == True:
-            newWidth = int(self.currentFrame.shape[1] / 2) #original width divided by 2
-            newHeight = int(self.currentFrame.shape[0] / 2) #original height divided by 2
-            halfFig = cv2.resize(self.currentFrame, (newWidth, newHeight))
-            cv2.imshow(('Frame: ' + str(self.frameNumber)), halfFig)
-        else:
-            cv2.imshow(('Frame: ' + str(self.frameNumber)), self.currentFrame)
-
+        cv2.imshow(('Frame: ' + str(self.frameNumber)), self.currentFrame)
         while True:
             if cv2.waitKey(1) == 27: #ord('q')
                 cv2.destroyAllWindows()
@@ -1080,11 +823,17 @@ def checkAnalysisBox(self, frameNumber):
     if self.lumaTrackingValue == True:
         # the labels might have become plot widgets, so we need to update them again
         self.lbl1_LT = QLabel(self.lumaTrackingBox)
-        self.lbl1_LT.setGeometry(190, 15, 420, 300)
-        self.lbl1_LT.setStyleSheet('background-color: white')
         self.lbl2_LT = QLabel(self.lumaTrackingBox)
-        self.lbl2_LT.setGeometry(620, 15, 420, 300)
+        if self.OStype == 'mac':
+            self.lbl1_LT.setGeometry(190, 25, 420, 300)
+            self.lbl2_LT.setGeometry(620, 25, 420, 300)
+        elif self.OStype == 'win':
+            self.lbl1_LT.setGeometry(190, 15, 420, 300)
+            self.lbl2_LT.setGeometry(620, 15, 420, 300)
+
+        self.lbl1_LT.setStyleSheet('background-color: white')
         self.lbl2_LT.setStyleSheet('background-color: white')
+
         if self.grayscale.isChecked() == True:
             self.msgLabel.setText('Grayscale images not supported with this feature')
         frame, frameCrop = checkEditing_LT(self, frameNumber)
@@ -1096,10 +845,15 @@ def checkAnalysisBox(self, frameNumber):
 
     if self.colorTrackingValue == True:
         self.lbl1_CT = QLabel(self.colorTrackingBox)
-        self.lbl1_CT.setGeometry(370, 15, 330, 250)
-        self.lbl1_CT.setStyleSheet('background-color: white')
         self.lbl2_CT = QLabel(self.colorTrackingBox)
-        self.lbl2_CT.setGeometry(710, 15, 330, 250)
+        if self.OStype == 'mac':
+            self.lbl1_CT.setGeometry(370, 25, 330, 250)
+            self.lbl2_CT.setGeometry(710, 25, 330, 250)
+        elif self.OStype == 'win':
+            self.lbl1_CT.setGeometry(370, 15, 330, 250)
+            self.lbl2_CT.setGeometry(710, 15, 330, 250)
+
+        self.lbl1_CT.setStyleSheet('background-color: white')
         self.lbl2_CT.setStyleSheet('background-color: white')
         if self.grayscale.isChecked() == True:
             self.msgLabel.setText('Grayscale images not supported with this feature')

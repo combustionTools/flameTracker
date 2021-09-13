@@ -22,90 +22,17 @@ Contact: flameTrackerContact@gmail.com
 """
 
 from flameTracker import *
+from boxesGUI_OS import *
 
 def createLumaTrackingBox(self):
     self.lumaTrackingValue = True
-    self.lumaTrackingBox = QGroupBox('Analysis box', self.analysisGroupBox)
-    self.lumaTrackingBox.setGeometry(0,0, 1050, 370)
+    if self.OStype == 'mac':
+        lumaTrackingBox_Mac(self)
+    elif self.OStype == 'win':
+        lumaTrackingBox_Win(self)
 
-    h_btn = 25
-    h_txt = 30
-    h_lbl = 22
-    w_lbl = 35
-
-    #first column
-    x_cln1 = 10
-    x_cln2 = 115
-    directionBoxTxt = QLabel('Flame direction:', self.lumaTrackingBox)
-    directionBoxTxt.setGeometry(x_cln1, 15, 140, h_txt)
-    self.directionBox = QComboBox(self.lumaTrackingBox)
-    self.directionBox.setGeometry(x_cln1, 40, 140, h_btn)
-    self.directionBox.addItem('Left to right')
-    self.directionBox.addItem('Right to left')
-    self.directionBox.activated.connect(self.directionLT_clicked)
-    thresholdTxt = QLabel('Luma threshold:', self.lumaTrackingBox)
-    thresholdTxt.setGeometry(x_cln1, 70, 80, h_txt)
-    self.thresholdIn = QLineEdit('30', self.lumaTrackingBox)
-    self.thresholdIn.setGeometry(x_cln2, 75, w_lbl, h_lbl)
-    filterParticleTxt = QLabel('Filter particles:', self.lumaTrackingBox)
-    filterParticleTxt.setGeometry(x_cln1, 95, 150, h_txt)
-    self.particleSldrMax = QLineEdit('1000', self.lumaTrackingBox)
-    self.particleSldrMax.setGeometry(x_cln2 - 10, 103, 45, h_lbl) #beta
-    self.filterParticleSldr_LT = QSlider(Qt.Horizontal, self.lumaTrackingBox)
-    self.filterParticleSldr_LT.setGeometry(x_cln1, 125, 135, 15)
-    self.filterParticleSldr_LT.setMinimum(1)
-    self.filterParticleSldr_LT.setMaximum(1000)
-    self.filterParticleSldr_LT.setValue(10)
-    self.filterParticleSldr_LT.sliderReleased.connect(self.filterParticleSldr_LT_released)
-    avgLE_txt = QLabel('#px to locate edges:', self.lumaTrackingBox)
-    avgLE_txt.setGeometry(x_cln1, 140, 140, h_txt)
-    self.avgLEIn_LT = QLineEdit('5', self.lumaTrackingBox)
-    self.avgLEIn_LT.setGeometry(x_cln2, 145, w_lbl, h_lbl)
-    trackingTxt = QLabel('Flame tracking:', self.lumaTrackingBox)
-    trackingTxt.setGeometry(x_cln1, 165, 120, h_txt)
-    self.lightROIBtn_LT = QPushButton('Pick bright region', self.lumaTrackingBox)
-    self.lightROIBtn_LT.setGeometry(x_cln1, 190, 140, h_btn)
-    self.lightROIBtn_LT.clicked.connect(self.lightROIBtn_LT_clicked)
-    self.filterLight = QCheckBox('Ignore flashing light', self.lumaTrackingBox)
-    self.filterLight.setGeometry(x_cln1, 215, 140, h_btn)
-    movAvgTxt = QLabel('Moving avg points:', self.lumaTrackingBox)
-    movAvgTxt.setGeometry(x_cln1, 240, 100, h_txt)
-    self.movAvgIn_LT = QLineEdit('2', self.lumaTrackingBox)
-    self.movAvgIn_LT.setGeometry(x_cln2, 245, w_lbl, h_lbl)
-    self.lumaTrackingBtn = QPushButton('Start Tracking', self.lumaTrackingBox)
-    self.lumaTrackingBtn.setGeometry(x_cln1, 275, 140, h_btn)
-    self.lumaTrackingBtn.clicked.connect(self.lumaTrackingBtn_clicked)
-    self.absValBtn = QPushButton('Absolute values', self.lumaTrackingBox)
-    self.absValBtn.setGeometry(x_cln1, 305, 140, h_btn)
-    self.absValBtn.clicked.connect(self.absValBtn_LT_clicked)
-    self.saveBtn_LT = QPushButton('Save data', self.lumaTrackingBox)
-    self.saveBtn_LT.setGeometry(x_cln1, 335, 140, h_btn)
-    self.saveBtn_LT.clicked.connect(self.saveDataBtn_LT_clicked)
-
-    self.helpBtn_LT = QPushButton('Help', self.lumaTrackingBox)
-    self.helpBtn_LT.setGeometry(190, 335, 140, h_btn)
-    self.helpBtn_LT.clicked.connect(self.helpBtn_LT_clicked)
-
-    self.showEdges = QCheckBox('Show edges location', self.lumaTrackingBox)
-    self.showEdges.setGeometry(750, 320, 140, h_btn)
-    self.showEdges.setChecked(True)
-    self.exportEdges_LT = QCheckBox('Output video analysis', self.lumaTrackingBox)
-    self.exportEdges_LT.setGeometry(750, 340, 140, h_btn)
-    self.showFrameLargeBtn_LT = QPushButton('Show frames', self.lumaTrackingBox)
-    self.showFrameLargeBtn_LT.setGeometry(920, 325, 120, h_btn)
-    self.showFrameLargeBtn_LT.clicked.connect(self.showFrameLargeBtn_LT_clicked)
-
-    # first label
-    self.lbl1_LT = QLabel(self.lumaTrackingBox)
-    self.lbl1_LT.setGeometry(190, 15, 420, 300)
-    self.lbl1_LT.setStyleSheet('background-color: white')
-
-    # second label
-    self.lbl2_LT = QLabel(self.lumaTrackingBox)
-    self.lbl2_LT.setGeometry(620, 15, 420, 300)
-    self.lbl2_LT.setStyleSheet('background-color: white')
-
-    self.flameDir = 'toRight' #default value
+    # default variables
+    self.flameDir = 'toRight'
     self.lumaTrackingBox.show()
 
 def checkEditing_LT(self, frameNumber):
@@ -221,7 +148,7 @@ def lumaTracking(self):
         msg = QMessageBox(self)
         msg.setText('The scale [px/mm] has not been specified')
         msg.exec_()
-    self.lbl2_LT = QLabel(self.lumaTrackingBox) #beta
+    #self.lbl2_LT = QLabel(self.lumaTrackingBox) #beta
     firstFrame = int(self.firstFrameIn.text())
     lastFrame = int(self.lastFrameIn.text())
     currentFrame = firstFrame
@@ -229,6 +156,7 @@ def lumaTracking(self):
     self.xLeft_mm = list()
     flameLength_mm = list()
     self.frameCount = list()
+    iCount = 0
     flameArea = list()
 
     if self.exportEdges_LT.isChecked():
@@ -236,7 +164,7 @@ def lumaTracking(self):
         fps = float(self.fpsIn.text())
         codec = str(self.codecIn.text())
         vFormat = str(self.formatIn.text())
-        vName = self.fPath + '-Yvideo.' + str(vFormat) # alternative: 'output.{}'.format(vFormat); + self.fNameLbl.text()
+        vName = self.fPath + '-YVideo.' + str(vFormat) # alternative: 'output.{}'.format(vFormat); self.fNameLbl.text() +
         fourcc = cv2.VideoWriter_fourcc(*codec)
         size = (int(self.roiThreeIn.text()), int(self.roiFourIn.text()))
         # open and set properties
@@ -348,15 +276,21 @@ def lumaTracking(self):
         self.spreadRateLeft = self.spreadRateLeft.tolist()
 
         self.lbl1_LT = pg.PlotWidget(self.lumaTrackingBox)
-        self.lbl1_LT.setGeometry(190, 15, 420, 300)
+        self.lbl2_LT = pg.PlotWidget(self.lumaTrackingBox)
+
+        if self.OStype == 'mac':
+            self.lbl1_LT.setGeometry(190, 25, 420, 300)
+            self.lbl2_LT.setGeometry(620, 25, 420, 300)
+        elif self.OStype == 'win':
+            self.lbl1_LT.setGeometry(190, 15, 420, 300)
+            self.lbl2_LT.setGeometry(620, 15, 420, 300)
+
         self.lbl1_LT.setBackground('w')
         self.lbl1_LT.setLabel('left', 'Position [mm]', color='black', size=14)
         self.lbl1_LT.setLabel('bottom', 'Time [s]', color='black', size=14)
         self.lbl1_LT.getAxis('bottom').setPen(color=(0, 0, 0))
         self.lbl1_LT.getAxis('left').setPen(color=(0, 0, 0))
         self.lbl1_LT.addLegend(offset = [1, 0.1]) # background color modified in line 122 and 123 of Versions/3.7/lib/python3.7/site-packages/pyqtgraph/graphicsItems
-        self.lbl2_LT = pg.PlotWidget(self.lumaTrackingBox)
-        self.lbl2_LT.setGeometry(620, 15, 420, 300)
         self.lbl2_LT.setBackground('w')
         self.lbl2_LT.setLabel('left', 'Spread Rate [mm/s]', color='black', size=14)
         self.lbl2_LT.setLabel('bottom', 'Time [s]', color='black', size=14)
@@ -399,7 +333,7 @@ def saveData_LT(self):
         writer.writerow(lbl)
         for row in rows_zip:
             writer.writerow(row)
-        self.msgLabel.setText('Data succesfully saved.')
+    self.msgLabel.setText('Data succesfully saved.')
 
 def absValue_LT(self):
     abs_frames = list()

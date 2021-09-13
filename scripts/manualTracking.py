@@ -22,74 +22,17 @@ Contact: flameTrackerContact@gmail.com
 """
 
 from flameTracker import *
+from boxesGUI_OS import *
 
 def createManualTrackingBox(self):
     self.manualTrackingValue = True
-    self.manualTrackingBox = QGroupBox(' ', self.analysisGroupBox)
-    self.manualTrackingBox.setGeometry(0,0, 1050, 390)
-    self.manualTrackingBox.setStyleSheet('background-color: None')
+    self.lumaTrackingValue = True
+    if self.OStype == 'mac':
+        manualTrackingBox_Mac(self)
+    elif self.OStype == 'win':
+        manualTrackingBox_Win(self)
 
-    #first column
-    x_cln1 = 10
-    x_cln2 = 120
-    h_txt = 30
-    h_btn = 30
-    h_lbl = 22
-    w_cln1 = 80
-    w_cln2 = 50
-    directionBoxTxt = QLabel('Flame direction:', self.manualTrackingBox)
-    directionBoxTxt.setGeometry(x_cln1, 20, 100, h_txt)
-    self.directionBox = QComboBox(self.manualTrackingBox)
-    self.directionBox.setGeometry(x_cln1 - 5, 45, 150, h_btn)
-    self.directionBox.addItem('Left to right')
-    self.directionBox.addItem('Right to left')
-    self.directionBox.activated.connect(self.directionMT_clicked)
-    lightTxt = QLabel('Flashing light (optional):', self.manualTrackingBox)
-    lightTxt.setGeometry(x_cln1, 70, 150, h_txt)
-    self.lightROIBtn_MT = QPushButton('Pick bright region', self.manualTrackingBox)
-    self.lightROIBtn_MT.setGeometry(x_cln1 - 5, 95, 150, h_btn)
-    self.lightROIBtn_MT.clicked.connect(self.lightROIBtn_MT_clicked)
-    self.filterLight_MT = QComboBox(self.manualTrackingBox)
-    self.filterLight_MT.setGeometry(x_cln1 - 5, 120, 150, h_btn)
-    self.filterLight_MT.addItem('Track every frame')
-    self.filterLight_MT.addItem('Frames light on')
-    self.filterLight_MT.addItem('Frames light off')
-    self.filterLight_MT.activated.connect(self.filterLight_MT_clicked)
-    nClicksTxt = QLabel('Tracking points #:', self.manualTrackingBox)
-    nClicksTxt.setGeometry(x_cln1, 150, 100, h_txt)
-    self.nClicksLbl = QLineEdit('1', self.manualTrackingBox)
-    self.nClicksLbl.setGeometry(x_cln2, 154, 30, h_lbl)
-    self.showEdges_MT = QCheckBox('Show tracking lines', self.manualTrackingBox)
-    self.showEdges_MT.setGeometry(x_cln1, 180, 140, h_btn)
-    self.showEdges_MT.setChecked(True)
-    self.manualTrackingBtn = QPushButton('Start Tracking', self.manualTrackingBox)
-    self.manualTrackingBtn.setGeometry(x_cln1 - 5, 210, 150, h_btn)
-    self.manualTrackingBtn.clicked.connect(self.manualTrackingBtn_clicked)
-    self.absValBtn = QPushButton('Absolute values', self.manualTrackingBox)
-    self.absValBtn.setGeometry(x_cln1 - 5, 240, 150, h_btn)
-    self.absValBtn.clicked.connect(self.absValBtn_MT_clicked)
-    self.saveBtn_MT = QPushButton('Save data', self.manualTrackingBox)
-    self.saveBtn_MT.setGeometry(x_cln1 - 5, 270, 150, h_btn)
-    self.saveBtn_MT.clicked.connect(self.saveBtn_MT_clicked)
-    self.helpBtn_MT = QPushButton('Help', self.manualTrackingBox)
-    self.helpBtn_MT.setGeometry(x_cln1 - 5, 300, 150, h_btn)
-    self.helpBtn_MT.clicked.connect(self.helpBtn_MT_clicked)
-
-    # first label
-    self.lbl1_MT = QLabel(self.manualTrackingBox)
-    self.lbl1_MT.setGeometry(190, 25, 420, 300)
-    self.lbl1_MT.setStyleSheet('background-color: white')
-
-    # second label
-    self.lbl2_MT = pg.PlotWidget(self.manualTrackingBox)
-    self.lbl2_MT.setGeometry(620, 25, 420, 300)
-    self.lbl2_MT.setBackground('w')
-    self.lbl2_MT.setLabel('left', 'Spread Rate [mm/s]', color='black', size=14)
-    self.lbl2_MT.setLabel('bottom', 'Time [s]', color='black', size=14)
-    self.lbl2_MT.getAxis('bottom').setPen(color=(0, 0, 0))
-    self.lbl2_MT.getAxis('left').setPen(color=(0, 0, 0))
-
-    # these are default values for the relative selections
+    # default variables
     self.flameDir = 'toRight'
     self.lightStatus = 'None'
     self.lightROI_MT_recorded = False
