@@ -1,7 +1,7 @@
 """
 Flame Tracker. This program is designed to track flames or bright objects in videos or images.
 Copyright (C) 2020,2021  Luca Carmignani
-Modified by Charles Scudiere (C) 2021
+Code Modified by Charles Scudiere (C) 2021
 
 This file is part of Flame Tracker.
 
@@ -140,22 +140,6 @@ class Window(QWidget):
         h_lbl = 22
         clmn2_Txt = QLabel('Video parameters:', parametersBox)
         clmn2_Txt.setGeometry(x_cln1, 20, 120, h_txt)
-        #self.firstFrameTxt = QLabel('First frame:', parametersBox)
-        #self.firstFrameTxt.setGeometry(x_cln1, 45, w_cln1, h_txt)
-        #self.firstFrameIn = QLineEdit(parametersBox)
-        #self.firstFrameIn.setGeometry(x_cln2, 49, w_cln2, h_lbl)
-        #self.lastFrameTxt = QLabel('Last frame:', parametersBox)
-        #self.lastFrameTxt.setGeometry(x_cln1, 75, w_cln1, h_txt)
-        #self.lastFrameIn = QLineEdit(parametersBox)
-        #self.lastFrameIn.setGeometry(x_cln2, 79, w_cln2, h_lbl)
-        #self.skipFrameTxt = QLabel('Skip frames:', parametersBox)
-        #self.skipFrameTxt.setGeometry(x_cln1, 105, w_cln1, h_txt)
-        #self.skipFrameIn = QLineEdit(parametersBox)
-        #self.skipFrameIn.setGeometry(x_cln2, 109, w_cln2, h_lbl)
-        #self.scaleTxt = QLabel('Scale (px/mm):', parametersBox)
-        #self.scaleTxt.setGeometry(x_cln1, 135, w_cln1, h_txt)
-        #self.scaleIn = QLineEdit(parametersBox)
-        #self.scaleIn.setGeometry(x_cln2, 139, w_cln2, h_lbl)
 
         #CAS Squish to fit xrefpix to display
         self.firstFrameTxt = QLabel('First frame:', parametersBox)
@@ -807,20 +791,13 @@ class Window(QWidget):
                     if cv2.waitKey(1) == 27: #ord('q')
                         cv2.destroyAllWindows()
 
-                        #CAS Add to save reference txt, relative to frameCrop...
+                        #CAS soft add to save reference txt, relative to frameCrop...
                         if ('xPos' in globals()): # or 'xPos' in locals()): # and xPos:
                             # If selected a point, interpreted as a reference point usually stored in globals, (but could also check locals just in case?)
-                            #print('Saving xPos, (', xPos, '), yPos (', yPos,') of type', type(xPos))
-                            #print('relative to', '[roiTwo : (roiTwo + roiFour), roiOne : (roiOne + roiThree)] -> ', roiTwo, ':', (roiTwo + roiFour), ',', roiOne, ':', (roiOne + roiThree))
-                            #print('Converted: xPos, (', xPos+roiOne, '), yPos (', yPos+roiTwo,') of type', type(xPos))
                             refLoc_x = xPos + roiOne
                             refLoc_y = yPos + roiTwo
-                            #self.xref.setText(str([xPos, yPos])) #CAS May Use relative values as this is what is output by position...
                             self.xref.setText(str([refLoc_x, refLoc_y])) #CAS Use absolute and convert on own...to prevent issues with different cropping
                             self.msgLabel.setText('xRef measured.')
-                        #else:
-                        #    print('Do not see xPos in locals, not saving xRef')
-                        #    #print('I see xPos, (', xPos, '), yPos (', yPos,') of type', type(xPos)) 
 
                         return
 
@@ -832,12 +809,6 @@ class Window(QWidget):
             length_px = ((points[3]-points[1])**2 + (points[2]-points[0])**2)**0.5
             scale = length_px / float(length_mm)
             scale = np.round(scale, 3)
-
-            ##CAS Add to save reference txt, but now defaulting to location of second TC so no longer applicable
-            #refLoc_x = points[0] + roiOne
-            #refLoc_y = points[1] + roiTwo
-            ##self.xref.setText(str([points[0], points[1]])) #CAS May Use relative values as this is what is output by position...
-            #self.xref.setText(str([refLoc_x, refLoc_y])) #CAS Use absolute and convert on own...to prevent issues with different cropping
 
             self.scaleIn.setText(str(scale))
             self.msgLabel.setText('Scale & Ref succesfully measured')
@@ -895,21 +866,7 @@ class Window(QWidget):
                 frame = checkEditing(self, frame)
                 frameCrop = frame[int(self.roiTwoIn.text()) : (int(self.roiTwoIn.text()) + int(self.roiFourIn.text())), int(self.roiOneIn.text()) : (int(self.roiOneIn.text()) + int(self.roiThreeIn.text()))]
 
-                # CAS Add tracking line - Moving to a click box...
-                if False: #self.HSVTrackingValue == True:
-                    # Start tracking for export
-                    #HSVTracking(self)
-                    # #findFlameEdges_CT(self, frameBW, flamePx)
-                    getHSVFilteredFrame(self, currentFrame)
-                    trackframe = frameCrop # frame is 1080 x 1920
-                    import numpy
-                    trackframe[:, min(self.xRight-1 - int(self.roiOneIn.text()), numpy.size(trackframe,1))] = 255 # white out line to mark where tracked flame, using relative distance
-
-                else:
-                    trackframe = frameCrop
-                    
-                #vout.write(frameCrop)
-                vout.write(trackframe) #CAS Add tracking
+                vout.write(frameCrop)
                 print('Progress: ', round((currentFrame - firstFrame)/(lastFrame - firstFrame) * 10000)/100, '%')
                 currentFrame = currentFrame + 1 + int(self.skipFrameIn.text())
 
