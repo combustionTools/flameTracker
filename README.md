@@ -11,6 +11,12 @@ Contact: flameTrackerContact@gmail.com
 
 Copyright (C) 2020,2021  Luca Carmignani
 
+## References
+L. Carmignani, Flame Tracker: An image analysis program to measure flame characteristics, SoftwareX, 2021 (in Press), https://www.sciencedirect.com/science/article/pii/S2352711021000984?via%3Dihub
+
+## Subscribe to the Flame Tracker newsletter!
+Stay up to date with new versions and other information! Subscribe here: https://docs.google.com/forms/d/e/1FAIpQLSc73pIB-tiwwX9s0nAkJ12WQ9dFSfLL3er3lLuyeshLAXtvhA/viewform?usp=sf_link
+
 # Before you start
 Note: Windows users have the option to donwload the latest release with the executable file of the Flame Tracker (https://github.com/combustionTools/flameTracker/releases), avoiding the need to download the scripts.
 
@@ -46,8 +52,6 @@ At this point, you should be able to run flameTracker.py using the Command Promp
 
 # Additional information
 For more information about installing and running the Flame Tracker (with the script and the Windows release), as well as the use of the software, refer to the Wiki page: https://github.com/combustionTools/flameTracker/wiki.
-
-A publication with a detailed explanation of objectives and capabilities of the Flame Tracker is under preparation for the SoftwareX journal.
 
 For issues with the code and/or the analysis, please attach screenshots or other useful information related to you problem with your question at: flameTrackerContact@gmail.com.
 

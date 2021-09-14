@@ -27,6 +27,7 @@ import cv2
 import numpy as np
 import csv
 import sys
+import platform
 import time
 import re
 import pyqtgraph as pg
@@ -42,6 +43,7 @@ from manualTracking import *
 from lumaTracking import *
 from colorTracking import *
 from HSVTracking import *
+from boxesGUI_OS import *
 
 #To make sure the resolution is correct also in Windows
 if hasattr(Qt, 'AA_EnableHighDpiScaling'):
@@ -63,247 +65,18 @@ class Window(QWidget):
         (at your option) any later version.''')
         """
 
-        self.setStyleSheet('font: 12pt Helvetica')
-        self.setWindowTitle('Flame Tracker (v1.0.7)')
-        self.setGeometry(10, 10, 1070, 755)
-        #Box to choose video parameters, the widgets are listed below
-        parametersBox = QGroupBox('Preview box', self)
-        parametersBox.setGeometry(10, 5, 1050, 350)
-        #This box changes for each analysis;
-        #widgets must be declared in the specific py file
-        self.analysisGroupBox = QGroupBox('Analysis box', self)
-        self.analysisGroupBox.setGeometry(10, 360, 1050, 390)
+        if sys.platform == 'darwin':
+            previewBox_Mac(self)
+            self.OStype = 'mac'
+        elif sys.platform == 'win32':
+            previewBox_Win(self)
+            self.OStype = 'win'
+        elif sys.platform == 'linux':
+            previewBox_Linux(self)
+            self.OStype = 'lin'
+        else:
+            print('\n!!! Warning: Unable to detect OS!!!')
 
-        # this text box is only shown at the beginning
-        tempBox = QGroupBox(' ', self.analysisGroupBox)
-        tempBox.setGeometry(0, 0, 1050, 390)
-        introTxt = QLabel('Select the analysis method from -Choose analysis- to activate this panel', tempBox)
-        introTxt.setGeometry(100, 100, 600, 100)
-        introTxt.setStyleSheet('font: 16pt Helvetica')
-
-        ### parametersBox
-        # first column
-        x_cln1 = 10
-        x_cln2 = 105
-        h_lbl = 20
-        h_txt = 30
-        h_btn = 30
-        self.msgLabel = QLabel('Welcome to the Flame Tracker! \n\n Click on the Help button to get started.', parametersBox)
-        self.msgLabel.setGeometry(x_cln1, 25, 140, h_lbl + 55)
-        self.msgLabel.setStyleSheet('background-color: white')
-        self.msgLabel.setWordWrap(True)
-        self.helpBtn = QPushButton('Help', parametersBox)
-        self.helpBtn.setGeometry(x_cln1 - 5, 105, 150, h_btn)
-        self.helpBtn.clicked.connect(self.helpBtn_clicked)
-        self.openBtn = QPushButton('Open', parametersBox)
-        self.openBtn.setGeometry(x_cln1 - 5, 135, 60, h_btn)
-        self.openBtn.clicked.connect(self.openBtn_clicked)
-        self.openSelectionBox = QComboBox(parametersBox)
-        self.openSelectionBox.setGeometry(x_cln1 + 48, 136, 100, h_btn)
-        self.openSelectionBox.addItem('Video')
-        self.openSelectionBox.addItem('Image(s)')
-        self.openSelectionBox.activated[str].connect(self.openSelection_click)
-        self.fNameLbl = QLabel('(file name)', parametersBox)
-        self.fNameLbl.setGeometry(x_cln1, 170, 140, h_lbl)
-        self.fNameLbl.setStyleSheet('background-color: white')
-        vWidthTxt = QLabel('Width (px):', parametersBox)
-        vWidthTxt.setGeometry(x_cln1, 195, 70, h_txt)
-        self.vWidthLbl = QLabel(parametersBox)
-        self.vWidthLbl.setGeometry(x_cln2, 199, 45, h_lbl)
-        self.vWidthLbl.setStyleSheet('background-color: white')
-        vHeightTxt = QLabel('Height (px):', parametersBox)
-        vHeightTxt.setGeometry(x_cln1, 225, 70, h_txt)
-        self.vHeightLbl = QLabel(parametersBox)
-        self.vHeightLbl.setGeometry(x_cln2, 229, 45, h_lbl)
-        self.vHeightLbl.setStyleSheet('background-color: white')
-        vFpsTxt = QLabel('Frame rate (fps):', parametersBox)
-        vFpsTxt.setGeometry(x_cln1, 255, 90, h_txt)
-        self.vFpsLbl = QLabel(parametersBox)
-        self.vFpsLbl.setGeometry(x_cln2, 259, 45, h_lbl)
-        self.vFpsLbl.setStyleSheet('background-color: white')
-        vFramesTxt = QLabel('Frames #:', parametersBox)
-        vFramesTxt.setGeometry(x_cln1, 285, 70, h_txt)
-        self.vFramesLbl = QLabel(parametersBox)
-        self.vFramesLbl.setGeometry(x_cln2, 289, 45, h_lbl)
-        self.vFramesLbl.setStyleSheet('background-color: white')
-        vDurationTxt = QLabel('Duration (s):', parametersBox)
-        vDurationTxt.setGeometry(x_cln1, 315, 70, h_txt)
-        self.vDurationLbl = QLabel(parametersBox)
-        self.vDurationLbl.setGeometry(x_cln2, 319, 45, h_lbl)
-        self.vDurationLbl.setStyleSheet('background-color: white')
-
-        #second column
-        x_cln1 = 180
-        x_cln2 = 265
-        w_cln1 = 80
-        w_cln2 = 50
-        h_lbl = 22
-        clmn2_Txt = QLabel('Video parameters:', parametersBox)
-        clmn2_Txt.setGeometry(x_cln1, 20, 120, h_txt)
-
-        #CAS Squish to fit xrefpix to display
-        self.firstFrameTxt = QLabel('First frame:', parametersBox)
-        self.firstFrameTxt.setGeometry(x_cln1, 40, w_cln1, h_txt)
-        self.firstFrameIn = QLineEdit(parametersBox)
-        self.firstFrameIn.setGeometry(x_cln2, 44, w_cln2, h_lbl)
-        self.lastFrameTxt = QLabel('Last frame:', parametersBox)
-        self.lastFrameTxt.setGeometry(x_cln1, 65, w_cln1, h_txt)
-        self.lastFrameIn = QLineEdit(parametersBox)
-        self.lastFrameIn.setGeometry(x_cln2, 69, w_cln2, h_lbl)
-        self.skipFrameTxt = QLabel('Skip frames:', parametersBox)
-        self.skipFrameTxt.setGeometry(x_cln1, 90, w_cln1, h_txt)
-        self.skipFrameIn = QLineEdit(parametersBox)
-        self.skipFrameIn.setGeometry(x_cln2, 94, w_cln2, h_lbl)
-        self.scaleTxt = QLabel('Scale (px/mm):', parametersBox)
-        self.scaleTxt.setGeometry(x_cln1, 115, w_cln1, h_txt)
-        self.scaleIn = QLineEdit(parametersBox)
-        self.scaleIn.setGeometry(x_cln2, 119, w_cln2, h_lbl)
-
-        #CAS add xref line
-        self.xrefTxt = QLabel('xref (px):', parametersBox)
-        self.xrefTxt.setGeometry(x_cln1, 140, w_cln1, h_txt)
-        self.xref = QLineEdit(parametersBox)
-        xRefGUI_shiftBackAmnt = 20
-        xRefGUI_extendAmnt = 20
-        self.xref.setGeometry(x_cln2-xRefGUI_shiftBackAmnt, 144, w_cln2+xRefGUI_shiftBackAmnt+xRefGUI_extendAmnt, h_lbl)
-
-        self.measureScaleBtn = QPushButton('Measure scale', parametersBox)
-        #self.measureScaleBtn.setGeometry(x_cln1 - 10, 165, 150, h_btn)
-        self.measureScaleBtn.setGeometry(x_cln1 - 10, 168, 150, h_btn-2)
-        self.measureScaleBtn.clicked.connect(self.measureScaleBtn_clicked)
-        self.roiOneTxt = QLabel('ROI, x:', parametersBox)
-        self.roiOneTxt.setGeometry(x_cln1, 195, w_cln1, h_txt)
-        self.roiOneIn = QLineEdit(parametersBox)
-        self.roiOneIn.setGeometry(x_cln2, 199, w_cln2, h_lbl)
-        self.roiTwoTxt = QLabel('ROI, y:', parametersBox)
-        self.roiTwoTxt.setGeometry(x_cln1, 225, w_cln1, h_txt)
-        self.roiTwoIn = QLineEdit(parametersBox)
-        self.roiTwoIn.setGeometry(x_cln2, 229, w_cln2, h_lbl)
-        self.roiThreeTxt = QLabel('ROI, w:', parametersBox)
-        self.roiThreeTxt.setGeometry(x_cln1, 255, w_cln1, h_txt)
-        self.roiThreeIn = QLineEdit(parametersBox)
-        self.roiThreeIn.setGeometry(x_cln2, 259, w_cln2, h_lbl)
-        self.roiFourTxt = QLabel('ROI, h:', parametersBox)
-        self.roiFourTxt.setGeometry(x_cln1, 285, w_cln1, h_txt)
-        self.roiFourIn = QLineEdit(parametersBox)
-        self.roiFourIn.setGeometry(x_cln2, 289, w_cln2, h_lbl)
-        self.roiBtn = QPushButton('Select ROI', parametersBox)
-        self.roiBtn.setGeometry(x_cln1 - 10, 315, 150, h_btn)
-        self.roiBtn.clicked.connect(self.roiBtn_clicked)
-
-        #third column
-        x_cln1 = 340
-        x_cln2 = 425
-        w_cln1 = 60
-        w_cln2 = 50
-        adjustFramesTxt = QLabel('Adjust frames:', parametersBox)
-        adjustFramesTxt.setGeometry(x_cln1, 20, 100, h_txt)
-        self.rotationAngleInTxt = QLabel('Rotation (deg):', parametersBox)
-        self.rotationAngleInTxt.setGeometry(x_cln1, 45, 120, h_txt)
-        self.rotationAngleIn = QLineEdit(parametersBox)
-        self.rotationAngleIn.setGeometry(x_cln2, 49, w_cln2, h_lbl)
-        self.brightnessTxt = QLabel('Brightness:', parametersBox)
-        self.brightnessTxt.setGeometry(x_cln1, 75, 150, h_txt)
-        self.brightnessSlider = QSlider(Qt.Horizontal, parametersBox)
-        self.brightnessSlider.setGeometry(x_cln1, 105, 115, 25)
-        self.brightnessSlider.setMinimum(-50)
-        self.brightnessSlider.setMaximum(50)
-        self.brightnessSlider.setValue(0)
-        self.brightnessSlider.sliderReleased.connect(self.editFramesSlider_released)
-        self.brightnessSlider.valueChanged.connect(self.editFramesSlider_released)
-        self.brightnessLbl = QLabel('0', parametersBox)
-        self.brightnessLbl.setGeometry(x_cln2 + 3, 80, w_cln2 - 5, h_lbl - 4)
-        self.brightnessLbl.setStyleSheet('background-color: white')
-        self.contrastTxt = QLabel('Contrast:', parametersBox)
-        self.contrastTxt.setGeometry(x_cln1, 125, 150, h_txt)
-        self.contrastSlider = QSlider(Qt.Horizontal, parametersBox)
-        self.contrastSlider.setGeometry(x_cln1, 155, 115, 25)
-        self.contrastSlider.setMinimum(-100)
-        self.contrastSlider.setMaximum(+100)
-        self.contrastSlider.setValue(0)
-        self.contrastSlider.sliderReleased.connect(self.editFramesSlider_released)
-        self.contrastSlider.valueChanged.connect(self.editFramesSlider_released)
-        self.contrastLbl = QLabel('0', parametersBox)
-        self.contrastLbl.setGeometry(x_cln2 + 3, 130, w_cln2 - 5, h_lbl - 4)
-        self.contrastLbl.setStyleSheet('background-color: white')
-        self.grayscale = QCheckBox('Grayscale', parametersBox)
-        self.grayscale.setGeometry(x_cln1 - 5, 175, 100, h_btn)
-        correctionTxt = QLabel('Correction lengths (mm):', parametersBox)
-        correctionTxt.setGeometry(x_cln1, 200, 150, h_txt)
-        self.sLengthTxt = QLabel('Horizontal:', parametersBox)
-        self.sLengthTxt.setGeometry(x_cln1, 225, 130, h_txt)
-        self.sLengthIn = QLineEdit('-', parametersBox)
-        self.sLengthIn.setGeometry(x_cln2, 229, w_cln2, h_lbl)
-        self.sWidthTxt = QLabel('Vertical:', parametersBox)
-        self.sWidthTxt.setGeometry(x_cln1, 255, 130, h_txt)
-        self.sWidthIn = QLineEdit('-', parametersBox)
-        self.sWidthIn.setGeometry(x_cln2, 259, w_cln2, h_lbl)
-        self.perspectiveBtn = QPushButton('Correct perspective', parametersBox)
-        self.perspectiveBtn.setGeometry(x_cln1 - 10, 285, 150, h_btn)
-        self.perspectiveBtn.clicked.connect(self.perspectiveBtn_clicked)
-        self.originalBtn = QPushButton('Restore original', parametersBox)
-        self.originalBtn.setGeometry(x_cln1 - 10, 315, 150, h_btn)
-        self.originalBtn.clicked.connect(self.originalBtn_clicked)
-
-        # fourth column
-        x_cln1 = 500
-        x_cln2 = 595
-        analysisTxt = QLabel('Analysis:', parametersBox)
-        analysisTxt.setGeometry(x_cln1, 20, w_cln1, h_txt)
-        self.analysisSelectionBox = QComboBox(parametersBox)
-        self.analysisSelectionBox.setGeometry(x_cln1 - 10, 45, 150, h_btn)
-        self.analysisSelectionBox.addItem('Choose analysis')
-        self.analysisSelectionBox.addItem('Manual tracking')
-        self.analysisSelectionBox.addItem('Luma tracking')
-        self.analysisSelectionBox.addItem('Color tracking')
-        self.analysisSelectionBox.addItem('HSV tracking')
-        self.analysisSelectionBox.activated[str].connect(self.analysis_click)
-        saveLoadTxt = QLabel('Save/Load:', parametersBox)
-        saveLoadTxt.setGeometry(x_cln1, 70, w_cln1, h_txt)
-        self.saveParBtn = QPushButton('Save parameters', parametersBox)
-        self.saveParBtn.setGeometry(x_cln1 - 10, 95, 150, h_btn)
-        self.saveParBtn.clicked.connect(self.saveParBtn_clicked)
-        self.loadParBtn = QPushButton('Load parameters', parametersBox)
-        self.loadParBtn.setGeometry(x_cln1 - 10, 125, 150, h_btn)
-        self.loadParBtn.clicked.connect(self.loadParBtn_clicked)
-        exportTxt = QLabel('Save edited video:', parametersBox)
-        exportTxt.setGeometry(x_cln1, 200, 150, h_txt)
-        self.newVideoHelpBtn = QPushButton('?', parametersBox)
-        self.newVideoHelpBtn.setGeometry(x_cln2 + 15, 199, 30, h_btn)
-        self.newVideoHelpBtn.clicked.connect(self.newVideoHelpBtn_clicked)
-        fpsTxt = QLabel('Frame rate (fps):', parametersBox)
-        fpsTxt.setGeometry(x_cln1, 225, 120, h_txt)
-        self.fpsIn = QLineEdit('30', parametersBox)
-        self.fpsIn.setGeometry(x_cln2, 229, 40, h_lbl)
-        codecTxt = QLabel('Codec:', parametersBox)
-        codecTxt.setGeometry(x_cln1, 255, 100, h_txt)
-        self.codecIn = QLineEdit('mp4v', parametersBox)
-        self.codecIn.setGeometry(x_cln2, 259, 40, h_lbl)
-        formatTxt = QLabel('Format:', parametersBox)
-        formatTxt.setGeometry(x_cln1, 285, 100, h_txt)
-        self.formatIn = QLineEdit('mp4', parametersBox)
-        self.formatIn.setGeometry(x_cln2, 289, 40, h_lbl)
-        self.exportVideoBtn = QPushButton('Export video', parametersBox)
-        self.exportVideoBtn.setGeometry(x_cln1 - 10, 315, 150, h_btn)
-        self.exportVideoBtn.clicked.connect(self.exportVideoBtn_clicked)
-
-        # preview label
-        x_cln1 = 650
-        self.win1 = QLabel(parametersBox)
-        self.win1.setGeometry(x_cln1, 25, 390, 270)
-        self.win1.setStyleSheet('background-color: white')
-        self.frameTxt = QLabel('Current frame:', parametersBox)
-        self.frameTxt.setGeometry(x_cln1, 295, 120, h_txt)
-        self.frameIn = QLineEdit('0', parametersBox)
-        self.frameIn.setGeometry(x_cln1 + 90, 299, w_cln2, h_lbl)
-        self.goToFrameBtn = QPushButton('Go to frame', parametersBox)
-        self.goToFrameBtn.setGeometry(x_cln1 + 140, 295, 100, h_btn)
-        self.goToFrameBtn.clicked.connect(self.goToFrameBtn_clicked)
-        self.previewSlider = QSlider(Qt.Horizontal, parametersBox)
-        self.previewSlider.setGeometry(x_cln1, 325, 390, 25)
-        self.showFrameLargeBtn = QPushButton('Show frame', parametersBox)
-        self.showFrameLargeBtn.setGeometry(930, 295, 115, h_btn)
-        self.showFrameLargeBtn.clicked.connect(self.showFrameLargeBtn_clicked)
 
         #default variables
         self.openSelection = 'video'
@@ -342,15 +115,15 @@ class Window(QWidget):
                 self.firstFrameIn.setText('0')
                 self.lastFrameIn.setText(str(self.vFrames - 1))
                 self.skipFrameIn.setText('30') #default was 0, but better to just default to 30...
+                self.frameIn.setText('0')
+                self.frameNumber = 0
                 self.previewSlider.setMinimum(int(self.firstFrameIn.text()))
                 self.previewSlider.setMaximum(int(self.lastFrameIn.text()))
                 self.previewSlider.setValue(int(self.frameIn.text()))
-                self.previewSlider.sliderReleased.connect(self.sliderValue_released)
-                self.previewSlider.valueChanged.connect(self.sliderValue_released)
-                self.frameIn.setText('0')
                 self.rotationAngleIn.setText('0')
                 self.perspectiveValue = False
                 self.rotationValue = False
+                self.manualTrackingValue = False
                 self.lumaTrackingValue = False
                 self.colorTrackingValue = False
                 self.HSVTrackingValue = False
@@ -403,14 +176,14 @@ class Window(QWidget):
                 self.lastFrameIn.setText(str(self.vFrames - 1))
                 self.skipFrameIn.setText('0')
                 self.frameIn.setText('0')
+                self.frameNumber = 0
                 self.previewSlider.setMinimum(int(self.firstFrameIn.text()))
                 self.previewSlider.setMaximum(int(self.lastFrameIn.text()))
                 self.previewSlider.setValue(int(self.frameIn.text()))
-                self.previewSlider.sliderReleased.connect(self.sliderValue_released)
-                self.previewSlider.valueChanged.connect(self.sliderValue_released)
                 self.rotationAngleIn.setText('0')
                 self.perspectiveValue = False
                 self.rotationValue = False
+                self.manualTrackingValue = False
                 self.lumaTrackingValue = False
                 self.colorTrackingValue = False
                 self.HSVTrackingValue = False
@@ -426,45 +199,46 @@ class Window(QWidget):
                 self.msgLabel.setText('Error: the image(s) could not be opened')
 
     def goToFrameBtn_clicked(self):
-        newFrame = int(self.frameIn.text())
-        if newFrame < int(self.firstFrameIn.text()):
-            self.firstFrameIn.setText(str(newFrame))
-        elif newFrame > int(self.lastFrameIn.text()):
-            self.lastFrameIn.setText(str(newFrame))
+        self.frameNumber = int(self.frameIn.text())
+        if self.frameNumber < int(self.firstFrameIn.text()):
+            self.firstFrameIn.setText(str(self.frameNumber))
+        elif self.frameNumber > int(self.lastFrameIn.text()):
+            self.lastFrameIn.setText(str(self.frameNumber))
         if self.openSelection == 'video':
-            self.fVideo.set(1, newFrame)
+            self.fVideo.set(1, self.frameNumber)
             ret, frame = self.fVideo.read()
         elif self.openSelection == 'image(s)':
-            imageName = self.imagesList[newFrame]
-            frame = cv2.imread(imageName)
+            imageNumber = self.imagesList[self.frameNumber]
+            frame = cv2.imread(imageNumber)
 
-        self.previewSlider.setValue(int(newFrame)) #CAS - update slider to reflect new goto frame value
-        showFrame(self, frame, newFrame)
-        checkAnalysisBox(self, newFrame)
+        self.previewSlider.setValue(int(self.frameNumber)) #CAS - update slider to reflect new goto frame value
+        showFrame(self, frame, self.frameNumber)
+        checkAnalysisBox(self, self.frameNumber)
 
     def sliderValue_released(self):
         self.previewSlider.setMinimum(int(self.firstFrameIn.text()))
         self.previewSlider.setMaximum(int(self.lastFrameIn.text()))
-        newFrame = self.previewSlider.value()
+        self.frameNumber = self.previewSlider.value()
+        self.frameIn.setText(str(self.frameNumber))
         if self.openSelection == 'video':
-            self.fVideo.set(1, newFrame)
+            self.fVideo.set(1, self.frameNumber)
             ret, frame = self.fVideo.read()
         elif self.openSelection == 'image(s)':
-            frameNumber = self.imagesList[newFrame]
-            frame = cv2.imread(frameNumber)
+            imageNumber = self.imagesList[self.frameNumber]
+            frame = cv2.imread(imageNumber)
 
-        showFrame(self, frame, newFrame)
-        checkAnalysisBox(self, newFrame)
+        showFrame(self, frame, self.frameNumber)
+        checkAnalysisBox(self, self.frameNumber)
 
     def roiBtn_clicked(self):
         try:
-            currentFrame = self.frameIn.text()
+            #betaWin
             if self.openSelection == 'video':
-                self.fVideo.set(1, int(currentFrame))
+                self.fVideo.set(1, int(self.frameNumber))
                 ret, frame = self.fVideo.read()
             elif self.openSelection == 'image(s)':
-                frame = self.imagesList[int(currentFrame)]
-                frame = cv2.imread(frame)
+                imageNumber = self.imagesList[int(self.frameNumber)]
+                frame = cv2.imread(imageNumber)
 
             frame = checkEditing(self, frame)
 
@@ -482,12 +256,12 @@ class Window(QWidget):
             self.roiThreeIn.setText('2')
             self.roiFourIn.setText('2')
 
-        if self.colorTrackingValue == True:
-            self.filterParticleSldr_CT.setMaximum(int((int(self.roiThreeIn.text()) * int(self.roiFourIn.text())) / 20))
-        elif self.lumaTrackingValue == True:
-            self.filterParticleSldr_LT.setMaximum(int((int(self.roiThreeIn.text()) * int(self.roiFourIn.text())) / 20))
-        elif self.HSVTrackingValue == True:
-            self.filterParticleSldr_CT.setMaximum(int((int(self.roiThreeIn.text()) * int(self.roiFourIn.text())) / 20))
+        #if self.colorTrackingValue == True:
+        #    self.filterParticleSldr_CT.setMaximum(int((int(self.roiThreeIn.text()) * int(self.roiFourIn.text())) / 20))
+        #elif self.lumaTrackingValue == True:
+        #    self.filterParticleSldr_LT.setMaximum(int((int(self.roiThreeIn.text()) * int(self.roiFourIn.text())) / 20))
+        #elif self.HSVTrackingValue == True:
+        #    self.filterParticleSldr_CT.setMaximum(int((int(self.roiThreeIn.text()) * int(self.roiFourIn.text())) / 20))
 
     def perspectiveBtn_clicked(self):
         if self.sLengthIn.text() == '-' or self.sWidthIn.text() == '-':
@@ -506,13 +280,12 @@ class Window(QWidget):
             roiThree = int(self.roiThreeIn.text())
             roiFour = int(self.roiFourIn.text())
             sampleAspRatio = float(self.sLengthIn.text())/float(self.sWidthIn.text())
-            frameNumber = int(self.frameIn.text())
             if self.openSelection == 'video':
-                self.fVideo.set(1, frameNumber)
+                self.fVideo.set(1, self.frameNumber)
                 ret, frame = self.fVideo.read()
             elif self.openSelection == 'image(s)':
-                frame = self.imagesList[int(frameNumber)]
-                frame = cv2.imread(frame)
+                imageNumber = self.imagesList[int(self.frameNumber)]
+                frame = cv2.imread(imageNumber)
 
             # The following conditions are the same of checkEditing(), here they are checked for the correction
             self.anglePerspective = float(self.rotationAngleIn.text())
@@ -579,7 +352,7 @@ class Window(QWidget):
             self.sampleMod = np.float32([self.topLeftMod, self.topRightMod, self.bottomRightMod, self.bottomLeftMod])
             self.perspectiveValue = True # this value tells us if a flame is distorted or not
             self.msgLabel.setText('Image successfully corrected')
-            showFrame(self, frame, frameNumber)
+            showFrame(self, frame, self.frameNumber)
             # The rotation value has to be set after showing the frame to avoid double editing in the first preview
             if float(self.rotationAngleIn.text()) != 0:
                 self.rotationValue = True
@@ -592,14 +365,15 @@ class Window(QWidget):
         self.rotationValue = False
         self.brightnessSlider.setValue(0)
         self.contrastSlider.setValue(0)
-        frameNumber = int(self.frameIn.text())
+        self.brightnessLbl.setText(str(self.brightnessSlider.value()))
+        self.contrastLbl.setText(str(self.contrastSlider.value()))
         if self.openSelection == 'video':
-            self.fVideo.set(1, frameNumber)
+            self.fVideo.set(1, self.frameNumber)
             ret, frame = self.fVideo.read()
         elif self.openSelection == 'image(s)':
-            frame = self.imagesList[int(frameNumber)]
-            frame = cv2.imread(frame)
-        showFrame(self, frame, frameNumber)
+            imageNumber = self.imagesList[int(self.frameNumber)]
+            frame = cv2.imread(imageNumber)
+        showFrame(self, frame, self.frameNumber)
 
     def saveParBtn_clicked(self):
         name = QFileDialog.getSaveFileName(self, 'Save parameters')
@@ -726,6 +500,7 @@ class Window(QWidget):
         if selection == 'Choose analysis':
             for children in self.analysisGroupBox.findChildren(QGroupBox):
                 children.setParent(None)
+            self.manualTrackingValue = False
             self.lumaTrackingValue = False
             self.colorTrackingValue = False
             self.HSVTrackingValue = False
@@ -740,6 +515,7 @@ class Window(QWidget):
             for children in self.analysisGroupBox.findChildren(QGroupBox):
                 children.setParent(None)
             createLumaTrackingBox(self)
+            self.manualTrackingValue = False
             self.colorTrackingValue = False
             self.HSVTrackingValue = False
         elif selection == 'Color tracking':
@@ -748,12 +524,14 @@ class Window(QWidget):
             createColorTrackingBox(self)
             self.lumaTrackingValue = False
             self.HSVTrackingValue = False
+            self.manualTrackingValue = False
         elif selection == 'HSV tracking':
             for children in self.analysisGroupBox.findChildren(QGroupBox):
                 children.setParent(None)
             createHSVTrackingBox(self)
             self.colorTrackingValue = False
             self.lumaTrackingValue = False
+            self.manualTrackingValue = False
 
     def measureScaleBtn_clicked(self, text):
         try:
@@ -761,17 +539,16 @@ class Window(QWidget):
             roiTwo = int(self.roiTwoIn.text())
             roiThree = int(self.roiThreeIn.text())
             roiFour = int(self.roiFourIn.text())
-            frameNumber = int(self.frameIn.text())
             global clk
             clk = False # False unless the mouse is clicked
             points = list()
 
             if self.openSelection == 'video':
-                self.fVideo.set(1, frameNumber)
+                self.fVideo.set(1, self.frameNumber)
                 ret, frame = self.fVideo.read()
             elif self.openSelection == 'image(s)':
-                frame = self.imagesList[frameNumber]
-                frame = cv2.imread(frame)
+                imageNumber = self.imagesList[self.frameNumber]
+                frame = cv2.imread(imageNumber)
 
             frame = checkEditing(self, frame)
 
@@ -820,16 +597,15 @@ class Window(QWidget):
                 
 
     def editFramesSlider_released(self):
-        frameNumber = self.previewSlider.value()
         if self.openSelection == 'video':
-            self.fVideo.set(1, frameNumber)
+            self.fVideo.set(1, self.frameNumber)
             ret, frame = self.fVideo.read()
         elif self.openSelection == 'image(s)':
-            frame = self.imagesList[frameNumber]
-            frame = cv2.imread(frame)
+            imageNumber = self.imagesList[self.frameNumber]
+            frame = cv2.imread(imageNumber)
         self.brightnessLbl.setText(str(self.brightnessSlider.value()))
         self.contrastLbl.setText(str(self.contrastSlider.value()))
-        showFrame(self, frame, frameNumber)
+        showFrame(self, frame, self.frameNumber)
 
     def exportVideoBtn_clicked(self):
         fps = round(float(self.fpsIn.text()))
@@ -860,8 +636,8 @@ class Window(QWidget):
                     self.fVideo.set(1, currentFrame)
                     ret, frame = self.fVideo.read()
                 elif self.openSelection == 'image(s)':
-                    frameNumber = self.imagesList[currentFrame]
-                    frame = cv2.imread(frameNumber)
+                    imageNumber = self.imagesList[currentFrame]
+                    frame = cv2.imread(imageNumber)
 
                 frame = checkEditing(self, frame)
                 frameCrop = frame[int(self.roiTwoIn.text()) : (int(self.roiTwoIn.text()) + int(self.roiFourIn.text())), int(self.roiOneIn.text()) : (int(self.roiOneIn.text()) + int(self.roiThreeIn.text()))]
@@ -887,8 +663,8 @@ class Window(QWidget):
         msg.exec_()
 
     def showFrameLargeBtn_clicked(self):
-        cv2.namedWindow(('Frame: ' + self.frameIn.text()), cv2.WINDOW_AUTOSIZE)
-        cv2.imshow(('Frame: ' + self.frameIn.text()), self.currentFrame)
+        cv2.namedWindow(('Frame: ' + str(self.frameNumber)), cv2.WINDOW_AUTOSIZE)
+        cv2.imshow(('Frame: ' + str(self.frameNumber)), self.currentFrame)
         while True:
             if cv2.waitKey(1) == 27: #ord('q')
                 cv2.destroyAllWindows()
@@ -899,12 +675,14 @@ class Window(QWidget):
         chooseFlameDirection_MT(self, text)
     def manualTrackingBtn_clicked(self):
         manualTracking(self)
-    def saveData_clicked(self):
-        saveData_ManualTracking(self)
-    def absValBtnMT_clicked(self):
-        absValueMT(self)
-    def filterLightMT_clicked(self, text):
-        chooseLightFilterMT(self, text)
+    def saveBtn_MT_clicked(self):
+        saveData_MT(self)
+    def absValBtn_MT_clicked(self):
+        absValue_MT(self)
+    def filterLight_MT_clicked(self, text):
+        chooseLightFilter_MT(self, text)
+    def lightROIBtn_MT_clicked(self):
+        lightROIBtn_MT(self)
     def helpBtn_MT_clicked(self):
         helpBtn_MT(self)
 
@@ -913,12 +691,14 @@ class Window(QWidget):
         lumaTracking(self)
     def directionLT_clicked(self, text):
         chooseFlameDirection_LT(self, text)
-    def lumaSaveData_clicked(self):
-        lumaSaveData(self)
-    def absValBtnLT_clicked(self):
-        absValueLT(self)
+    def saveDataBtn_LT_clicked(self):
+        saveData_LT(self)
+    def absValBtn_LT_clicked(self):
+        absValue_LT(self)
     def filterParticleSldr_LT_released(self):
         filterParticleSldr_LT(self)
+    def lightROIBtn_LT_clicked(self):
+        lightROIBtn_LT(self)
     def showFrameLargeBtn_LT_clicked(self):
         showFrameLarge_LT(self)
     def helpBtn_LT_clicked(self):
@@ -953,6 +733,8 @@ class Window(QWidget):
         blueMaxRightBtn_CT(self)
     def filterParticleSldr_CT_released(self):
         filterParticleSldr_CT(self)
+    def lightROIBtn_CT_clicked(self):
+        lightROIBtn_CT(self)
     def directionCT_clicked(self, text):
         chooseFlameDirection_CT(self, text)
     def connectivityBoxCT_clicked(self, text):
@@ -1061,7 +843,6 @@ def showFrame(self, frame, frameNumber):
     self.currentFrame = frame
     self.image = self.image.scaled(self.win1.size(), Qt.KeepAspectRatio, Qt.SmoothTransformation)
     self.win1.setPixmap(QPixmap.fromImage(self.image))
-    self.frameIn.setText(str(frameNumber))
 
 def perspectiveCorrection(self, frame):
     # M is the matrix transformation calculated with the size of the sample (calculated from user input), and the sampleMod from the user clicks
@@ -1102,7 +883,10 @@ def checkEditing(self, frame):
         if self.rotationValue == True:
             frame = rotationCorrection(self, frame, self.anglePerspective)
         frame = perspectiveCorrection(self, frame)
-#the rotation has already been included in the perspective correction, but it could happen that a further rotation is needed after the correction (e.g. for the analysis)
+        # the following two lines update the size of the frame after the correction
+        self.vWidthLbl.setText(str(frame.shape[1]))
+        self.vHeightLbl.setText(str(frame.shape[0]))
+        #the rotation has already been included in the perspective correction, but it could happen that a further rotation is needed after the correction (e.g. for the analysis)
         if self.anglePerspective != float(self.rotationAngleIn.text()):
             angle = float(self.rotationAngleIn.text()) - self.anglePerspective
             frame = rotationCorrection(self, frame, angle)
@@ -1119,19 +903,50 @@ def checkEditing(self, frame):
         frame = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
     return(frame)
 
-def checkAnalysisBox(self, newFrame):
+def checkAnalysisBox(self, frameNumber):
     # true value when the analysis is selected
+    if self.manualTrackingValue == True:
+        # label 1 might have become a plot widget, so we need to update them again
+        self.lbl1_MT = QLabel(self.manualTrackingBox)
+        self.lbl1_MT.setGeometry(190, 25, 420, 300)
+        self.lbl1_MT.setStyleSheet('background-color: white')
+
+        frame, frameCrop = checkEditing_MT(self, frameNumber)
+        # create the ROI rectangle and show it in label1
+        firstPoint = (int(self.roiOneIn.text()), int(self.roiTwoIn.text()))
+        secondPoint = (int(self.roiOneIn.text()) + int(self.roiThreeIn.text()), int(self.roiTwoIn.text()) + int(self.roiFourIn.text()))
+        cv2.rectangle(frame, firstPoint, secondPoint, (255, 255, 255), 3)
+        if self.lightROI_MT_recorded == True:
+            firstPoint = (int(self.lightROI_MT[0]), int(self.lightROI_MT[1]))
+            secondPoint = (int(self.lightROI_MT[0]) + int(self.lightROI_MT[2]), int(self.lightROI_MT[1]) + int(self.lightROI_MT[3]))
+            cv2.rectangle(frame, firstPoint, secondPoint, (255, 0, 0), 5)
+        bytes1 = 3 * frame.shape[1] #bytes per line, necessary to avoid distortion in the opened file
+        image1 = QImage(frame.data, frame.shape[1], frame.shape[0], bytes1, QImage.Format_RGB888).rgbSwapped()
+        image1 = image1.scaled(self.lbl1_MT.size(), Qt.KeepAspectRatio, Qt.SmoothTransformation)
+        self.lbl1_MT.setPixmap(QPixmap.fromImage(image1))
+        self.lbl1_MT.show()
+
     if self.lumaTrackingValue == True:
         # the labels might have become plot widgets, so we need to update them again
         self.lbl1_LT = QLabel(self.lumaTrackingBox)
-        self.lbl1_LT.setGeometry(190, 25, 420, 300)
-        self.lbl1_LT.setStyleSheet('background-color: white')
         self.lbl2_LT = QLabel(self.lumaTrackingBox)
-        self.lbl2_LT.setGeometry(620, 25, 420, 300)
+        if self.OStype == 'mac':
+            self.lbl1_LT.setGeometry(190, 25, 420, 300)
+            self.lbl2_LT.setGeometry(620, 25, 420, 300)
+        elif self.OStype == 'win':
+            self.lbl1_LT.setGeometry(190, 15, 420, 300)
+            self.lbl2_LT.setGeometry(620, 15, 420, 300)
+        elif self.OStype == 'lin':
+            self.lbl1_LT.setGeometry(190, 25, 420, 300)
+            self.lbl2_LT.setGeometry(620, 25, 420, 300)
+
+        self.lbl1_LT.setStyleSheet('background-color: white')
         self.lbl2_LT.setStyleSheet('background-color: white')
+
         if self.grayscale.isChecked() == True:
             self.msgLabel.setText('Grayscale images not supported with this feature')
-        getLumaFrame(self, newFrame)
+        frame, frameCrop = checkEditing_LT(self, frameNumber)
+        getLumaFrame(self, frameCrop)
         self.lbl1_LT.setPixmap(QPixmap.fromImage(self.frameY))
         self.lbl2_LT.setPixmap(QPixmap.fromImage(self.frameBW))
         self.lbl1_LT.show()
@@ -1139,14 +954,23 @@ def checkAnalysisBox(self, newFrame):
 
     if self.colorTrackingValue == True:
         self.lbl1_CT = QLabel(self.colorTrackingBox)
-        self.lbl1_CT.setGeometry(370, 25, 330, 250)
-        self.lbl1_CT.setStyleSheet('background-color: white')
         self.lbl2_CT = QLabel(self.colorTrackingBox)
-        self.lbl2_CT.setGeometry(710, 25, 330, 250)
+        if self.OStype == 'mac':
+            self.lbl1_CT.setGeometry(370, 25, 330, 250)
+            self.lbl2_CT.setGeometry(710, 25, 330, 250)
+        elif self.OStype == 'win':
+            self.lbl1_CT.setGeometry(370, 15, 330, 250)
+            self.lbl2_CT.setGeometry(710, 15, 330, 250)
+        elif self.OStype == 'lin':
+            self.lbl1_CT.setGeometry(370, 25, 330, 250)
+            self.lbl2_CT.setGeometry(710, 25, 330, 250)
+
+        self.lbl1_CT.setStyleSheet('background-color: white')
         self.lbl2_CT.setStyleSheet('background-color: white')
         if self.grayscale.isChecked() == True:
             self.msgLabel.setText('Grayscale images not supported with this feature')
-        getColorFilteredFrame(self, newFrame)
+        frame, frameCrop = checkEditing_CT(self, frameNumber)
+        getColorFilteredFrame(self, frameCrop)
         self.lbl1_CT.setPixmap(QPixmap.fromImage(self.frame))
         self.lbl2_CT.setPixmap(QPixmap.fromImage(self.frameBW))
         self.lbl1_CT.show()
@@ -1154,16 +978,25 @@ def checkAnalysisBox(self, newFrame):
 
     if self.HSVTrackingValue == True:
         self.lbl1_CT = QLabel(self.HSVTrackingBox)
-        #self.lbl1_CT.setGeometry(370, 25, 330, 250)
-        self.lbl1_CT.setGeometry(370, 25, 670, 125) #CAS Changed geometry for fitting lengthwise
-        self.lbl1_CT.setStyleSheet('background-color: white')
         self.lbl2_CT = QLabel(self.HSVTrackingBox)
-        #self.lbl2_CT.setGeometry(710, 25, 330, 250)
-        self.lbl2_CT.setGeometry(370, 150, 670, 125) #CAS Changed geometry for fitting lengthwise
+
+        if self.OStype == 'mac':
+            #self.lbl1_CT.setGeometry(370, 25, 330, 250)
+            self.lbl1_CT.setGeometry(370, 25, 670, 125) #CAS Changed geometry for fitting lengthwise
+            #self.lbl2_CT.setGeometry(710, 25, 330, 250)
+            self.lbl2_CT.setGeometry(370, 150, 670, 125) #CAS Changed geometry for fitting lengthwise
+        elif self.OStype == 'win':
+            self.lbl1_CT.setGeometry(370, 15, 330, 250)
+            self.lbl2_CT.setGeometry(710, 15, 330, 250)
+        elif self.OStype == 'lin':
+            self.lbl1_CT.setGeometry(370, 25, 670, 125) #CAS Changed geometry for fitting lengthwise
+            self.lbl2_CT.setGeometry(370, 150, 670, 125) #CAS Changed geometry for fitting lengthwise
+
+        self.lbl1_CT.setStyleSheet('background-color: white')
         self.lbl2_CT.setStyleSheet('background-color: white')
         if self.grayscale.isChecked() == True:
             self.msgLabel.setText('Grayscale images not supported with this feature')
-        getHSVFilteredFrame(self, newFrame)
+        getHSVFilteredFrame(self, self.frameNumber)
         self.lbl1_CT.setPixmap(QPixmap.fromImage(self.frame))
         self.lbl2_CT.setPixmap(QPixmap.fromImage(self.frameBW))
         self.lbl1_CT.show()

@@ -1,8 +1,17 @@
 """
-Flame Tracker. This program is designed to track flames or bright objects in videos or images.
-Copyright (C) 2020,2021  Luca Carmignani
+Note on implementation of HSL and HSV
+Hue, the angular dimension, starting at the red primary at 0°, passing through the green primary at 120° and the blue primary at 240°, and then wrapping back to red at 360°
 
-This file is part of Flame Tracker.
+OpenCV Implementation: RGB to HSV
+In case of 8-bit and 16-bit images, R, G, and B are converted to the floating-point format and scaled to fit the 0 to 1 range.
+
+If H<0 then H <- +360 . On output 0≤V≤1, 0≤S≤1, 0≤H≤360 .
+
+The values are then converted to the destination data type:
+
+    8-bit images: V <- 255V, S <- 255S,H <- H/2(to fit to 0 to 255)
+    16-bit images: (currently not supported) V < -65535V, S < 65535S, H <− H
+    32-bit images: H, S, and V are left as is
 
 Flame Tracker is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -17,206 +26,231 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-Author: Luca Carmignani, PhD
+Author: Charles Scudiere, PhD, adapted from code written by Luca Carmignani, PhD
 Contact: flameTrackerContact@gmail.com
 """
 
 from flameTracker import *
 
-def createColorTrackingBox(self):
-    self.colorTrackingValue = True
-    self.colorTrackingBox = QGroupBox('Analysis box', self.analysisGroupBox)
-    self.colorTrackingBox.setGeometry(0, 0, 1050, 370)
-    self.colorTrackingBox.setStyleSheet('background-color: None')
+def createHSVTrackingBox(self):
+    self.HSVTrackingValue = True
+    self.HSVTrackingBox = QGroupBox(' ', self.analysisGroupBox)
+    self.HSVTrackingBox.setGeometry(0, 0, 1050, 390)
+    self.HSVTrackingBox.setStyleSheet('background-color: None')
 
-    h_btn = 25
-    h_btn2 = 15
+    h_btn = 30
     h_txt = 30
     h_lbl = 22
-    w_btn2 = 15
+    w_btn2 = 30
     #first column
     x_cln1 = 10
-    x_cln2 = 120
-    directionBoxTxt = QLabel('Flame direction:', self.colorTrackingBox)
-    directionBoxTxt.setGeometry(x_cln1, 15, 100, h_txt)
-    self.directionBox = QComboBox(self.colorTrackingBox)
-    self.directionBox.setGeometry(x_cln1, 40, 140, h_btn)
+    directionBoxTxt = QLabel('Flame direction:', self.HSVTrackingBox)
+    directionBoxTxt.setGeometry(x_cln1, 20, 100, h_txt)
+    self.directionBox = QComboBox(self.HSVTrackingBox)
+    self.directionBox.setGeometry(x_cln1 - 5, 45, 150, h_btn)
     self.directionBox.addItem('Left to right')
     self.directionBox.addItem('Right to left')
     self.directionBox.activated.connect(self.directionCT_clicked)
-    redChannelTxt = QLabel('Red channel:', self.colorTrackingBox)
-    redChannelTxt.setGeometry(x_cln1, 65, 100, h_txt)
-    redMinTxt = QLabel('Min:', self.colorTrackingBox)
-    redMinTxt.setGeometry(x_cln1, 85, 80, h_txt)
-    self.redMinLeftBtn_CT = QPushButton('<', self.colorTrackingBox)
-    self.redMinLeftBtn_CT.setGeometry(40, 92, w_btn2, h_btn2)
-    self.redMinLeftBtn_CT.clicked.connect(self.redMinLeftBtn_CT_clicked)
-    self.redMinRightBtn_CT = QPushButton('>', self.colorTrackingBox)
-    self.redMinRightBtn_CT.setGeometry(185, 92, w_btn2, h_btn2)
-    self.redMinRightBtn_CT.clicked.connect(self.redMinRightBtn_CT_clicked)
-    self.redMinSlider = QSlider(Qt.Horizontal, self.colorTrackingBox)
-    self.redMinSlider.setGeometry(60, 92, 120, h_btn2)
-    self.redMinSlider.setMinimum(0)
-    self.redMinSlider.setMaximum(255)
-    self.redMinSlider.setValue(10)
-    self.redMinSlider.sliderReleased.connect(self.singleColorSlider_released)
-    self.redMinSlider.valueChanged.connect(self.singleColorSlider_released)
-    redMaxTxt = QLabel('Max:', self.colorTrackingBox)
-    redMaxTxt.setGeometry(x_cln1, 105, 100, h_txt)
-    self.redMaxLeftBtn_CT = QPushButton('<', self.colorTrackingBox)
-    self.redMaxLeftBtn_CT.setGeometry(40, 112, w_btn2, h_btn2)
-    self.redMaxLeftBtn_CT.clicked.connect(self.redMaxLeftBtn_CT_clicked)
-    self.redMaxRightBtn_CT = QPushButton('>', self.colorTrackingBox)
-    self.redMaxRightBtn_CT.setGeometry(185, 112, w_btn2, h_btn2)
-    self.redMaxRightBtn_CT.clicked.connect(self.redMaxRightBtn_CT_clicked)
-    self.redMaxSlider = QSlider(Qt.Horizontal, self.colorTrackingBox)
-    self.redMaxSlider.setGeometry(60, 112, 120, h_btn2)
-    self.redMaxSlider.setMinimum(0)
-    self.redMaxSlider.setMaximum(255)
-    self.redMaxSlider.setValue(255)
-    self.redMaxSlider.sliderReleased.connect(self.singleColorSlider_released)
-    self.redMaxSlider.valueChanged.connect(self.singleColorSlider_released)
-    greenChannelTxt = QLabel('Green channel:', self.colorTrackingBox)
-    greenChannelTxt.setGeometry(x_cln1, 125, 100, h_txt)
-    greenMinTxt = QLabel('Min:', self.colorTrackingBox)
-    greenMinTxt.setGeometry(x_cln1, 145, 100, h_txt)
-    self.greenMinLeftBtn_CT = QPushButton('<', self.colorTrackingBox)
-    self.greenMinLeftBtn_CT.setGeometry(40, 152, w_btn2, h_btn2)
-    self.greenMinLeftBtn_CT.clicked.connect(self.greenMinLeftBtn_CT_clicked)
-    self.greenMinRightBtn_CT = QPushButton('>', self.colorTrackingBox)
-    self.greenMinRightBtn_CT.setGeometry(185, 152, w_btn2, h_btn2)
-    self.greenMinRightBtn_CT.clicked.connect(self.greenMinRightBtn_CT_clicked)
-    self.greenMinSlider = QSlider(Qt.Horizontal, self.colorTrackingBox)
-    self.greenMinSlider.setGeometry(60, 152, 120, h_btn2)
-    self.greenMinSlider.setMinimum(0)
-    self.greenMinSlider.setMaximum(255)
-    self.greenMinSlider.setValue(10)
-    self.greenMinSlider.sliderReleased.connect(self.singleColorSlider_released)
-    self.greenMinSlider.valueChanged.connect(self.singleColorSlider_released)
-    greenMaxTxt = QLabel('Max:', self.colorTrackingBox)
-    greenMaxTxt.setGeometry(x_cln1, 165, 100, h_txt)
-    self.greenMaxLeftBtn_CT = QPushButton('<', self.colorTrackingBox)
-    self.greenMaxLeftBtn_CT.setGeometry(40, 172, w_btn2, h_btn2)
-    self.greenMaxLeftBtn_CT.clicked.connect(self.greenMaxLeftBtn_CT_clicked)
-    self.greenMaxRightBtn_CT = QPushButton('>', self.colorTrackingBox)
-    self.greenMaxRightBtn_CT.setGeometry(185, 172, w_btn2, h_btn2)
-    self.greenMaxRightBtn_CT.clicked.connect(self.greenMaxRightBtn_CT_clicked)
-    self.greenMaxSlider = QSlider(Qt.Horizontal, self.colorTrackingBox)
-    self.greenMaxSlider.setGeometry(60, 172, 120, h_btn2)
-    self.greenMaxSlider.setMinimum(0)
-    self.greenMaxSlider.setMaximum(255)
-    self.greenMaxSlider.setValue(255)
-    self.greenMaxSlider.sliderReleased.connect(self.singleColorSlider_released)
-    self.greenMaxSlider.valueChanged.connect(self.singleColorSlider_released)
-    blueChannelTxt = QLabel('Blue channel:', self.colorTrackingBox)
-    blueChannelTxt.setGeometry(x_cln1, 185, 100, h_txt)
-    blueMinTxt = QLabel('Min:', self.colorTrackingBox)
-    blueMinTxt.setGeometry(x_cln1, 205, 100, h_txt)
-    self.blueMinLeftBtn_CT = QPushButton('<', self.colorTrackingBox)
-    self.blueMinLeftBtn_CT.setGeometry(40, 212, w_btn2, h_btn2)
-    self.blueMinLeftBtn_CT.clicked.connect(self.blueMinLeftBtn_CT_clicked)
-    self.blueMinRightBtn_CT = QPushButton('>', self.colorTrackingBox)
-    self.blueMinRightBtn_CT.setGeometry(185, 212, w_btn2, h_btn2)
-    self.blueMinRightBtn_CT.clicked.connect(self.blueMinRightBtn_CT_clicked)
-    self.blueMinSlider = QSlider(Qt.Horizontal, self.colorTrackingBox)
-    self.blueMinSlider.setGeometry(60, 212, 120, h_btn2)
-    self.blueMinSlider.setMinimum(0)
-    self.blueMinSlider.setMaximum(255)
-    self.blueMinSlider.sliderReleased.connect(self.singleColorSlider_released)
-    self.blueMinSlider.valueChanged.connect(self.singleColorSlider_released)
-    blueMaxTxt = QLabel('Max:', self.colorTrackingBox)
-    blueMaxTxt.setGeometry(x_cln1, 225, 100, h_txt)
-    self.blueMaxLeftBtn_CT = QPushButton('<', self.colorTrackingBox)
-    self.blueMaxLeftBtn_CT.setGeometry(40, 232, w_btn2, h_btn2)
-    self.blueMaxLeftBtn_CT.clicked.connect(self.blueMaxLeftBtn_CT_clicked)
-    self.blueMaxRightBtn_CT = QPushButton('>', self.colorTrackingBox)
-    self.blueMaxRightBtn_CT.setGeometry(185, 232, w_btn2, h_btn2)
-    self.blueMaxRightBtn_CT.clicked.connect(self.blueMaxRightBtn_CT_clicked)
-    self.blueMaxSlider = QSlider(Qt.Horizontal, self.colorTrackingBox)
-    self.blueMaxSlider.setGeometry(60, 232, 120, h_btn2)
-    self.blueMaxSlider.setMinimum(0)
-    self.blueMaxSlider.setMaximum(255)
-    self.blueMaxSlider.setValue(255)
-    self.blueMaxSlider.sliderReleased.connect(self.singleColorSlider_released)
-    self.blueMaxSlider.valueChanged.connect(self.singleColorSlider_released)
-    filterParticleTxt = QLabel('Filter particle size:', self.colorTrackingBox)
-    filterParticleTxt.setGeometry(x_cln1, 250, 150, h_txt)
-    self.filterParticleSldr_CT = QSlider(Qt.Horizontal, self.colorTrackingBox)
-    self.filterParticleSldr_CT.setGeometry(x_cln1, 275, 170, h_btn2)
+    hueChannelTxt = QLabel('Hue:', self.HSVTrackingBox)
+    hueChannelTxt.setGeometry(x_cln1, 70, 100, h_txt)
+    hueMinTxt = QLabel('Min:', self.HSVTrackingBox)
+    hueMinTxt.setGeometry(x_cln1, 92, 80, h_txt)
+    self.hueMinLeftBtn_CT = QPushButton('<', self.HSVTrackingBox)
+    self.hueMinLeftBtn_CT.setGeometry(35, 90, w_btn2, h_btn)
+    self.hueMinLeftBtn_CT.clicked.connect(self.hueMinLeftBtn_CT_clicked)
+    self.hueMinRightBtn_CT = QPushButton('>', self.HSVTrackingBox)
+    self.hueMinRightBtn_CT.setGeometry(175, 90, w_btn2, h_btn)
+    self.hueMinRightBtn_CT.clicked.connect(self.hueMinRightBtn_CT_clicked)
+    # CAS slider setting:
+    self.hueMinSlider = QSlider(Qt.Horizontal, self.HSVTrackingBox)
+    self.hueMinSlider.setGeometry(60, 95, 120, 25)
+    self.hueMinSlider.setMinimum(0)
+    #self.hueMinSlider.setMaximum(255)
+    self.hueMinSlider.setMaximum(180) # since stored as H/2 for 8-bit (normally 0-360)
+    #self.hueMinSlider.setValue(10)
+    self.hueMinSlider.setValue(80) # Default to include blue values - 92=~185 deg Min Hue
+    self.hueMinSlider.sliderReleased.connect(self.singleHSVSlider_released)
+    self.hueMinSlider.valueChanged.connect(self.singleHSVSlider_released)
+    hueMaxTxt = QLabel('Max:', self.HSVTrackingBox)
+    hueMaxTxt.setGeometry(x_cln1, 114, 100, h_txt)
+    self.hueMaxLeftBtn_CT = QPushButton('<', self.HSVTrackingBox)
+    self.hueMaxLeftBtn_CT.setGeometry(35, 112, w_btn2, h_btn)
+    self.hueMaxLeftBtn_CT.clicked.connect(self.hueMaxLeftBtn_CT_clicked)
+    self.hueMaxRightBtn_CT = QPushButton('>', self.HSVTrackingBox)
+    self.hueMaxRightBtn_CT.setGeometry(175, 112, w_btn2, h_btn)
+    self.hueMaxRightBtn_CT.clicked.connect(self.hueMaxRightBtn_CT_clicked)
+    # CAS slider setting:
+    self.hueMaxSlider = QSlider(Qt.Horizontal, self.HSVTrackingBox)
+    self.hueMaxSlider.setGeometry(60, 117, 120, 25)
+    self.hueMaxSlider.setMinimum(0)
+    #self.hueMaxSlider.setMaximum(255)
+    self.hueMaxSlider.setMaximum(180) # since stored as H/2 for 8-bit (normally 0-360)
+    #self.hueMaxSlider.setValue(255)
+    self.hueMaxSlider.setValue(163) # Default to include blue values - 130=~260 deg Max Hue
+    self.hueMaxSlider.sliderReleased.connect(self.singleHSVSlider_released)
+    self.hueMaxSlider.valueChanged.connect(self.singleHSVSlider_released)
+    satChannelTxt = QLabel('Saturation:', self.HSVTrackingBox)
+    satChannelTxt.setGeometry(x_cln1, 140, 100, h_txt)
+    satMinTxt = QLabel('Min:', self.HSVTrackingBox)
+    satMinTxt.setGeometry(x_cln1, 162, 100, h_txt)
+    self.satMinLeftBtn_CT = QPushButton('<', self.HSVTrackingBox)
+    self.satMinLeftBtn_CT.setGeometry(35, 160, w_btn2, h_btn)
+    self.satMinLeftBtn_CT.clicked.connect(self.satMinLeftBtn_CT_clicked)
+    self.satMinRightBtn_CT = QPushButton('>', self.HSVTrackingBox)
+    self.satMinRightBtn_CT.setGeometry(175, 160, w_btn2, h_btn)
+    self.satMinRightBtn_CT.clicked.connect(self.satMinRightBtn_CT_clicked)
+    # CAS slider setting:
+    self.satMinSlider = QSlider(Qt.Horizontal, self.HSVTrackingBox)
+    self.satMinSlider.setGeometry(60, 165, 120, 25)
+    self.satMinSlider.setMinimum(0)
+    self.satMinSlider.setMaximum(255)
+    #self.satMinSlider.setValue(10)
+    self.satMinSlider.setValue(30) # Default to include blue values - 100=~40% min Saturation
+    self.satMinSlider.sliderReleased.connect(self.singleHSVSlider_released)
+    self.satMinSlider.valueChanged.connect(self.singleHSVSlider_released)
+    satMaxTxt = QLabel('Max:', self.HSVTrackingBox)
+    satMaxTxt.setGeometry(x_cln1, 184, 100, h_txt)
+    self.satMaxLeftBtn_CT = QPushButton('<', self.HSVTrackingBox)
+    self.satMaxLeftBtn_CT.setGeometry(35, 182, w_btn2, h_btn)
+    self.satMaxLeftBtn_CT.clicked.connect(self.satMaxLeftBtn_CT_clicked)
+    self.satMaxRightBtn_CT = QPushButton('>', self.HSVTrackingBox)
+    self.satMaxRightBtn_CT.setGeometry(175, 182, w_btn2, h_btn)
+    self.satMaxRightBtn_CT.clicked.connect(self.satMaxRightBtn_CT_clicked)
+    # CAS slider setting:
+    self.satMaxSlider = QSlider(Qt.Horizontal, self.HSVTrackingBox)
+    self.satMaxSlider.setGeometry(60, 187, 120, 25)
+    self.satMaxSlider.setMinimum(0)
+    self.satMaxSlider.setMaximum(255)
+    #self.satMaxSlider.setValue(255)
+    self.satMaxSlider.setValue(255) # Default to some blue value - 255=~100% max Saturation
+    self.satMaxSlider.sliderReleased.connect(self.singleHSVSlider_released)
+    self.satMaxSlider.valueChanged.connect(self.singleHSVSlider_released)
+    valChannelTxt = QLabel('Value:', self.HSVTrackingBox)
+    valChannelTxt.setGeometry(x_cln1, 210, 100, h_txt)
+    valMinTxt = QLabel('Min:', self.HSVTrackingBox)
+    valMinTxt.setGeometry(x_cln1, 232, 100, h_txt)
+    self.valMinLeftBtn_CT = QPushButton('<', self.HSVTrackingBox)
+    self.valMinLeftBtn_CT.setGeometry(35, 230, w_btn2, h_btn)
+    self.valMinLeftBtn_CT.clicked.connect(self.valMinLeftBtn_CT_clicked)
+    self.valMinRightBtn_CT = QPushButton('>', self.HSVTrackingBox)
+    self.valMinRightBtn_CT.setGeometry(175, 230, w_btn2, h_btn)
+    self.valMinRightBtn_CT.clicked.connect(self.valMinRightBtn_CT_clicked)
+    # CAS slider setting:
+    self.valMinSlider = QSlider(Qt.Horizontal, self.HSVTrackingBox)
+    self.valMinSlider.setGeometry(60, 235, 120, 25)
+    self.valMinSlider.setMinimum(0)
+    self.valMinSlider.setMaximum(255)
+    self.valMinSlider.setValue(20) # Default to some blue value - 63=~25% min Value
+    self.valMinSlider.sliderReleased.connect(self.singleHSVSlider_released)
+    self.valMinSlider.valueChanged.connect(self.singleHSVSlider_released)
+    valMaxTxt = QLabel('Max:', self.HSVTrackingBox)
+    valMaxTxt.setGeometry(x_cln1, 254, 100, h_txt)
+    self.valMaxLeftBtn_CT = QPushButton('<', self.HSVTrackingBox)
+    self.valMaxLeftBtn_CT.setGeometry(35, 252, w_btn2, h_btn)
+    self.valMaxLeftBtn_CT.clicked.connect(self.valMaxLeftBtn_CT_clicked)
+    self.valMaxRightBtn_CT = QPushButton('>', self.HSVTrackingBox)
+    self.valMaxRightBtn_CT.setGeometry(175, 252, w_btn2, h_btn)
+    self.valMaxRightBtn_CT.clicked.connect(self.valMaxRightBtn_CT_clicked)
+    # CAS slider setting:
+    self.valMaxSlider = QSlider(Qt.Horizontal, self.HSVTrackingBox)
+    self.valMaxSlider.setGeometry(60, 257, 120, 25)
+    self.valMaxSlider.setMinimum(0)
+    self.valMaxSlider.setMaximum(255)
+    #self.valMaxSlider.setValue(255)
+    self.valMaxSlider.setValue(255) # Default to some blue value - 255=~100% max Value
+    self.valMaxSlider.sliderReleased.connect(self.singleHSVSlider_released)
+    self.valMaxSlider.valueChanged.connect(self.singleHSVSlider_released)
+
+    # May Move to xxxTrackingBox_OS
+    filterParticleTxt = QLabel('Filter particles size:', self.HSVTrackingBox)
+    filterParticleTxt.setGeometry(x_cln1, 280, 150, h_txt)
+    self.filterParticleSldr_CT = QSlider(Qt.Horizontal, self.HSVTrackingBox)
+    self.filterParticleSldr_CT.setGeometry(10, 305, 170, 25)
     self.filterParticleSldr_CT.setMinimum(1)
-    try:
-        self.filterParticleSldr_CT.setMaximum((int(self.roiThreeIn.text()) * int(self.roiFourIn.text())) / 20)
-    except:
-        self.filterParticleSldr_CT.setMaximum(2000)
-    self.filterParticleSldr_CT.setValue(10)
+    self.filterParticleSldr_CT.setMaximum(1000)
+    #try:
+    #    self.filterParticleSldr_CT.setMaximum((int(self.roiThreeIn.text()) * int(self.roiFourIn.text())) / 20)
+    #except:
+    #    self.filterParticleSldr_CT.setMaximum(2000)
+    self.filterParticleSldr_CT.setValue(20) #	was defulted to 10, but experience says around ~1228 or ~350 to not filter too much
     self.filterParticleSldr_CT.sliderReleased.connect(self.filterParticleSldr_CT_released)
-    avgLE_txt = QLabel('#px to locate edges:', self.colorTrackingBox)
-    avgLE_txt.setGeometry(x_cln1, 295, 100, h_txt)
-    self.avgLEIn_CT = QLineEdit('1', self.colorTrackingBox)
-    self.avgLEIn_CT.setGeometry(x_cln2, 300, 30, h_lbl)
-    connectivityTxt = QLabel('Connectivity (px):', self.colorTrackingBox)
-    connectivityTxt.setGeometry(x_cln1, 325, 100, h_txt)
-    self.connectivityBox = QComboBox(self.colorTrackingBox)
-    self.connectivityBox.setGeometry(x_cln2, 330, 35, h_btn-2)
+
+    avgLE_txt = QLabel('#px to locate edges:', self.HSVTrackingBox)
+    avgLE_txt.setGeometry(x_cln1, 330, 140, h_txt)
+    self.avgLEIn_CT = QLineEdit('10', self.HSVTrackingBox) #was defaulted to 1, but experience says around 5-10
+    self.avgLEIn_CT.setGeometry(x_cln1 + 135, 334, 30, h_lbl)
+    connectivityTxt = QLabel('Connectivity (px):', self.HSVTrackingBox)
+    connectivityTxt.setGeometry(x_cln1, 360, 100, h_txt)
+    self.connectivityBox = QComboBox(self.HSVTrackingBox)
+    self.connectivityBox.setGeometry(x_cln1 + 110, 360, 60, h_btn)
     self.connectivityBox.addItem('4')
     self.connectivityBox.addItem('8')
     self.connectivityBox.activated.connect(self.connectivityBoxCT_clicked)
 
     #second column
     x_cln1 = 220
-    x_cln2 = 330
-    self.saveChannelsBtn_CT = QPushButton('Save filter values', self.colorTrackingBox)
-    self.saveChannelsBtn_CT.setGeometry(x_cln1, 15, 140, h_btn)
+    self.saveChannelsBtn_CT = QPushButton('Save filter values', self.HSVTrackingBox)
+    self.saveChannelsBtn_CT.setGeometry(x_cln1 - 10, 30, 150, h_btn)
     self.saveChannelsBtn_CT.clicked.connect(self.saveChannelsBtn_CT_clicked)
-    self.loadChannelsBtn_CT = QPushButton('Load filter values', self.colorTrackingBox)
-    self.loadChannelsBtn_CT.setGeometry(x_cln1, 45, 140, h_btn)
+    self.loadChannelsBtn_CT = QPushButton('Load filter values', self.HSVTrackingBox)
+    self.loadChannelsBtn_CT.setGeometry(x_cln1 - 10, 60, 150, h_btn)
     self.loadChannelsBtn_CT.clicked.connect(self.loadChannelsBtn_CT_clicked)
-    self.helpBtn_CT = QPushButton('Help', self.colorTrackingBox)
-    self.helpBtn_CT.setGeometry(x_cln1, 75, 140, h_btn)
+    self.helpBtn_CT = QPushButton('Help', self.HSVTrackingBox)
+    self.helpBtn_CT.setGeometry(x_cln1 - 10, 90, 150, h_btn)
     self.helpBtn_CT.clicked.connect(self.helpBtn_CT_clicked)
-    trackingTxt = QLabel('Flame tracking:', self.colorTrackingBox)
-    trackingTxt.setGeometry(x_cln1, 100, 120, h_txt)
-    self.filterLight_CT = QCheckBox('Ignore flashing light', self.colorTrackingBox)
-    self.filterLight_CT.setGeometry(x_cln1, 125, 140, h_btn)
-    movAvgTxt = QLabel('Moving avg points:', self.colorTrackingBox)
-    movAvgTxt.setGeometry(x_cln1, 155, 100, h_txt)
-    self.movAvgIn_CT = QLineEdit('2', self.colorTrackingBox)
-    self.movAvgIn_CT.setGeometry(x_cln2, 160, 30, h_lbl)
-    self.colorTrackingBtn = QPushButton('Start tracking', self.colorTrackingBox)
-    self.colorTrackingBtn.setGeometry(x_cln1, 190, 140, h_btn)
-    self.colorTrackingBtn.clicked.connect(self.colorTrackingBtn_clicked)
-    self.absValBtn_CT = QPushButton('Absolute values', self.colorTrackingBox)
-    self.absValBtn_CT.setGeometry(x_cln1, 220, 140, h_btn)
+    trackingTxt = QLabel('Flame tracking:', self.HSVTrackingBox)
+    trackingTxt.setGeometry(x_cln1, 120, 120, h_txt)
+    self.filterLight_CT = QCheckBox('Ignore flashing light', self.HSVTrackingBox)
+    self.filterLight_CT.setGeometry(x_cln1, 145, 135, h_btn)
+    movAvgTxt = QLabel('Moving avg points:', self.HSVTrackingBox)
+    movAvgTxt.setGeometry(x_cln1, 170, 130, h_txt)
+    self.movAvgIn_CT = QLineEdit('5', self.HSVTrackingBox) #was defaulted to 2, experience says around 5 better
+    self.movAvgIn_CT.setGeometry(x_cln1 + 105, 174, 30, h_lbl)
+    self.HSVTrackingBtn = QPushButton('Start tracking', self.HSVTrackingBox)
+    self.HSVTrackingBtn.setGeometry(x_cln1 - 10, 200, 150, h_btn)
+    self.HSVTrackingBtn.clicked.connect(self.HSVTrackingBtn_clicked)
+    self.absValBtn_CT = QPushButton('Absolute values', self.HSVTrackingBox)
+    self.absValBtn_CT.setGeometry(x_cln1 - 10, 230, 150, h_btn)
     self.absValBtn_CT.clicked.connect(self.absValBtn_CT_clicked)
-    self.saveBtn_CT = QPushButton('Save data', self.colorTrackingBox)
-    self.saveBtn_CT.setGeometry(x_cln1, 250, 140, h_btn)
+    self.saveBtn_CT = QPushButton('Save data', self.HSVTrackingBox)
+    self.saveBtn_CT.setGeometry(x_cln1 - 10, 260, 150, h_btn)
     self.saveBtn_CT.clicked.connect(self.saveBtn_CT_clicked)
 
+    # Add time/frame plotting toggle - CAS
+    self.isPlotTimevsFrame = False #True
+
     # first label
-    self.lbl1_CT = QLabel(self.colorTrackingBox)
-    self.lbl1_CT.setGeometry(370, 15, 330, 250)
+    self.lbl1_CT = QLabel(self.HSVTrackingBox)
+    #self.lbl1_CT.setGeometry(370, 25, 330, 250)
+    self.lbl1_CT.setGeometry(370, 25, 670, 125) # Changed geometry as removed BW image display
     self.lbl1_CT.setStyleSheet('background-color: white')
-    self.showEdges = QCheckBox('Show edges location', self.colorTrackingBox)
-    self.showEdges.setGeometry(780, 270, 120, h_btn)
+    self.showEdges = QCheckBox('Show edges location', self.HSVTrackingBox)
+    self.showEdges.setGeometry(780, 275, 135, h_btn)
     self.showEdges.setChecked(True)
-    self.exportEdges_CT = QCheckBox('Output video analysis', self.colorTrackingBox)
-    self.exportEdges_CT.setGeometry(780, 290, 120, h_btn)
+    self.exportEdges_CT = QCheckBox('Output video analysis', self.HSVTrackingBox)
+    self.exportEdges_CT.setGeometry(780, 300, 135, h_btn)
+    #CAS Export with tracking line
+    self.exportTrackOverlay_CT = QCheckBox('Video Tracking Overlay', self.HSVTrackingBox)
+    self.exportTrackOverlay_CT.setGeometry(780, 325, 200, h_btn)
+
+    
 
     # second label
-    self.lbl2_CT = QLabel(self.colorTrackingBox)
-    self.lbl2_CT.setGeometry(710, 15, 330, 250)
+    self.lbl2_CT = QLabel(self.HSVTrackingBox)
+    #self.lbl2_CT.setGeometry(710, 25, 330, 250)
+    self.lbl2_CT.setGeometry(370, 150, 670, 125)
     self.lbl2_CT.setStyleSheet('background-color: white')
-    self.showFrameLargeBtn_CT = QPushButton('Show frames', self.colorTrackingBox)
-    self.showFrameLargeBtn_CT.setGeometry(920, 270, 120, h_btn)
+    self.showFrameLargeBtn_CT = QPushButton('Show frames', self.HSVTrackingBox)
+    self.showFrameLargeBtn_CT.setGeometry(930, 275, 115, h_btn)
     self.showFrameLargeBtn_CT.clicked.connect(self.showFrameLargeBtn_CT_clicked)
 
     self.flameDir = 'toRight'
     self.connectivity_CT = 4
-    self.colorTrackingValue = True
+    self.HSVTrackingValue = True
 
-    self.colorTrackingBox.show()
+    self.HSVTrackingBox.show()
 
-def getColorFilteredFrame(self, frameNumber):
+def getHSVFilteredFrame(self, frameNumber):
     if self.openSelection == 'video':
         self.fVideo.set(1, frameNumber)
         ret, frame = self.fVideo.read()
@@ -242,20 +276,23 @@ def getColorFilteredFrame(self, frameNumber):
         frame = cv2.convertScaleAbs(frame, alpha=alpha, beta=beta)
 
     # crop frame (after rotation)
-    frameCrop = frame[int(self.roiTwoIn.text()) : (int(self.roiTwoIn.text()) + int(self.roiFourIn.text())), int(self.roiOneIn.text()) : (int(self.roiOneIn.text()) + int(self.roiThreeIn.text()))]
+    #frameCrop = frame[int(self.roiTwoIn.text()) : (int(self.roiTwoIn.text()) + int(self.roiFourIn.text())), int(self.roiOneIn.text()) : (int(self.roiOneIn.text()) + int(self.roiThreeIn.text()))]
+    self.frameCrop = frame[int(self.roiTwoIn.text()) : (int(self.roiTwoIn.text()) + int(self.roiFourIn.text())), int(self.roiOneIn.text()) : (int(self.roiOneIn.text()) + int(self.roiThreeIn.text()))]
 
-    blueLow = self.blueMinSlider.value()
-    blueHigh = self.blueMaxSlider.value()
-    greenLow = self.greenMinSlider.value()
-    greenHigh = self.greenMaxSlider.value()
-    redLow = self.redMinSlider.value()
-    redHigh = self.redMaxSlider.value()
-    low = ([blueLow, greenLow, redLow])
-    high = ([blueHigh, greenHigh, redHigh])
+    # Filter here: #CAS Modified for HSV tracking instead of color tracking
+    valLow = self.valMinSlider.value()
+    valHigh = self.valMaxSlider.value()
+    satLow = self.satMinSlider.value()
+    satHigh = self.satMaxSlider.value()
+    hueLow = self.hueMinSlider.value()
+    hueHigh = self.hueMaxSlider.value()
+    low = ([hueLow, satLow, valLow])
+    high = ([hueHigh, satHigh, valHigh])
     low = np.array(low, dtype = 'uint8') #this conversion is necessary
     high = np.array(high, dtype = 'uint8')
-    newMask = cv2.inRange(frameCrop, low, high)
-    frame = cv2.bitwise_and(frameCrop, frameCrop, mask = newMask)
+    #newMask = cv2.inRange(frameCrop, low, high)
+    newMask = cv2.inRange(cv2.cvtColor(self.frameCrop, cv2.COLOR_BGR2HSV), low, high)
+    frame = cv2.bitwise_and(self.frameCrop, self.frameCrop, mask = newMask)
     grayFrame = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
     (threshold, frameBW) = cv2.threshold(grayFrame, 0, 255, cv2.THRESH_BINARY)
 
@@ -330,7 +367,7 @@ def findFlameEdges_CT(self, frameBW, flamePx):
     except:
         self.msgLabel.setText('Flame not found in some frames')
 
-def colorTracking(self):
+def HSVTracking(self):
     scale = True
     if not self.scaleIn.text():
         scale = False
@@ -347,11 +384,11 @@ def colorTracking(self):
     self.frameCount = list()
     flameArea = list()
 
-    if self.exportEdges_CT.isChecked():
+    if self.exportEdges_CT.isChecked() or self.exportTrackOverlay_CT.isChecked():
         fps = (float(self.vFpsLbl.text()))/(int(self.skipFrameIn.text()) + 1) #fps(new) = fps(original)/(skipframes + 1)
         codec = str(self.codecIn.text())
         vFormat = str(self.formatIn.text())
-        vName = self.fPath + '-trackedVideo.' + str(vFormat) # alternative: 'output.{}'.format(vFormat); self.fNameLbl.text()
+        vName = self.fPath + '-trackedVideo.' + str(vFormat) # alternative: 'output.{}'.format(vFormat);   self.fNameLbl.text()
         fourcc = cv2.VideoWriter_fourcc(*codec)
         size = (int(self.roiThreeIn.text()), int(self.roiFourIn.text()))
         # open and set properties
@@ -359,14 +396,21 @@ def colorTracking(self):
         vout.open(vName, fourcc, fps, size, True)
 
     if scale: #this condition prevents crashes in case the scale is not specified
+        import numpy #CAS Added for tracking line
         while (currentFrame < lastFrame):
-            getColorFilteredFrame(self, currentFrame)
+            getHSVFilteredFrame(self, currentFrame)
             self.xRight_mm.append(self.xRight / float(self.scaleIn.text()))
             self.xLeft_mm.append(self.xLeft / float(self.scaleIn.text()))
             flameArea.append(self.flameArea)
             self.frameCount.append(currentFrame)
-            if self.exportEdges_CT.isChecked():
+            if self.exportEdges_CT.isChecked() and not self.exportTrackOverlay_CT.isChecked():
                 vout.write(self.currentFrameRGB_CT)
+            elif self.exportTrackOverlay_CT.isChecked():
+                #CAS Add Track lines over cropped video
+                trackframe = numpy.copy(self.frameCrop) # frame is 1080 x 1920
+                trackframe[:, min(self.xRight-1 - int(self.roiOneIn.text()), numpy.size(trackframe,1))] = 255 # white out line to mark where tracked flame, using relative distance
+                vout.write(trackframe)
+
             print('Progress: ', round((currentFrame - firstFrame)/(lastFrame - firstFrame) * 10000)/100, '%')
             currentFrame = currentFrame + 1 + int(self.skipFrameIn.text())
 
@@ -378,6 +422,22 @@ def colorTracking(self):
         except:
             pass
 
+            # CAS Add tracking line from flameTracker.py
+            #if self.HSVTrackingValue == True:
+            #    # Start tracking for export
+            #    #HSVTracking(self)
+            #    # #findFlameEdges_CT(self, frameBW, flamePx)
+            #    getHSVFilteredFrame(self, currentFrame)
+            #    trackframe = frameCrop # frame is 1080 x 1920
+            #    import numpy
+            #    #print(type(frame), numpy.size(frame, 0), 'x', numpy.size(frame, 1))
+            #    #print(type(frameCrop), numpy.size(frameCrop, 0), 'x', numpy.size(frameCrop, 1))
+            #    trackframe[:, min(self.xRight-1 - int(self.roiOneIn.text()), numpy.size(trackframe,1))] = 255 # white out line to mark where tracked flame, using relative distance
+            #    #if self.xRight-1 > numpy.size(trackframe,1):
+            #    #    print('xRight would have errored here with value:', self.xRight)
+            #    #cv2.imshow('Frame_With_255_TrackLine', trackframe)
+
+
         for i in range(len(self.xRight_mm)):
             flameLength_mm.append(abs(self.xRight_mm[i] - self.xLeft_mm[i]))
 
@@ -386,7 +446,7 @@ def colorTracking(self):
         print('Progress: 100 % - Tracking completed')
         self.msgLabel.setText('Tracking completed')
 
-        if self.exportEdges_CT.isChecked():
+        if self.exportEdges_CT.isChecked() or self.exportTrackOverlay_CT.isChecked():
             vout.release()
             self.msgLabel.setText('Tracking completed and video created.')
 
@@ -427,44 +487,69 @@ def colorTracking(self):
         self.spreadRateLeft = np.round(self.spreadRateLeft, 3)
         self.spreadRateLeft = self.spreadRateLeft.tolist()
 
-        self.lbl1_CT = pg.PlotWidget(self.colorTrackingBox)
-        self.lbl1_CT.setGeometry(370, 15, 330, 250)
+        self.lbl1_CT = pg.PlotWidget(self.HSVTrackingBox)
+        #self.lbl1_CT.setGeometry(370, 25, 330, 250)
+        self.lbl1_CT.setGeometry(370, 25, 670, 125) # Changed geometry as removed BW image display
         self.lbl1_CT.setBackground('w')
         self.lbl1_CT.setLabel('left', 'Position [mm]', color='black', size=14)
-        self.lbl1_CT.setLabel('bottom', 'Time [s]', color='black', size=14)
+        if self.isPlotTimevsFrame:
+            ## Plot in terms of time
+            self.lbl1_CT.setLabel('bottom', 'Time [s]', color='black', size=14)
+        else:
+            ## CAS Plot in terms of frame:
+            self.lbl1_CT.setLabel('bottom', 'Frame', color='black', size=14)
+
         self.lbl1_CT.getAxis('bottom').setPen(color=(0, 0, 0))
         self.lbl1_CT.getAxis('left').setPen(color=(0, 0, 0))
         self.lbl1_CT.addLegend(offset = [1, 0.1]) # background color modified in line 122 and 123 of Versions/3.7/lib/python3.7/site-packages/pyqtgraph/graphicsItems
-        self.lbl2_CT = pg.PlotWidget(self.colorTrackingBox)
-        self.lbl2_CT.setGeometry(710, 15, 330, 250)
+        self.lbl2_CT = pg.PlotWidget(self.HSVTrackingBox)
+        #self.lbl2_CT.setGeometry(710, 25, 330, 250)
+        self.lbl2_CT.setGeometry(370, 150, 670, 125) #(370, 25, 670, 250)
+        #print('\nView rect=', self.lbl2_CT.viewRect() )
+        #print('\nGeometry set to', self.lbl2_CT.viewGeometry())
         self.lbl2_CT.setBackground('w')
         self.lbl2_CT.setLabel('left', 'Spread Rate [mm/s]', color='black', size=14)
-        self.lbl2_CT.setLabel('bottom', 'Time [s]', color='black', size=14)
+        if self.isPlotTimevsFrame:
+            ## Plot in terms of time
+            self.lbl2_CT.setLabel('bottom', 'Time [s]', color='black', size=14)
+        else:
+            ## CAS Plot in terms of frame:
+            self.lbl2_CT.setLabel('bottom', 'Frame', color='black', size=14)
+
         self.lbl2_CT.getAxis('bottom').setPen(color=(0, 0, 0))
         self.lbl2_CT.getAxis('left').setPen(color=(0, 0, 0))
         self.lbl2_CT.addLegend(offset = [1, 0.1]) # background color modified in line 122 and 123 of Versions/3.7/lib/python3.7/site-packages/pyqtgraph/graphicsItems
 
-        colorTrackingPlot(self.lbl1_CT, self.timeCount, self.xRight_mm, 'right edge', 'o', 'b')
-        colorTrackingPlot(self.lbl1_CT, self.timeCount, self.xLeft_mm, 'left edge', 't', 'r')
-        colorTrackingPlot(self.lbl2_CT, self.timeCount, self.spreadRateRight, 'right edge', 'o', 'b')
-        colorTrackingPlot(self.lbl2_CT, self.timeCount, self.spreadRateLeft, 'left edge', 't', 'r')
+        if self.isPlotTimevsFrame:
+            ## Plot in terms of time
+            HSVTrackingPlot(self.lbl1_CT, self.timeCount, self.xRight_mm, 'right edge', 'o', 'b')
+            HSVTrackingPlot(self.lbl1_CT, self.timeCount, self.xLeft_mm, 'left edge', 't', 'r')
+            HSVTrackingPlot(self.lbl2_CT, self.timeCount, self.spreadRateRight, 'right edge', 'o', 'b')
+            HSVTrackingPlot(self.lbl2_CT, self.timeCount, self.spreadRateLeft, 'left edge', 't', 'r')
+        else:
+            ## CAS Plot in terms of frame:
+            HSVTrackingPlot(self.lbl1_CT, self.frameCount, self.xRight_mm, 'right edge', 'o', 'b')
+            HSVTrackingPlot(self.lbl1_CT, self.frameCount, self.xLeft_mm, 'left edge', 't', 'r')
+            HSVTrackingPlot(self.lbl2_CT, self.frameCount, self.spreadRateRight, 'right edge', 'o', 'b')
+            HSVTrackingPlot(self.lbl2_CT, self.frameCount, self.spreadRateLeft, 'left edge', 't', 'r')
 
+        print('Showing!')
         self.lbl1_CT.show()
         self.lbl2_CT.show()
 
-def colorTrackingPlot(label, x, y, name, symbol, color):
+def HSVTrackingPlot(label, x, y, name, symbol, color):
     pen = pg.mkPen(color)
     label.plot(x, y, pen = pen, name = name, symbol = symbol, symbolSize = 7, symbolBrush = (color))
 
-def colorSlider_released(self):
+def HSVSlider_released(self):
     frame = self.previewSlider.value()
-    getColorFilteredFrame(self, frame)
+    getHSVFilteredFrame(self, frame)
     self.lbl1_CT.setPixmap(QPixmap.fromImage(self.frame))
     self.lbl2_CT.setPixmap(QPixmap.fromImage(self.frameBW))
 
 def filterParticleSldr_CT(self):
     frame = self.previewSlider.value()
-    getColorFilteredFrame(self, frame)
+    getHSVFilteredFrame(self, frame)
     self.lbl1_CT.setPixmap(QPixmap.fromImage(self.frame))
     self.lbl2_CT.setPixmap(QPixmap.fromImage(self.frameBW))
 
@@ -529,9 +614,10 @@ def saveChannelsBtn_CT(self):
                 writer = csv.writer(csvfile, delimiter = ',')
                 writer.writerow(['File', self.fNameLbl.text()])
                 writer.writerow(['Channel', 'Minimum', 'Maximum'])
-                writer.writerow(['Red', str(self.redMinSlider.value()), str(self.redMaxSlider.value())])
-                writer.writerow(['Green', str(self.greenMinSlider.value()), str(self.greenMaxSlider.value())])
-                writer.writerow(['Blue', str(self.blueMinSlider.value()), str(self.blueMaxSlider.value())])
+                # CAS slider setting:
+                writer.writerow(['H', str(self.hueMinSlider.value()), str(self.hueMaxSlider.value())])
+                writer.writerow(['S', str(self.satMinSlider.value()), str(self.satMaxSlider.value())])
+                writer.writerow(['V', str(self.valMinSlider.value()), str(self.valMaxSlider.value())])
                 writer.writerow([''])
                 writer.writerow(['Particle size', str(self.filterParticleSldr_CT.value())])
                 writer.writerow(['Moving average', str(self.movAvgIn_CT.text())])
@@ -547,15 +633,16 @@ def loadChannelsBtn_CT(self):
         with open(name[0], 'r') as csvfile:
             reader = csv.reader(csvfile, delimiter = ',')
             for row in reader:
-                if 'Red' in row:
-                    self.redMinSlider.setValue(int(row[1]))
-                    self.redMaxSlider.setValue(int(row[2]))
-                elif 'Green' in row:
-                    self.greenMinSlider.setValue(int(row[1]))
-                    self.greenMaxSlider.setValue(int(row[2]))
-                elif 'Blue' in row:
-                    self.blueMinSlider.setValue(int(row[1]))
-                    self.blueMaxSlider.setValue(int(row[2]))
+                # CAS slider setting:
+                if 'H' in row:
+                    self.hueMinSlider.setValue(int(row[1]))
+                    self.hueMaxSlider.setValue(int(row[2]))
+                elif 'S' in row:
+                    self.satMinSlider.setValue(int(row[1]))
+                    self.satMaxSlider.setValue(int(row[2]))
+                elif 'V' in row:
+                    self.valMinSlider.setValue(int(row[1]))
+                    self.valMaxSlider.setValue(int(row[2]))
                 elif 'Particle size' in row:
                     self.filterParticleSldr_CT.setValue(int(row[1]))
                 elif 'Moving average' in row:
@@ -595,10 +682,17 @@ def absValBtn_CT(self):
     self.lbl1_CT.clear()
     self.lbl2_CT.clear()
 
-    colorTrackingPlot(self.lbl1_CT, self.timeCount, self.xRight_mm, '', 'o', 'b')
-    colorTrackingPlot(self.lbl1_CT, self.timeCount, self.xLeft_mm, '','t', 'r')
-    colorTrackingPlot(self.lbl2_CT, self.timeCount, self.spreadRateRight, '', 'o', 'b')
-    colorTrackingPlot(self.lbl2_CT, self.timeCount, self.spreadRateLeft, '','t', 'r')
+    ## Plot in terms of time:
+    #HSVTrackingPlot(self.lbl1_CT, self.timeCount, self.xRight_mm, '', 'o', 'b')
+    #HSVTrackingPlot(self.lbl1_CT, self.timeCount, self.xLeft_mm, '','t', 'r')
+    #HSVTrackingPlot(self.lbl2_CT, self.timeCount, self.spreadRateRight, '', 'o', 'b')
+    #HSVTrackingPlot(self.lbl2_CT, self.timeCount, self.spreadRateLeft, '','t', 'r')
+
+    ## CAS Plot in terms of frame:
+    HSVTrackingPlot(self.lbl1_CT, self.frameCount, self.xRight_mm, '', 'o', 'b')
+    HSVTrackingPlot(self.lbl1_CT, self.frameCount, self.xLeft_mm, '','t', 'r')
+    HSVTrackingPlot(self.lbl2_CT, self.frameCount, self.spreadRateRight, '', 'o', 'b')
+    HSVTrackingPlot(self.lbl2_CT, self.frameCount, self.spreadRateLeft, '','t', 'r')
 
 def saveBtn_CT(self):
     fileName = QFileDialog.getSaveFileName(self, 'Save tracking data')
@@ -627,8 +721,8 @@ def saveBtn_CT(self):
 def showFrameLarge_CT(self):
     cv2.namedWindow(('Frame (RGB): ' + self.frameIn.text()), cv2.WINDOW_AUTOSIZE)
     cv2.imshow(('Frame (RGB): ' + self.frameIn.text()), self.currentFrameRGB_CT)
-    cv2.namedWindow(('Frame (black/white): ' + self.frameIn.text()), cv2.WINDOW_AUTOSIZE)
-    cv2.imshow(('Frame (black/white): ' + self.frameIn.text()), self.currentFrameBW_CT)
+    #cv2.namedWindow(('Frame (black/white): ' + self.frameIn.text()), cv2.WINDOW_AUTOSIZE)
+    #cv2.imshow(('Frame (black/white): ' + self.frameIn.text()), self.currentFrameBW_CT)
     while True:
         if cv2.waitKey(1) == 27: #ord('Esc')
             cv2.destroyAllWindows()
@@ -636,7 +730,8 @@ def showFrameLarge_CT(self):
 
 def helpBtn_CT(self):
     msg = QMessageBox(self)
-    msg.setText("""In this analysis the flame is tracked based on the image colors. After specifying the video parameters and the flame direction, the flame region can be identified by choosing appropriate values of the RGB channels (and particle size filtering). The channel values vary between 0 and 255, and the code will consider the range between minimum and maximum of each channel adjusted with the sliders. Small particles can be filtered out; the maximum value of the 'Filter particles size' slider corresponds to 25% of the size of the Region Of Interest (ROI).
+    msg.setText("""In this analysis the flame is tracked based on the image HSV colors. After specifying the video parameters and the flame direction, the flame region can be identified by choosing appropriate values of the HSV parameters (and particle size filtering). The HSV values vary depending on the colorspace of the frame/image - current implemntation uses a hue from 0-180 (since 0-360 deg hue is stored as H/2 for 8-bit), value and saturation are set from 0 to 255.
+    The code will consider the range between minimum and maximum of each of the HSV as adjusted with the sliders. Small particles can be filtered out; the maximum value of the 'Filter particles size' slider corresponds to 25% of the size of the Region Of Interest (ROI).
 
     The preview box on the left shows the RGB image resulting from the filtering, while the preview box on the right shows the binary image with the particle filtering applied. The edges of the flame region are calculated as maximum and minimum locations.
 
@@ -653,51 +748,51 @@ def helpBtn_CT(self):
     """)
     msg.exec_()
 
-def redMinLeftBtn_CT(self):
-    currentValue = self.redMinSlider.value()
-    self.redMinSlider.setValue(currentValue - 1)
-    colorSlider_released(self)
-def redMinRightBtn_CT(self):
-    currentValue = self.redMinSlider.value()
-    self.redMinSlider.setValue(currentValue + 1)
-    colorSlider_released(self)
-def redMaxLeftBtn_CT(self):
-    currentValue = self.redMaxSlider.value()
-    self.redMaxSlider.setValue(currentValue - 1)
-    colorSlider_released(self)
-def redMaxRightBtn_CT(self):
-    currentValue = self.redMaxSlider.value()
-    self.redMaxSlider.setValue(currentValue + 1)
-    colorSlider_released(self)
-def greenMinLeftBtn_CT(self):
-    currentValue = self.greenMinSlider.value()
-    self.greenMinSlider.setValue(currentValue - 1)
-    colorSlider_released(self)
-def greenMinRightBtn_CT(self):
-    currentValue = self.greenMinSlider.value()
-    self.greenMinSlider.setValue(currentValue + 1)
-    colorSlider_released(self)
-def greenMaxLeftBtn_CT(self):
-    currentValue = self.greenMaxSlider.value()
-    self.greenMaxSlider.setValue(currentValue - 1)
-    colorSlider_released(self)
-def greenMaxRightBtn_CT(self):
-    currentValue = self.greenMaxSlider.value()
-    self.greenMaxSlider.setValue(currentValue + 1)
-    colorSlider_released(self)
-def blueMinLeftBtn_CT(self):
-    currentValue = self.blueMinSlider.value()
-    self.blueMinSlider.setValue(currentValue - 1)
-    colorSlider_released(self)
-def blueMinRightBtn_CT(self):
-    currentValue = self.blueMinSlider.value()
-    self.blueMinSlider.setValue(currentValue + 1)
-    colorSlider_released(self)
-def blueMaxLeftBtn_CT(self):
-    currentValue = self.blueMaxSlider.value()
-    self.blueMaxSlider.setValue(currentValue - 1)
-    colorSlider_released(self)
-def blueMaxRightBtn_CT(self):
-    currentValue = self.blueMaxSlider.value()
-    self.blueMaxSlider.setValue(currentValue + 1)
-    colorSlider_released(self)
+def hueMinLeftBtn_CT(self):
+    currentValue = self.hueMinSlider.value()
+    self.hueMinSlider.setValue(currentValue - 1)
+    HSVSlider_released(self)
+def hueMinRightBtn_CT(self):
+    currentValue = self.hueMinSlider.value()
+    self.hueMinSlider.setValue(currentValue + 1)
+    HSVSlider_released(self)
+def hueMaxLeftBtn_CT(self):
+    currentValue = self.hueMaxSlider.value()
+    self.hueMaxSlider.setValue(currentValue - 1)
+    HSVSlider_released(self)
+def hueMaxRightBtn_CT(self):
+    currentValue = self.hueMaxSlider.value()
+    self.hueMaxSlider.setValue(currentValue + 1)
+    HSVSlider_released(self)
+def satMinLeftBtn_CT(self):
+    currentValue = self.satMinSlider.value()
+    self.satMinSlider.setValue(currentValue - 1)
+    HSVSlider_released(self)
+def satMinRightBtn_CT(self):
+    currentValue = self.satMinSlider.value()
+    self.satMinSlider.setValue(currentValue + 1)
+    HSVSlider_released(self)
+def satMaxLeftBtn_CT(self):
+    currentValue = self.satMaxSlider.value()
+    self.satMaxSlider.setValue(currentValue - 1)
+    HSVSlider_released(self)
+def satMaxRightBtn_CT(self):
+    currentValue = self.satMaxSlider.value()
+    self.satMaxSlider.setValue(currentValue + 1)
+    HSVSlider_released(self)
+def valMinLeftBtn_CT(self):
+    currentValue = self.valMinSlider.value()
+    self.valMinSlider.setValue(currentValue - 1)
+    HSVSlider_released(self)
+def valMinRightBtn_CT(self):
+    currentValue = self.valMinSlider.value()
+    self.valMinSlider.setValue(currentValue + 1)
+    HSVSlider_released(self)
+def valMaxLeftBtn_CT(self):
+    currentValue = self.valMaxSlider.value()
+    self.valMaxSlider.setValue(currentValue - 1)
+    HSVSlider_released(self)
+def valMaxRightBtn_CT(self):
+    currentValue = self.valMaxSlider.value()
+    self.valMaxSlider.setValue(currentValue + 1)
+    HSVSlider_released(self)
