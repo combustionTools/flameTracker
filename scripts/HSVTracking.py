@@ -1,5 +1,7 @@
 """
-Note on implementation of HSL and HSV
+This file has been built to function with the Flame Tracker code. This program is designed to track flames or bright objects in videos or images.
+
+Note on implementation of HSL and HSV:
 Hue, the angular dimension, starting at the red primary at 0°, passing through the green primary at 120° and the blue primary at 240°, and then wrapping back to red at 360°
 
 OpenCV Implementation: RGB to HSV

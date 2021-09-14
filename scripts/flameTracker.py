@@ -18,8 +18,8 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-Author: Luca Carmignani, PhD
-Modifications by: Charles Scudiere, PhD
+Original Author: Luca Carmignani, PhD
+Collaborator/Contributor: Charles Scudiere, PhD
 Contact: flameTrackerContact@gmail.com
 """
 
@@ -55,15 +55,16 @@ if hasattr(Qt, 'AA_UseHighDpiPixmaps'):
 class Window(QWidget):
     def __init__(self, parent=None):
         super(Window, self).__init__(parent)
-        """
+        
         print('''Flame Tracker - Copyright (C) 2020,2021 Luca Carmignani
+        Coauthor/Contribitor/Collaborators: (C) 2021 Charles Scudiere
         This program comes with ABSOLUTELY NO WARRANTY; See the GNU General
         Public License for more details.
         This is free software, and you can redistribute it and/or modify
         it under the terms of the GNU General Public License as published by
         the Free Software Foundation, either version 3 of the License, or
         (at your option) any later version.''')
-        """
+        
 
         if sys.platform == 'darwin':
             previewBox_Mac(self)

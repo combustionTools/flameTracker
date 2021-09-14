@@ -1,6 +1,7 @@
 """
 Flame Tracker. This program is designed to track flames or bright objects in videos or images.
 Copyright (C) 2020,2021  Luca Carmignani
+Code Modified by Charles Scudiere (C) 2021
 
 This file is part of Flame Tracker.
 
@@ -17,7 +18,8 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-Author: Luca Carmignani, PhD
+Original Author: Luca Carmignani, PhD
+Collaborator/Contributor: Charles Scudiere, PhD
 Contact: flameTrackerContact@gmail.com
 """
 
@@ -25,7 +27,7 @@ from flameTracker import *
 
 def previewBox_Mac(self):
     self.setStyleSheet('font: 12pt Helvetica')
-    self.setWindowTitle('Flame Tracker (v1.1.0)')
+    self.setWindowTitle('Flame Tracker (v1.1.1)')
     self.setGeometry(10, 10, 1070, 755)
     #Box to choose video parameters, the widgets are listed below
     parametersBox = QGroupBox('Preview box', self)
@@ -255,7 +257,7 @@ def previewBox_Mac(self):
     self.showFrameLargeBtn.clicked.connect(self.showFrameLargeBtn_clicked)
 
 def previewBox_Win(self):
-    self.setWindowTitle('Flame Tracker (v1.1.0)')
+    self.setWindowTitle('Flame Tracker (v1.1.1)')
     self.setGeometry(25, 25, 1070, 740) #10,10,1000,720
     #Box to choose video parameters, widgets are listed below
     parametersBox = QGroupBox('Preview box', self)
@@ -491,7 +493,7 @@ def previewBox_Win(self):
 def previewBox_Linux(self):
     print('Welcome Linux user!')
     self.setStyleSheet('font: 12pt Helvetica')
-    self.setWindowTitle('Flame Tracker (v1.1.0)')
+    self.setWindowTitle('Flame Tracker (v1.1.1)')
     self.setGeometry(10, 10, 1070, 755)
     #Box to choose video parameters, the widgets are listed below
     parametersBox = QGroupBox('Preview box', self)
