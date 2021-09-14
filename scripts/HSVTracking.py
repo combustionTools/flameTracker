@@ -1,19 +1,8 @@
 """
-This file has been built to function with the Flame Tracker code. This program is designed to track flames or bright objects in videos or images.
+Flame Tracker. This program is designed to track flames or bright objects in videos or images.
+Copyright (C) 2021 Charles Scudiere; 2021  Luca Carmignani
 
-Note on implementation of HSL and HSV:
-Hue, the angular dimension, starting at the red primary at 0°, passing through the green primary at 120° and the blue primary at 240°, and then wrapping back to red at 360°
-
-OpenCV Implementation: RGB to HSV
-In case of 8-bit and 16-bit images, R, G, and B are converted to the floating-point format and scaled to fit the 0 to 1 range.
-
-If H<0 then H <- +360 . On output 0≤V≤1, 0≤S≤1, 0≤H≤360 .
-
-The values are then converted to the destination data type:
-
-    8-bit images: V <- 255V, S <- 255S,H <- H/2(to fit to 0 to 255)
-    16-bit images: (currently not supported) V < -65535V, S < 65535S, H <− H
-    32-bit images: H, S, and V are left as is
+This file is part of Flame Tracker.
 
 Flame Tracker is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -28,8 +17,24 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-Author: Charles Scudiere, PhD, adapted from code written by Luca Carmignani, PhD
+Author: Charles Scudiere, PhD (adapted from colorTracking.py)
+Collaborator/Contributor: Luca Carmignani, PhD
 Contact: flameTrackerContact@gmail.com
+
+Comments:
+Note on implementation of HSL and HSV:
+Hue, the angular dimension, starting at the red primary at 0°, passing through the green primary at 120° and the blue primary at 240°, and then wrapping back to red at 360°
+
+OpenCV Implementation: RGB to HSV
+In case of 8-bit and 16-bit images, R, G, and B are converted to the floating-point format and scaled to fit the 0 to 1 range.
+
+If H<0 then H <- +360 . On output 0≤V≤1, 0≤S≤1, 0≤H≤360 .
+
+The values are then converted to the destination data type:
+
+    8-bit images: V <- 255V, S <- 255S,H <- H/2(to fit to 0 to 255)
+    16-bit images: (currently not supported) V < -65535V, S < 65535S, H <− H
+    32-bit images: H, S, and V are left as is
 """
 
 from flameTracker import *
@@ -235,7 +240,7 @@ def createHSVTrackingBox(self):
     self.exportTrackOverlay_CT = QCheckBox('Video Tracking Overlay', self.HSVTrackingBox)
     self.exportTrackOverlay_CT.setGeometry(780, 325, 200, h_btn)
 
-    
+
 
     # second label
     self.lbl2_CT = QLabel(self.HSVTrackingBox)

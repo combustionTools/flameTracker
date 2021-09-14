@@ -1,7 +1,6 @@
 """
 Flame Tracker. This program is designed to track flames or bright objects in videos or images.
-Copyright (C) 2020,2021  Luca Carmignani
-Code Modified by Charles Scudiere (C) 2021
+Copyright (C) 2020,2021  Luca Carmignani; 2021 Charles Scudiere
 
 This file is part of Flame Tracker.
 
@@ -55,16 +54,14 @@ if hasattr(Qt, 'AA_UseHighDpiPixmaps'):
 class Window(QWidget):
     def __init__(self, parent=None):
         super(Window, self).__init__(parent)
-        
-        print('''Flame Tracker - Copyright (C) 2020,2021 Luca Carmignani
-        Coauthor/Contribitor/Collaborators: (C) 2021 Charles Scudiere
+
+        print('''Flame Tracker - Copyright (C) 2020,2021 Luca Carmignani; 2021 Charles Scudiere
         This program comes with ABSOLUTELY NO WARRANTY; See the GNU General
         Public License for more details.
         This is free software, and you can redistribute it and/or modify
         it under the terms of the GNU General Public License as published by
         the Free Software Foundation, either version 3 of the License, or
         (at your option) any later version.''')
-        
 
         if sys.platform == 'darwin':
             previewBox_Mac(self)
@@ -77,7 +74,6 @@ class Window(QWidget):
             self.OStype = 'lin'
         else:
             print('\n!!! Warning: Unable to detect OS!!!')
-
 
         #default variables
         self.openSelection = 'video'
@@ -115,7 +111,7 @@ class Window(QWidget):
                 self.roiFourIn.setText(str(self.vHeight - 1))
                 self.firstFrameIn.setText('0')
                 self.lastFrameIn.setText(str(self.vFrames - 1))
-                self.skipFrameIn.setText('30') #default was 0, but better to just default to 30...
+                self.skipFrameIn.setText('5') # with 5 you would obtain an even number of points with 24, 30, and 60 fps (not too relevant)
                 self.frameIn.setText('0')
                 self.frameNumber = 0
                 self.previewSlider.setMinimum(int(self.firstFrameIn.text()))
@@ -233,7 +229,6 @@ class Window(QWidget):
 
     def roiBtn_clicked(self):
         try:
-            #betaWin
             if self.openSelection == 'video':
                 self.fVideo.set(1, int(self.frameNumber))
                 ret, frame = self.fVideo.read()
@@ -254,15 +249,8 @@ class Window(QWidget):
             self.msgLabel.setText('Ops! Something went wrong!')
             self.roiOneIn.setText('1')
             self.roiTwoIn.setText('1')
-            self.roiThreeIn.setText('2')
-            self.roiFourIn.setText('2')
-
-        #if self.colorTrackingValue == True:
-        #    self.filterParticleSldr_CT.setMaximum(int((int(self.roiThreeIn.text()) * int(self.roiFourIn.text())) / 20))
-        #elif self.lumaTrackingValue == True:
-        #    self.filterParticleSldr_LT.setMaximum(int((int(self.roiThreeIn.text()) * int(self.roiFourIn.text())) / 20))
-        #elif self.HSVTrackingValue == True:
-        #    self.filterParticleSldr_CT.setMaximum(int((int(self.roiThreeIn.text()) * int(self.roiFourIn.text())) / 20))
+            self.roiThreeIn.setText('10')
+            self.roiFourIn.setText('10')
 
     def perspectiveBtn_clicked(self):
         if self.sLengthIn.text() == '-' or self.sWidthIn.text() == '-':
@@ -412,8 +400,9 @@ class Window(QWidget):
                         writer.writerow(['sampleMod', self.sampleMod[0], self.sampleMod[1], self.sampleMod[2], self.sampleMod[3]])
 
                     #CAS Add to save reference txt
+                    # LC let's update this branch, and then we can include an option to save as txt or csv files
                     writer.writerow([self.xrefTxt.text(), str(self.xref.text())]) #CAS Add to save reference txt
-                
+
                 self.msgLabel.setText('Parameters saved.')
             except:
                 self.msgLabel.setText('Ops! Parameters were not saved.')
@@ -523,16 +512,16 @@ class Window(QWidget):
             for children in self.analysisGroupBox.findChildren(QGroupBox):
                 children.setParent(None)
             createColorTrackingBox(self)
+            self.manualTrackingValue = False
             self.lumaTrackingValue = False
             self.HSVTrackingValue = False
-            self.manualTrackingValue = False
         elif selection == 'HSV tracking':
             for children in self.analysisGroupBox.findChildren(QGroupBox):
                 children.setParent(None)
             createHSVTrackingBox(self)
-            self.colorTrackingValue = False
             self.lumaTrackingValue = False
             self.manualTrackingValue = False
+            self.colorTrackingValue = False
 
     def measureScaleBtn_clicked(self, text):
         try:
@@ -592,10 +581,9 @@ class Window(QWidget):
             self.msgLabel.setText('Scale & Ref succesfully measured')
             cv2.destroyAllWindows()
         except:
-            #print("Unexpected error:", sys.exc_info()[0])
-            print("Unexpected error:", sys.exc_info())
+            print('Unexpected error:', sys.exc_info())
             self.msgLabel.setText('Something went wrong and the scale was not measured.')
-                
+
 
     def editFramesSlider_released(self):
         if self.openSelection == 'video':
@@ -642,7 +630,6 @@ class Window(QWidget):
 
                 frame = checkEditing(self, frame)
                 frameCrop = frame[int(self.roiTwoIn.text()) : (int(self.roiTwoIn.text()) + int(self.roiFourIn.text())), int(self.roiOneIn.text()) : (int(self.roiOneIn.text()) + int(self.roiThreeIn.text()))]
-
                 vout.write(frameCrop)
                 print('Progress: ', round((currentFrame - firstFrame)/(lastFrame - firstFrame) * 10000)/100, '%')
                 currentFrame = currentFrame + 1 + int(self.skipFrameIn.text())

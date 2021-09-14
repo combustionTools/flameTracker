@@ -1,7 +1,6 @@
 """
 Flame Tracker. This program is designed to track flames or bright objects in videos or images.
-Copyright (C) 2020,2021  Luca Carmignani
-Code Modified by Charles Scudiere (C) 2021
+Copyright (C) 2020,2021  Luca Carmignani; 2021 Charles Scudiere
 
 This file is part of Flame Tracker.
 
@@ -735,7 +734,6 @@ def previewBox_Linux(self):
     self.showFrameLargeBtn.setGeometry(930, 295, 115, h_btn)
     self.showFrameLargeBtn.clicked.connect(self.showFrameLargeBtn_clicked)
 
-
 def manualTrackingBox_Mac(self):
     self.manualTrackingBox = QGroupBox(' ', self.analysisGroupBox)
     self.manualTrackingBox.setGeometry(0,0, 1050, 390)
@@ -942,7 +940,7 @@ def lumaTrackingBox_Mac(self):
     self.lbl1_LT = QLabel(self.lumaTrackingBox)
     self.lbl1_LT.setGeometry(190, 25, 420, 300)
     self.lbl1_LT.setStyleSheet('background-color: white')
-    
+
     # second label
     self.lbl2_LT = QLabel(self.lumaTrackingBox)
     self.lbl2_LT.setGeometry(620, 25, 420, 300)
@@ -1026,7 +1024,7 @@ def lumaTrackingBox_Win(self):
     self.lbl1_LT = QLabel(self.lumaTrackingBox)
     self.lbl1_LT.setGeometry(190, 15, 420, 300)
     self.lbl1_LT.setStyleSheet('background-color: white')
-    
+
     # second label
     self.lbl2_LT = QLabel(self.lumaTrackingBox)
     self.lbl2_LT.setGeometry(620, 15, 420, 300)
@@ -1402,3 +1400,6 @@ def colorTrackingBox_Win(self):
     self.showFrameLargeBtn_CT = QPushButton('Show frames', self.colorTrackingBox)
     self.showFrameLargeBtn_CT.setGeometry(920, 270, 120, h_btn)
     self.showFrameLargeBtn_CT.clicked.connect(self.showFrameLargeBtn_CT_clicked)
+
+def HSVTrackingBox_Mac(self):
+    print('coming soon...')
