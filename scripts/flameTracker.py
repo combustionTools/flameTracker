@@ -400,7 +400,7 @@ class Window(QWidget):
                         writer.writerow(['sampleMod', self.sampleMod[0], self.sampleMod[1], self.sampleMod[2], self.sampleMod[3]])
 
                     #CAS Add to save reference txt
-                    # LC let's update this branch, and then we can include an option to save as txt or csv files
+                    # LC we will include a button for this in the next version
                     writer.writerow([self.xrefTxt.text(), str(self.xref.text())]) #CAS Add to save reference txt
 
                 self.msgLabel.setText('Parameters saved.')
@@ -745,50 +745,50 @@ class Window(QWidget):
     ### HSV tracking methods (defined in HSVTracking.py)
     def singleHSVSlider_released(self):
         HSVSlider_released(self)
-    def hueMinLeftBtn_CT_clicked(self):
-        hueMinLeftBtn_CT(self)
-    def hueMinRightBtn_CT_clicked(self):
-        hueMinRightBtn_CT(self)
-    def hueMaxLeftBtn_CT_clicked(self):
-        hueMaxLeftBtn_CT(self)
-    def hueMaxRightBtn_CT_clicked(self):
-        hueMaxRightBtn_CT(self)
-    def satMinLeftBtn_CT_clicked(self):
-        satMinLeftBtn_CT(self)
-    def satMinRightBtn_CT_clicked(self):
-        satMinRightBtn_CT(self)
-    def satMaxLeftBtn_CT_clicked(self):
-        satMaxLeftBtn_CT(self)
-    def satMaxRightBtn_CT_clicked(self):
-        satMaxRightBtn_CT(self)
-    def valMinLeftBtn_CT_clicked(self):
-        valMinLeftBtn_CT(self)
-    def valMinRightBtn_CT_clicked(self):
-        valMinRightBtn_CT(self)
-    def valMaxLeftBtn_CT_clicked(self):
-        valMaxLeftBtn_CT(self)
-    def valMaxRightBtn_CT_clicked(self):
-        valMaxRightBtn_CT(self)
-    def filterParticleSldr_CT_released(self):
-        filterParticleSldr_CT(self)
-    def directionCT_clicked(self, text):
-        chooseFlameDirection_CT(self, text)
-    def connectivityBoxCT_clicked(self, text):
-        connectivityBox_CT(self, text)
-    def saveChannelsBtn_CT_clicked(self):
-        saveChannelsBtn_CT(self)
-    def loadChannelsBtn_CT_clicked(self):
-        loadChannelsBtn_CT(self)
+    def hueMinLeftBtn_HT_clicked(self):
+        hueMinLeftBtn_HT(self)
+    def hueMinRightBtn_HT_clicked(self):
+        hueMinRightBtn_HT(self)
+    def hueMaxLeftBtn_HT_clicked(self):
+        hueMaxLeftBtn_HT(self)
+    def hueMaxRightBtn_HT_clicked(self):
+        hueMaxRightBtn_HT(self)
+    def satMinLeftBtn_HT_clicked(self):
+        satMinLeftBtn_HT(self)
+    def satMinRightBtn_HT_clicked(self):
+        satMinRightBtn_HT(self)
+    def satMaxLeftBtn_HT_clicked(self):
+        satMaxLeftBtn_HT(self)
+    def satMaxRightBtn_HT_clicked(self):
+        satMaxRightBtn_HT(self)
+    def valMinLeftBtn_HT_clicked(self):
+        valMinLeftBtn_HT(self)
+    def valMinRightBtn_HT_clicked(self):
+        valMinRightBtn_HT(self)
+    def valMaxLeftBtn_HT_clicked(self):
+        valMaxLeftBtn_HT(self)
+    def valMaxRightBtn_HT_clicked(self):
+        valMaxRightBtn_HT(self)
+    def filterParticleSldr_HT_released(self):
+        filterParticleSldr_HT(self)
+    def directionHT_clicked(self, text):
+        chooseFlameDirection_HT(self, text)
+    def connectivityBoxHT_clicked(self, text):
+        connectivityBox_HT(self, text)
+    def saveChannelsBtn_HT_clicked(self):
+        saveChannelsBtn_HT(self)
+    def loadChannelsBtn_HT_clicked(self):
+        loadChannelsBtn_HT(self)
     def HSVTrackingBtn_clicked(self):
         HSVTracking(self)
-    def absValBtn_CT_clicked(self):
-        absValBtn_CT(self)
-    def saveBtn_CT_clicked(self):
-        saveBtn_CT(self)
-    def showFrameLargeBtn_CT_clicked(self):
-        showFrameLarge_CT(self)
-    def helpBtn_CT_clicked(self):
-        helpBtn_CT(self)
+    def absValBtn_HT_clicked(self):
+        absValBtn_HT(self)
+    def saveBtn_HT_clicked(self):
+        saveBtn_HT(self)
+    def showFrameLargeBtn_HT_clicked(self):
+        showFrameLarge_HT(self)
+    def helpBtn_HT_clicked(self):
+        helpBtn_HT(self)
 
 
     def helpBtn_clicked(self):
@@ -965,30 +965,30 @@ def checkAnalysisBox(self, frameNumber):
         self.lbl2_CT.show()
 
     if self.HSVTrackingValue == True:
-        self.lbl1_CT = QLabel(self.HSVTrackingBox)
-        self.lbl2_CT = QLabel(self.HSVTrackingBox)
+        self.lbl1_HT = QLabel(self.HSVTrackingBox)
+        self.lbl2_HT = QLabel(self.HSVTrackingBox)
 
         if self.OStype == 'mac':
-            #self.lbl1_CT.setGeometry(370, 25, 330, 250)
-            self.lbl1_CT.setGeometry(370, 25, 670, 125) #CAS Changed geometry for fitting lengthwise
-            #self.lbl2_CT.setGeometry(710, 25, 330, 250)
-            self.lbl2_CT.setGeometry(370, 150, 670, 125) #CAS Changed geometry for fitting lengthwise
+            #self.lbl1_HT.setGeometry(370, 25, 330, 250)
+            self.lbl1_HT.setGeometry(370, 25, 670, 125) #CAS Changed geometry for fitting lengthwise
+            #self.lbl2_HT.setGeometry(710, 25, 330, 250)
+            self.lbl2_HT.setGeometry(370, 150, 670, 125) #CAS Changed geometry for fitting lengthwise
         elif self.OStype == 'win':
-            self.lbl1_CT.setGeometry(370, 15, 330, 250)
-            self.lbl2_CT.setGeometry(710, 15, 330, 250)
+            self.lbl1_HT.setGeometry(370, 15, 330, 250)
+            self.lbl2_HT.setGeometry(710, 15, 330, 250)
         elif self.OStype == 'lin':
-            self.lbl1_CT.setGeometry(370, 25, 670, 125) #CAS Changed geometry for fitting lengthwise
-            self.lbl2_CT.setGeometry(370, 150, 670, 125) #CAS Changed geometry for fitting lengthwise
+            self.lbl1_HT.setGeometry(370, 25, 670, 125) #CAS Changed geometry for fitting lengthwise
+            self.lbl2_HT.setGeometry(370, 150, 670, 125) #CAS Changed geometry for fitting lengthwise
 
-        self.lbl1_CT.setStyleSheet('background-color: white')
-        self.lbl2_CT.setStyleSheet('background-color: white')
+        self.lbl1_HT.setStyleSheet('background-color: white')
+        self.lbl2_HT.setStyleSheet('background-color: white')
         if self.grayscale.isChecked() == True:
             self.msgLabel.setText('Grayscale images not supported with this feature')
         getHSVFilteredFrame(self, self.frameNumber)
-        self.lbl1_CT.setPixmap(QPixmap.fromImage(self.frame))
-        self.lbl2_CT.setPixmap(QPixmap.fromImage(self.frameBW))
-        self.lbl1_CT.show()
-        self.lbl2_CT.show()
+        self.lbl1_HT.setPixmap(QPixmap.fromImage(self.frame))
+        self.lbl2_HT.setPixmap(QPixmap.fromImage(self.frameBW))
+        self.lbl1_HT.show()
+        self.lbl2_HT.show()
 
 if __name__ == '__main__':
     app = QApplication(sys.argv)
