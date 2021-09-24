@@ -105,6 +105,8 @@ class Window(QWidget):
                 self.vDuration = self.vFrames / self.vFps
                 self.vDuration = round(self.vDuration * 100) / 100 #only 2 decimals for duration
                 self.vDurationLbl.setText(str(self.vDuration))
+                
+                #Set parameter defaults upon opening a new video
                 self.roiOneIn.setText('0')
                 self.roiTwoIn.setText('0')
                 self.roiThreeIn.setText(str(self.vWidth - 1))
@@ -117,6 +119,7 @@ class Window(QWidget):
                 self.previewSlider.setMinimum(int(self.firstFrameIn.text()))
                 self.previewSlider.setMaximum(int(self.lastFrameIn.text()))
                 self.previewSlider.setValue(int(self.frameIn.text()))
+                self.xref.setText('')
                 self.rotationAngleIn.setText('0')
                 self.perspectiveValue = False
                 self.rotationValue = False
@@ -578,7 +581,7 @@ class Window(QWidget):
             scale = np.round(scale, 3)
 
             self.scaleIn.setText(str(scale))
-            self.msgLabel.setText('Scale & Ref succesfully measured')
+            self.msgLabel.setText('Scale succesfully measured')
             cv2.destroyAllWindows()
         except:
             print('Unexpected error:', sys.exc_info())

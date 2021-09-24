@@ -730,6 +730,7 @@ def previewBox_Linux(self):
     self.previewSlider = QSlider(Qt.Horizontal, parametersBox)
     self.previewSlider.setGeometry(x_cln1, 325, 390, 25)
     self.previewSlider.sliderReleased.connect(self.sliderValue_released)
+    self.previewSlider.valueChanged.connect(self.sliderValue_released)
     self.showFrameLargeBtn = QPushButton('Show frame', parametersBox)
     self.showFrameLargeBtn.setGeometry(930, 295, 115, h_btn)
     self.showFrameLargeBtn.clicked.connect(self.showFrameLargeBtn_clicked)
