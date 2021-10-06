@@ -27,7 +27,7 @@ from boxesGUI_OS import *
 def createManualTrackingBox(self):
     self.manualTrackingValue = True
     self.lumaTrackingValue = True
-    if self.OStype == 'mac':
+    if self.OStype == 'mac' or self.OStype == 'lin':
         manualTrackingBox_Mac(self)
     elif self.OStype == 'win':
         manualTrackingBox_Win(self)

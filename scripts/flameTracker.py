@@ -1,6 +1,6 @@
 """
 Flame Tracker. This program is designed to track flames or bright objects in videos or images.
-Copyright (C) 2020,2021  Luca Carmignani
+Copyright (C) 2020,2021  Luca Carmignani; 2021 Charles Scudiere
 
 This file is part of Flame Tracker.
 
@@ -17,7 +17,8 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-Author: Luca Carmignani, PhD
+Original Author: Luca Carmignani, PhD
+Collaborator/Contributor: Charles Scudiere, PhD
 Contact: flameTrackerContact@gmail.com
 """
 
@@ -40,6 +41,7 @@ from pyqtgraph import PlotWidget, plot
 from manualTracking import *
 from lumaTracking import *
 from colorTracking import *
+from HSVTracking import *
 from boxesGUI_OS import *
 
 #To make sure the resolution is correct also in Windows
@@ -53,7 +55,7 @@ class Window(QWidget):
     def __init__(self, parent=None):
         super(Window, self).__init__(parent)
 
-        print('''Flame Tracker - Copyright (C) 2020,2021 Luca Carmignani
+        print('''Flame Tracker - Copyright (C) 2020,2021 Luca Carmignani; 2021 Charles Scudiere
         This program comes with ABSOLUTELY NO WARRANTY; See the GNU General
         Public License for more details.
         This is free software, and you can redistribute it and/or modify
@@ -61,12 +63,17 @@ class Window(QWidget):
         the Free Software Foundation, either version 3 of the License, or
         (at your option) any later version.''')
 
-        if sys.platform == 'darwin' or sys.platform == 'linux':
+        if sys.platform == 'darwin':
             previewBox_Mac(self)
             self.OStype = 'mac'
         elif sys.platform == 'win32':
             previewBox_Win(self)
             self.OStype = 'win'
+        elif sys.platform == 'linux':
+            previewBox_Linux(self)
+            self.OStype = 'lin'
+        else:
+            print('\n!!! Warning: Unable to detect OS!!!')
 
         #default variables
         self.openSelection = 'video'
@@ -98,24 +105,28 @@ class Window(QWidget):
                 self.vDuration = self.vFrames / self.vFps
                 self.vDuration = round(self.vDuration * 100) / 100 #only 2 decimals for duration
                 self.vDurationLbl.setText(str(self.vDuration))
+                
+                #Set parameter defaults upon opening a new video
                 self.roiOneIn.setText('0')
                 self.roiTwoIn.setText('0')
                 self.roiThreeIn.setText(str(self.vWidth - 1))
                 self.roiFourIn.setText(str(self.vHeight - 1))
                 self.firstFrameIn.setText('0')
                 self.lastFrameIn.setText(str(self.vFrames - 1))
-                self.skipFrameIn.setText('0')
+                self.skipFrameIn.setText('5') # with 5 you would obtain an even number of points with 24, 30, and 60 fps (not too relevant)
                 self.frameIn.setText('0')
                 self.frameNumber = 0
                 self.previewSlider.setMinimum(int(self.firstFrameIn.text()))
                 self.previewSlider.setMaximum(int(self.lastFrameIn.text()))
                 self.previewSlider.setValue(int(self.frameIn.text()))
+                self.xref.setText('')
                 self.rotationAngleIn.setText('0')
                 self.perspectiveValue = False
                 self.rotationValue = False
                 self.manualTrackingValue = False
                 self.lumaTrackingValue = False
                 self.colorTrackingValue = False
+                self.HSVTrackingValue = False
                 self.editFrame = False
                 self.rotationValue = False
                 self.fVideo.set(1, 0)
@@ -175,6 +186,7 @@ class Window(QWidget):
                 self.manualTrackingValue = False
                 self.lumaTrackingValue = False
                 self.colorTrackingValue = False
+                self.HSVTrackingValue = False
                 self.editFrame = False
                 self.rotationValue = False
                 frameNumber = self.imagesList[0]
@@ -199,6 +211,7 @@ class Window(QWidget):
             imageNumber = self.imagesList[self.frameNumber]
             frame = cv2.imread(imageNumber)
 
+        self.previewSlider.setValue(int(self.frameNumber)) #CAS - update slider to reflect new goto frame value
         showFrame(self, frame, self.frameNumber)
         checkAnalysisBox(self, self.frameNumber)
 
@@ -219,7 +232,6 @@ class Window(QWidget):
 
     def roiBtn_clicked(self):
         try:
-            #betaWin
             if self.openSelection == 'video':
                 self.fVideo.set(1, int(self.frameNumber))
                 ret, frame = self.fVideo.read()
@@ -240,8 +252,8 @@ class Window(QWidget):
             self.msgLabel.setText('Ops! Something went wrong!')
             self.roiOneIn.setText('1')
             self.roiTwoIn.setText('1')
-            self.roiThreeIn.setText('2')
-            self.roiFourIn.setText('2')
+            self.roiThreeIn.setText('10')
+            self.roiFourIn.setText('10')
 
     def perspectiveBtn_clicked(self):
         if self.sLengthIn.text() == '-' or self.sWidthIn.text() == '-':
@@ -390,6 +402,10 @@ class Window(QWidget):
                         writer.writerow(['sample', self.sample[0], self.sample[1], self.sample[2], self.sample[3]])
                         writer.writerow(['sampleMod', self.sampleMod[0], self.sampleMod[1], self.sampleMod[2], self.sampleMod[3]])
 
+                    #CAS Add to save reference txt
+                    # LC we will include a button for this in the next version
+                    writer.writerow([self.xrefTxt.text(), str(self.xref.text())]) #CAS Add to save reference txt
+
                 self.msgLabel.setText('Parameters saved.')
             except:
                 self.msgLabel.setText('Ops! Parameters were not saved.')
@@ -453,9 +469,15 @@ class Window(QWidget):
                             self.sampleMod.append([np.float32(x[0]), np.float32(y[0])])
                         self.sampleMod = np.array(self.sampleMod)
 
+                    #CAS Add to save reference txt
+                    if self.xrefTxt.text() in row:
+                        self.xref.setText(row[1]) #CAS Add to save reference txt.
+                        #print('xRef loaded:', self.xrefTxt.text(), '=', self.xref.text())
+
             self.previewSlider.setMinimum(int(self.firstFrameIn.text()))
             self.previewSlider.setMaximum(int(self.lastFrameIn.text()))
             self.previewSlider.setValue(int(self.frameIn.text()))
+
             if self.perspectiveValue == True:
                 self.msgLabel.setText('Parameters loaded. Perspective correction detected and applied')
             else:
@@ -474,24 +496,35 @@ class Window(QWidget):
             self.manualTrackingValue = False
             self.lumaTrackingValue = False
             self.colorTrackingValue = False
+            self.HSVTrackingValue = False
         elif selection == 'Manual tracking':
             for children in self.analysisGroupBox.findChildren(QGroupBox):
                 children.setParent(None)
             createManualTrackingBox(self)
             self.lumaTrackingValue = False
             self.colorTrackingValue = False
+            self.HSVTrackingValue = False
         elif selection == 'Luma tracking':
             for children in self.analysisGroupBox.findChildren(QGroupBox):
                 children.setParent(None)
             createLumaTrackingBox(self)
             self.manualTrackingValue = False
             self.colorTrackingValue = False
+            self.HSVTrackingValue = False
         elif selection == 'Color tracking':
             for children in self.analysisGroupBox.findChildren(QGroupBox):
                 children.setParent(None)
             createColorTrackingBox(self)
+            self.manualTrackingValue = False
+            self.lumaTrackingValue = False
+            self.HSVTrackingValue = False
+        elif selection == 'HSV tracking':
+            for children in self.analysisGroupBox.findChildren(QGroupBox):
+                children.setParent(None)
+            createHSVTrackingBox(self)
             self.lumaTrackingValue = False
             self.manualTrackingValue = False
+            self.colorTrackingValue = False
 
     def measureScaleBtn_clicked(self, text):
         try:
@@ -527,7 +560,17 @@ class Window(QWidget):
 
                     if cv2.waitKey(1) == 27: #ord('q')
                         cv2.destroyAllWindows()
+
+                        #CAS soft add to save reference txt, relative to frameCrop...
+                        if ('xPos' in globals()): # or 'xPos' in locals()): # and xPos:
+                            # If selected a point, interpreted as a reference point usually stored in globals, (but could also check locals just in case?)
+                            refLoc_x = xPos + roiOne
+                            refLoc_y = yPos + roiTwo
+                            self.xref.setText(str([refLoc_x, refLoc_y])) #CAS Use absolute and convert on own...to prevent issues with different cropping
+                            self.msgLabel.setText('xRef measured.')
+
                         return
+
                 # update each position and frame list for the current click
                 points.append(xPos)
                 points.append(yPos)
@@ -536,11 +579,14 @@ class Window(QWidget):
             length_px = ((points[3]-points[1])**2 + (points[2]-points[0])**2)**0.5
             scale = length_px / float(length_mm)
             scale = np.round(scale, 3)
+
             self.scaleIn.setText(str(scale))
             self.msgLabel.setText('Scale succesfully measured')
             cv2.destroyAllWindows()
         except:
+            print('Unexpected error:', sys.exc_info())
             self.msgLabel.setText('Something went wrong and the scale was not measured.')
+
 
     def editFramesSlider_released(self):
         if self.openSelection == 'video':
@@ -559,7 +605,9 @@ class Window(QWidget):
         vFormat = str(self.formatIn.text())
         vName = QFileDialog.getSaveFileName(self, 'Save File')
         vName = vName[0]
-        vName = str(vName) + '.' + str(vFormat) # alternative: 'output.{}'.format(vFormat)
+        if not vName[-len(vFormat):] == vFormat:
+            print('Appending', vFormat, 'to filename')
+            vName = str(vName) + '.' + str(vFormat) # alternative: 'output.{}'.format(vFormat)
         fourcc = cv2.VideoWriter_fourcc(*codec)
         size = (int(self.roiThreeIn.text()), int(self.roiFourIn.text()))
 
@@ -697,6 +745,55 @@ class Window(QWidget):
     def helpBtn_CT_clicked(self):
         helpBtn_CT(self)
 
+    ### HSV tracking methods (defined in HSVTracking.py)
+    def singleHSVSlider_released(self):
+        HSVSlider_released(self)
+    def hueMinLeftBtn_HT_clicked(self):
+        hueMinLeftBtn_HT(self)
+    def hueMinRightBtn_HT_clicked(self):
+        hueMinRightBtn_HT(self)
+    def hueMaxLeftBtn_HT_clicked(self):
+        hueMaxLeftBtn_HT(self)
+    def hueMaxRightBtn_HT_clicked(self):
+        hueMaxRightBtn_HT(self)
+    def satMinLeftBtn_HT_clicked(self):
+        satMinLeftBtn_HT(self)
+    def satMinRightBtn_HT_clicked(self):
+        satMinRightBtn_HT(self)
+    def satMaxLeftBtn_HT_clicked(self):
+        satMaxLeftBtn_HT(self)
+    def satMaxRightBtn_HT_clicked(self):
+        satMaxRightBtn_HT(self)
+    def valMinLeftBtn_HT_clicked(self):
+        valMinLeftBtn_HT(self)
+    def valMinRightBtn_HT_clicked(self):
+        valMinRightBtn_HT(self)
+    def valMaxLeftBtn_HT_clicked(self):
+        valMaxLeftBtn_HT(self)
+    def valMaxRightBtn_HT_clicked(self):
+        valMaxRightBtn_HT(self)
+    def filterParticleSldr_HT_released(self):
+        filterParticleSldr_HT(self)
+    def directionHT_clicked(self, text):
+        chooseFlameDirection_HT(self, text)
+    def connectivityBoxHT_clicked(self, text):
+        connectivityBox_HT(self, text)
+    def saveChannelsBtn_HT_clicked(self):
+        saveChannelsBtn_HT(self)
+    def loadChannelsBtn_HT_clicked(self):
+        loadChannelsBtn_HT(self)
+    def HSVTrackingBtn_clicked(self):
+        HSVTracking(self)
+    def absValBtn_HT_clicked(self):
+        absValBtn_HT(self)
+    def saveBtn_HT_clicked(self):
+        saveBtn_HT(self)
+    def showFrameLargeBtn_HT_clicked(self):
+        showFrameLarge_HT(self)
+    def helpBtn_HT_clicked(self):
+        helpBtn_HT(self)
+
+
     def helpBtn_clicked(self):
         msg = QMessageBox(self)
         msg.setText('''Flame Tracker is an image analysis program to detect and track a flame (or a luminous object) in images or videos (select the desired option before clicking on 'Open'). When opening folders with a large number of images, check that the number of frames corresponds to the correct number of images. Note that by opening more than one image a pop-up message will ask for the corresponding frame rate.
@@ -830,6 +927,9 @@ def checkAnalysisBox(self, frameNumber):
         elif self.OStype == 'win':
             self.lbl1_LT.setGeometry(190, 15, 420, 300)
             self.lbl2_LT.setGeometry(620, 15, 420, 300)
+        elif self.OStype == 'lin':
+            self.lbl1_LT.setGeometry(190, 25, 420, 300)
+            self.lbl2_LT.setGeometry(620, 25, 420, 300)
 
         self.lbl1_LT.setStyleSheet('background-color: white')
         self.lbl2_LT.setStyleSheet('background-color: white')
@@ -852,6 +952,9 @@ def checkAnalysisBox(self, frameNumber):
         elif self.OStype == 'win':
             self.lbl1_CT.setGeometry(370, 15, 330, 250)
             self.lbl2_CT.setGeometry(710, 15, 330, 250)
+        elif self.OStype == 'lin':
+            self.lbl1_CT.setGeometry(370, 25, 330, 250)
+            self.lbl2_CT.setGeometry(710, 25, 330, 250)
 
         self.lbl1_CT.setStyleSheet('background-color: white')
         self.lbl2_CT.setStyleSheet('background-color: white')
@@ -863,6 +966,32 @@ def checkAnalysisBox(self, frameNumber):
         self.lbl2_CT.setPixmap(QPixmap.fromImage(self.frameBW))
         self.lbl1_CT.show()
         self.lbl2_CT.show()
+
+    if self.HSVTrackingValue == True:
+        self.lbl1_HT = QLabel(self.HSVTrackingBox)
+        self.lbl2_HT = QLabel(self.HSVTrackingBox)
+
+        if self.OStype == 'mac':
+            #self.lbl1_HT.setGeometry(370, 25, 330, 250)
+            self.lbl1_HT.setGeometry(370, 25, 670, 125) #CAS Changed geometry for fitting lengthwise
+            #self.lbl2_HT.setGeometry(710, 25, 330, 250)
+            self.lbl2_HT.setGeometry(370, 150, 670, 125) #CAS Changed geometry for fitting lengthwise
+        elif self.OStype == 'win':
+            self.lbl1_HT.setGeometry(370, 15, 330, 250)
+            self.lbl2_HT.setGeometry(710, 15, 330, 250)
+        elif self.OStype == 'lin':
+            self.lbl1_HT.setGeometry(370, 25, 670, 125) #CAS Changed geometry for fitting lengthwise
+            self.lbl2_HT.setGeometry(370, 150, 670, 125) #CAS Changed geometry for fitting lengthwise
+
+        self.lbl1_HT.setStyleSheet('background-color: white')
+        self.lbl2_HT.setStyleSheet('background-color: white')
+        if self.grayscale.isChecked() == True:
+            self.msgLabel.setText('Grayscale images not supported with this feature')
+        getHSVFilteredFrame(self, self.frameNumber)
+        self.lbl1_HT.setPixmap(QPixmap.fromImage(self.frame))
+        self.lbl2_HT.setPixmap(QPixmap.fromImage(self.frameBW))
+        self.lbl1_HT.show()
+        self.lbl2_HT.show()
 
 if __name__ == '__main__':
     app = QApplication(sys.argv)

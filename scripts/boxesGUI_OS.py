@@ -1,6 +1,6 @@
 """
 Flame Tracker. This program is designed to track flames or bright objects in videos or images.
-Copyright (C) 2020,2021  Luca Carmignani
+Copyright (C) 2020,2021  Luca Carmignani; 2021 Charles Scudiere
 
 This file is part of Flame Tracker.
 
@@ -17,7 +17,8 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-Author: Luca Carmignani, PhD
+Original Author: Luca Carmignani, PhD
+Collaborator/Contributor: Charles Scudiere, PhD
 Contact: flameTrackerContact@gmail.com
 """
 
@@ -25,7 +26,7 @@ from flameTracker import *
 
 def previewBox_Mac(self):
     self.setStyleSheet('font: 12pt Helvetica')
-    self.setWindowTitle('Flame Tracker (v1.1.0)')
+    self.setWindowTitle('Flame Tracker (v1.1.1)')
     self.setGeometry(10, 10, 1070, 755)
     #Box to choose video parameters, the widgets are listed below
     parametersBox = QGroupBox('Preview box', self)
@@ -203,6 +204,7 @@ def previewBox_Mac(self):
     self.analysisSelectionBox.addItem('Manual tracking')
     self.analysisSelectionBox.addItem('Luma tracking')
     self.analysisSelectionBox.addItem('Color tracking')
+    self.analysisSelectionBox.addItem('HSV tracking')
     self.analysisSelectionBox.activated[str].connect(self.analysis_click)
     saveLoadTxt = QLabel('Save/Load:', parametersBox)
     saveLoadTxt.setGeometry(x_cln1, 70, w_cln1, h_txt)
@@ -254,7 +256,7 @@ def previewBox_Mac(self):
     self.showFrameLargeBtn.clicked.connect(self.showFrameLargeBtn_clicked)
 
 def previewBox_Win(self):
-    self.setWindowTitle('Flame Tracker (v1.1.0)')
+    self.setWindowTitle('Flame Tracker (v1.1.1)')
     self.setGeometry(25, 25, 1070, 740) #10,10,1000,720
     #Box to choose video parameters, widgets are listed below
     parametersBox = QGroupBox('Preview box', self)
@@ -434,6 +436,7 @@ def previewBox_Win(self):
     self.analysisSelectionBox.addItem('Manual tracking')
     self.analysisSelectionBox.addItem('Luma tracking')
     self.analysisSelectionBox.addItem('Color tracking')
+    self.analysisSelectionBox.addItem('HSV tracking')
     self.analysisSelectionBox.activated[str].connect(self.analysis_click)
     saveLoadTxt = QLabel('Save/Load:', parametersBox)
     saveLoadTxt.setGeometry(x_cln1, 60, w_cln1, h_txt)
@@ -484,6 +487,252 @@ def previewBox_Win(self):
     self.previewSlider.valueChanged.connect(self.sliderValue_released) #in Windows these two events are very different
     self.showFrameLargeBtn = QPushButton('Show frame', parametersBox)
     self.showFrameLargeBtn.setGeometry(945, 293, 90, h_btn - 2)
+    self.showFrameLargeBtn.clicked.connect(self.showFrameLargeBtn_clicked)
+
+def previewBox_Linux(self):
+    print('Welcome Linux user!')
+    self.setStyleSheet('font: 12pt Helvetica')
+    self.setWindowTitle('Flame Tracker (v1.1.1)')
+    self.setGeometry(10, 10, 1070, 755)
+    #Box to choose video parameters, the widgets are listed below
+    parametersBox = QGroupBox('Preview box', self)
+    parametersBox.setGeometry(10, 5, 1050, 350)
+    #This box changes for each analysis;
+    #widgets must be declared in the specific py file
+    self.analysisGroupBox = QGroupBox('Analysis box', self)
+    self.analysisGroupBox.setGeometry(10, 360, 1050, 390)
+
+    # this text box is only shown at the beginning
+    tempBox = QGroupBox(' ', self.analysisGroupBox)
+    tempBox.setGeometry(0, 0, 1050, 390)
+    introTxt = QLabel('Select the analysis method from -Choose analysis- to activate this panel', tempBox)
+    introTxt.setGeometry(100, 100, 600, 100)
+    introTxt.setStyleSheet('font: 16pt Helvetica')
+
+    ### parametersBox
+    # first column
+    x_cln1 = 10
+    x_cln2 = 105
+    h_lbl = 20
+    h_txt = 30
+    h_btn = 30
+    self.msgLabel = QLabel('Welcome to the Flame Tracker! \n\n Click on the Help button to get started.', parametersBox)
+    self.msgLabel.setGeometry(x_cln1, 25, 140, h_lbl + 55)
+    self.msgLabel.setStyleSheet('background-color: white')
+    self.msgLabel.setWordWrap(True)
+    self.helpBtn = QPushButton('Help', parametersBox)
+    self.helpBtn.setGeometry(x_cln1 - 5, 105, 150, h_btn)
+    self.helpBtn.clicked.connect(self.helpBtn_clicked)
+    self.openBtn = QPushButton('Open', parametersBox)
+    self.openBtn.setGeometry(x_cln1 - 5, 135, 60, h_btn)
+    self.openBtn.clicked.connect(self.openBtn_clicked)
+    self.openSelectionBox = QComboBox(parametersBox)
+    self.openSelectionBox.setGeometry(x_cln1 + 48, 136, 100, h_btn)
+    self.openSelectionBox.addItem('Video')
+    self.openSelectionBox.addItem('Image(s)')
+    self.openSelectionBox.activated[str].connect(self.openSelection_click)
+    self.fNameLbl = QLabel('(file name)', parametersBox)
+    self.fNameLbl.setGeometry(x_cln1, 170, 140, h_lbl)
+    self.fNameLbl.setStyleSheet('background-color: white')
+    vWidthTxt = QLabel('Width (px):', parametersBox)
+    vWidthTxt.setGeometry(x_cln1, 195, 70, h_txt)
+    self.vWidthLbl = QLabel(parametersBox)
+    self.vWidthLbl.setGeometry(x_cln2, 199, 45, h_lbl)
+    self.vWidthLbl.setStyleSheet('background-color: white')
+    vHeightTxt = QLabel('Height (px):', parametersBox)
+    vHeightTxt.setGeometry(x_cln1, 225, 70, h_txt)
+    self.vHeightLbl = QLabel(parametersBox)
+    self.vHeightLbl.setGeometry(x_cln2, 229, 45, h_lbl)
+    self.vHeightLbl.setStyleSheet('background-color: white')
+    vFpsTxt = QLabel('Frame rate (fps):', parametersBox)
+    vFpsTxt.setGeometry(x_cln1, 255, 90, h_txt)
+    self.vFpsLbl = QLabel(parametersBox)
+    self.vFpsLbl.setGeometry(x_cln2, 259, 45, h_lbl)
+    self.vFpsLbl.setStyleSheet('background-color: white')
+    vFramesTxt = QLabel('Frames #:', parametersBox)
+    vFramesTxt.setGeometry(x_cln1, 285, 70, h_txt)
+    self.vFramesLbl = QLabel(parametersBox)
+    self.vFramesLbl.setGeometry(x_cln2, 289, 45, h_lbl)
+    self.vFramesLbl.setStyleSheet('background-color: white')
+    vDurationTxt = QLabel('Duration (s):', parametersBox)
+    vDurationTxt.setGeometry(x_cln1, 315, 70, h_txt)
+    self.vDurationLbl = QLabel(parametersBox)
+    self.vDurationLbl.setGeometry(x_cln2, 319, 45, h_lbl)
+    self.vDurationLbl.setStyleSheet('background-color: white')
+
+    #second column
+    x_cln1 = 180
+    x_cln2 = 265
+    w_cln1 = 80
+    w_cln2 = 50
+    h_lbl = 22
+    clmn2_Txt = QLabel('Video parameters:', parametersBox)
+    clmn2_Txt.setGeometry(x_cln1, 20, 120, h_txt)
+
+    #CAS Squish to fit xrefpix to display
+    self.firstFrameTxt = QLabel('First frame:', parametersBox)
+    self.firstFrameTxt.setGeometry(x_cln1, 40, w_cln1, h_txt)
+    self.firstFrameIn = QLineEdit(parametersBox)
+    self.firstFrameIn.setGeometry(x_cln2, 44, w_cln2, h_lbl)
+    self.lastFrameTxt = QLabel('Last frame:', parametersBox)
+    self.lastFrameTxt.setGeometry(x_cln1, 65, w_cln1, h_txt)
+    self.lastFrameIn = QLineEdit(parametersBox)
+    self.lastFrameIn.setGeometry(x_cln2, 69, w_cln2, h_lbl)
+    self.skipFrameTxt = QLabel('Skip frames:', parametersBox)
+    self.skipFrameTxt.setGeometry(x_cln1, 90, w_cln1, h_txt)
+    self.skipFrameIn = QLineEdit(parametersBox)
+    self.skipFrameIn.setGeometry(x_cln2, 94, w_cln2, h_lbl)
+    self.scaleTxt = QLabel('Scale (px/mm):', parametersBox)
+    self.scaleTxt.setGeometry(x_cln1, 115, w_cln1, h_txt)
+    self.scaleIn = QLineEdit(parametersBox)
+    self.scaleIn.setGeometry(x_cln2, 119, w_cln2, h_lbl)
+
+    #CAS add xref line
+    self.xrefTxt = QLabel('xref (px):', parametersBox)
+    self.xrefTxt.setGeometry(x_cln1, 140, w_cln1, h_txt)
+    self.xref = QLineEdit(parametersBox)
+    xRefGUI_shiftBackAmnt = 20
+    xRefGUI_extendAmnt = 20
+    self.xref.setGeometry(x_cln2-xRefGUI_shiftBackAmnt, 144, w_cln2+xRefGUI_shiftBackAmnt+xRefGUI_extendAmnt, h_lbl)
+
+    self.measureScaleBtn = QPushButton('Measure scale', parametersBox)
+    #self.measureScaleBtn.setGeometry(x_cln1 - 10, 165, 150, h_btn)
+    self.measureScaleBtn.setGeometry(x_cln1 - 10, 168, 150, h_btn-2)
+    self.measureScaleBtn.clicked.connect(self.measureScaleBtn_clicked)
+    self.roiOneTxt = QLabel('ROI, x:', parametersBox)
+    self.roiOneTxt.setGeometry(x_cln1, 195, w_cln1, h_txt)
+    self.roiOneIn = QLineEdit(parametersBox)
+    self.roiOneIn.setGeometry(x_cln2, 199, w_cln2, h_lbl)
+    self.roiTwoTxt = QLabel('ROI, y:', parametersBox)
+    self.roiTwoTxt.setGeometry(x_cln1, 225, w_cln1, h_txt)
+    self.roiTwoIn = QLineEdit(parametersBox)
+    self.roiTwoIn.setGeometry(x_cln2, 229, w_cln2, h_lbl)
+    self.roiThreeTxt = QLabel('ROI, w:', parametersBox)
+    self.roiThreeTxt.setGeometry(x_cln1, 255, w_cln1, h_txt)
+    self.roiThreeIn = QLineEdit(parametersBox)
+    self.roiThreeIn.setGeometry(x_cln2, 259, w_cln2, h_lbl)
+    self.roiFourTxt = QLabel('ROI, h:', parametersBox)
+    self.roiFourTxt.setGeometry(x_cln1, 285, w_cln1, h_txt)
+    self.roiFourIn = QLineEdit(parametersBox)
+    self.roiFourIn.setGeometry(x_cln2, 289, w_cln2, h_lbl)
+    self.roiBtn = QPushButton('Select ROI', parametersBox)
+    self.roiBtn.setGeometry(x_cln1 - 10, 315, 150, h_btn)
+    self.roiBtn.clicked.connect(self.roiBtn_clicked)
+
+    #third column
+    x_cln1 = 340
+    x_cln2 = 425
+    w_cln1 = 60
+    w_cln2 = 50
+    adjustFramesTxt = QLabel('Adjust frames:', parametersBox)
+    adjustFramesTxt.setGeometry(x_cln1, 20, 100, h_txt)
+    self.rotationAngleInTxt = QLabel('Rotation (deg):', parametersBox)
+    self.rotationAngleInTxt.setGeometry(x_cln1, 45, 120, h_txt)
+    self.rotationAngleIn = QLineEdit(parametersBox)
+    self.rotationAngleIn.setGeometry(x_cln2, 49, w_cln2, h_lbl)
+    self.brightnessTxt = QLabel('Brightness:', parametersBox)
+    self.brightnessTxt.setGeometry(x_cln1, 75, 150, h_txt)
+    self.brightnessSlider = QSlider(Qt.Horizontal, parametersBox)
+    self.brightnessSlider.setGeometry(x_cln1, 105, 115, 25)
+    self.brightnessSlider.setMinimum(-50)
+    self.brightnessSlider.setMaximum(50)
+    self.brightnessSlider.setValue(0)
+    self.brightnessSlider.sliderReleased.connect(self.editFramesSlider_released)
+    self.brightnessSlider.valueChanged.connect(self.editFramesSlider_released)
+    self.brightnessLbl = QLabel('0', parametersBox)
+    self.brightnessLbl.setGeometry(x_cln2 + 3, 80, w_cln2 - 5, h_lbl - 4)
+    self.brightnessLbl.setStyleSheet('background-color: white')
+    self.contrastTxt = QLabel('Contrast:', parametersBox)
+    self.contrastTxt.setGeometry(x_cln1, 125, 150, h_txt)
+    self.contrastSlider = QSlider(Qt.Horizontal, parametersBox)
+    self.contrastSlider.setGeometry(x_cln1, 155, 115, 25)
+    self.contrastSlider.setMinimum(-100)
+    self.contrastSlider.setMaximum(+100)
+    self.contrastSlider.setValue(0)
+    self.contrastSlider.sliderReleased.connect(self.editFramesSlider_released)
+    self.contrastSlider.valueChanged.connect(self.editFramesSlider_released)
+    self.contrastLbl = QLabel('0', parametersBox)
+    self.contrastLbl.setGeometry(x_cln2 + 3, 130, w_cln2 - 5, h_lbl - 4)
+    self.contrastLbl.setStyleSheet('background-color: white')
+    self.grayscale = QCheckBox('Grayscale', parametersBox)
+    self.grayscale.setGeometry(x_cln1 - 5, 175, 100, h_btn)
+    correctionTxt = QLabel('Correction lengths (mm):', parametersBox)
+    correctionTxt.setGeometry(x_cln1, 200, 150, h_txt)
+    self.sLengthTxt = QLabel('Horizontal:', parametersBox)
+    self.sLengthTxt.setGeometry(x_cln1, 225, 130, h_txt)
+    self.sLengthIn = QLineEdit('-', parametersBox)
+    self.sLengthIn.setGeometry(x_cln2, 229, w_cln2, h_lbl)
+    self.sWidthTxt = QLabel('Vertical:', parametersBox)
+    self.sWidthTxt.setGeometry(x_cln1, 255, 130, h_txt)
+    self.sWidthIn = QLineEdit('-', parametersBox)
+    self.sWidthIn.setGeometry(x_cln2, 259, w_cln2, h_lbl)
+    self.perspectiveBtn = QPushButton('Correct perspective', parametersBox)
+    self.perspectiveBtn.setGeometry(x_cln1 - 10, 285, 150, h_btn)
+    self.perspectiveBtn.clicked.connect(self.perspectiveBtn_clicked)
+    self.originalBtn = QPushButton('Restore original', parametersBox)
+    self.originalBtn.setGeometry(x_cln1 - 10, 315, 150, h_btn)
+    self.originalBtn.clicked.connect(self.originalBtn_clicked)
+
+    # fourth column
+    x_cln1 = 500
+    x_cln2 = 595
+    analysisTxt = QLabel('Analysis:', parametersBox)
+    analysisTxt.setGeometry(x_cln1, 20, w_cln1, h_txt)
+    self.analysisSelectionBox = QComboBox(parametersBox)
+    self.analysisSelectionBox.setGeometry(x_cln1 - 10, 45, 150, h_btn)
+    self.analysisSelectionBox.addItem('Choose analysis')
+    self.analysisSelectionBox.addItem('Manual tracking')
+    self.analysisSelectionBox.addItem('Luma tracking')
+    self.analysisSelectionBox.addItem('Color tracking')
+    self.analysisSelectionBox.addItem('HSV tracking')
+    self.analysisSelectionBox.activated[str].connect(self.analysis_click)
+    saveLoadTxt = QLabel('Save/Load:', parametersBox)
+    saveLoadTxt.setGeometry(x_cln1, 70, w_cln1, h_txt)
+    self.saveParBtn = QPushButton('Save parameters', parametersBox)
+    self.saveParBtn.setGeometry(x_cln1 - 10, 95, 150, h_btn)
+    self.saveParBtn.clicked.connect(self.saveParBtn_clicked)
+    self.loadParBtn = QPushButton('Load parameters', parametersBox)
+    self.loadParBtn.setGeometry(x_cln1 - 10, 125, 150, h_btn)
+    self.loadParBtn.clicked.connect(self.loadParBtn_clicked)
+    exportTxt = QLabel('Save edited video:', parametersBox)
+    exportTxt.setGeometry(x_cln1, 200, 150, h_txt)
+    self.newVideoHelpBtn = QPushButton('?', parametersBox)
+    self.newVideoHelpBtn.setGeometry(x_cln2 + 15, 199, 30, h_btn)
+    self.newVideoHelpBtn.clicked.connect(self.newVideoHelpBtn_clicked)
+    fpsTxt = QLabel('Frame rate (fps):', parametersBox)
+    fpsTxt.setGeometry(x_cln1, 225, 120, h_txt)
+    self.fpsIn = QLineEdit('30', parametersBox)
+    self.fpsIn.setGeometry(x_cln2, 229, 40, h_lbl)
+    codecTxt = QLabel('Codec:', parametersBox)
+    codecTxt.setGeometry(x_cln1, 255, 100, h_txt)
+    self.codecIn = QLineEdit('mp4v', parametersBox)
+    self.codecIn.setGeometry(x_cln2, 259, 40, h_lbl)
+    formatTxt = QLabel('Format:', parametersBox)
+    formatTxt.setGeometry(x_cln1, 285, 100, h_txt)
+    self.formatIn = QLineEdit('mp4', parametersBox)
+    self.formatIn.setGeometry(x_cln2, 289, 40, h_lbl)
+    self.exportVideoBtn = QPushButton('Export video', parametersBox)
+    self.exportVideoBtn.setGeometry(x_cln1 - 10, 315, 150, h_btn)
+    self.exportVideoBtn.clicked.connect(self.exportVideoBtn_clicked)
+
+    # preview label
+    x_cln1 = 650
+    self.win1 = QLabel(parametersBox)
+    self.win1.setGeometry(x_cln1, 25, 390, 270)
+    self.win1.setStyleSheet('background-color: white')
+    self.frameTxt = QLabel('Current frame:', parametersBox)
+    self.frameTxt.setGeometry(x_cln1, 295, 120, h_txt)
+    self.frameIn = QLineEdit('0', parametersBox)
+    self.frameIn.setGeometry(x_cln1 + 90, 299, w_cln2, h_lbl)
+    self.goToFrameBtn = QPushButton('Go to frame', parametersBox)
+    self.goToFrameBtn.setGeometry(x_cln1 + 140, 295, 100, h_btn)
+    self.goToFrameBtn.clicked.connect(self.goToFrameBtn_clicked)
+    self.previewSlider = QSlider(Qt.Horizontal, parametersBox)
+    self.previewSlider.setGeometry(x_cln1, 325, 390, 25)
+    self.previewSlider.sliderReleased.connect(self.sliderValue_released)
+    self.previewSlider.valueChanged.connect(self.sliderValue_released)
+    self.showFrameLargeBtn = QPushButton('Show frame', parametersBox)
+    self.showFrameLargeBtn.setGeometry(930, 295, 115, h_btn)
     self.showFrameLargeBtn.clicked.connect(self.showFrameLargeBtn_clicked)
 
 def manualTrackingBox_Mac(self):
@@ -638,6 +887,7 @@ def lumaTrackingBox_Mac(self):
     thresholdTxt.setGeometry(x_cln1, 75, 100, h_txt)
     self.thresholdIn = QLineEdit('30', self.lumaTrackingBox)
     self.thresholdIn.setGeometry(x_cln2, 79, 30, h_lbl)
+
     filterParticleTxt = QLabel('Filter particles:', self.lumaTrackingBox)
     filterParticleTxt.setGeometry(x_cln1, 100, 150, h_txt)
     self.particleSldrMax = QLineEdit('1000', self.lumaTrackingBox)
@@ -648,6 +898,7 @@ def lumaTrackingBox_Mac(self):
     self.filterParticleSldr_LT.setMaximum(1000)
     self.filterParticleSldr_LT.setValue(10)
     self.filterParticleSldr_LT.sliderReleased.connect(self.filterParticleSldr_LT_released)
+
     avgLE_txt = QLabel('#px to locate edges:', self.lumaTrackingBox)
     avgLE_txt.setGeometry(x_cln1, 150, 140, h_txt)
     self.avgLEIn_LT = QLineEdit('5', self.lumaTrackingBox)
@@ -685,6 +936,7 @@ def lumaTrackingBox_Mac(self):
     self.showFrameLargeBtn_LT.setGeometry(930, 325, 115, h_btn)
     self.showFrameLargeBtn_LT.clicked.connect(self.showFrameLargeBtn_LT_clicked)
 
+    # below is defined in flameTracker.py already in an OS specific way
     # first label
     self.lbl1_LT = QLabel(self.lumaTrackingBox)
     self.lbl1_LT.setGeometry(190, 25, 420, 300)
@@ -718,6 +970,7 @@ def lumaTrackingBox_Win(self):
     thresholdTxt.setGeometry(x_cln1, 70, 80, h_txt)
     self.thresholdIn = QLineEdit('30', self.lumaTrackingBox)
     self.thresholdIn.setGeometry(x_cln2, 75, w_lbl, h_lbl)
+
     filterParticleTxt = QLabel('Filter particles:', self.lumaTrackingBox)
     filterParticleTxt.setGeometry(x_cln1, 95, 150, h_txt)
     self.particleSldrMax = QLineEdit('1000', self.lumaTrackingBox)
@@ -728,6 +981,7 @@ def lumaTrackingBox_Win(self):
     self.filterParticleSldr_LT.setMaximum(1000)
     self.filterParticleSldr_LT.setValue(10)
     self.filterParticleSldr_LT.sliderReleased.connect(self.filterParticleSldr_LT_released)
+
     avgLE_txt = QLabel('#px to locate edges:', self.lumaTrackingBox)
     avgLE_txt.setGeometry(x_cln1, 140, 140, h_txt)
     self.avgLEIn_LT = QLineEdit('5', self.lumaTrackingBox)
@@ -766,6 +1020,7 @@ def lumaTrackingBox_Win(self):
     self.showFrameLargeBtn_LT.setGeometry(920, 325, 120, h_btn)
     self.showFrameLargeBtn_LT.clicked.connect(self.showFrameLargeBtn_LT_clicked)
 
+    # below is defined in flameTracker.py already in an OS specific way
     # first label
     self.lbl1_LT = QLabel(self.lumaTrackingBox)
     self.lbl1_LT.setGeometry(190, 15, 420, 300)
@@ -883,6 +1138,7 @@ def colorTrackingBox_Mac(self):
     self.blueMaxSlider.setMaximum(255)
     self.blueMaxSlider.setValue(255)
     self.blueMaxSlider.sliderReleased.connect(self.singleColorSlider_released)
+
     filterParticleTxt = QLabel('Filter particles:', self.colorTrackingBox)
     filterParticleTxt.setGeometry(x_cln1, 280, 150, h_txt)
     self.particleSldrMax = QLineEdit('1000', self.colorTrackingBox)
@@ -893,6 +1149,7 @@ def colorTrackingBox_Mac(self):
     self.filterParticleSldr_CT.setMaximum(1000)
     self.filterParticleSldr_CT.setValue(10)
     self.filterParticleSldr_CT.sliderReleased.connect(self.filterParticleSldr_CT_released)
+
     avgLE_txt = QLabel('#px to locate edges:', self.colorTrackingBox)
     avgLE_txt.setGeometry(x_cln1, 330, 140, h_txt)
     self.avgLEIn_CT = QLineEdit('1', self.colorTrackingBox)
@@ -1070,6 +1327,7 @@ def colorTrackingBox_Win(self):
     self.blueMaxSlider.setValue(255)
     self.blueMaxSlider.sliderReleased.connect(self.singleColorSlider_released)
     self.blueMaxSlider.valueChanged.connect(self.singleColorSlider_released)
+
     filterParticleTxt = QLabel('Filter particle:', self.colorTrackingBox)
     filterParticleTxt.setGeometry(x_cln1, 250, 150, h_txt)
     self.particleSldrMax = QLineEdit('1000', self.colorTrackingBox)
@@ -1080,6 +1338,7 @@ def colorTrackingBox_Win(self):
     self.filterParticleSldr_CT.setMaximum(1000)
     self.filterParticleSldr_CT.setValue(10)
     self.filterParticleSldr_CT.sliderReleased.connect(self.filterParticleSldr_CT_released)
+
     avgLE_txt = QLabel('#px to locate edges:', self.colorTrackingBox)
     avgLE_txt.setGeometry(x_cln1, 295, 100, h_txt)
     self.avgLEIn_CT = QLineEdit('1', self.colorTrackingBox)
@@ -1142,3 +1401,6 @@ def colorTrackingBox_Win(self):
     self.showFrameLargeBtn_CT = QPushButton('Show frames', self.colorTrackingBox)
     self.showFrameLargeBtn_CT.setGeometry(920, 270, 120, h_btn)
     self.showFrameLargeBtn_CT.clicked.connect(self.showFrameLargeBtn_CT_clicked)
+
+def HSVTrackingBox_Mac(self):
+    print('coming soon...')

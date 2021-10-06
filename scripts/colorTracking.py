@@ -27,7 +27,7 @@ from boxesGUI_OS import *
 def createColorTrackingBox(self):
     self.colorTrackingValue = True
 
-    if self.OStype == 'mac':
+    if self.OStype == 'mac' or self.OStype == 'lin':
         colorTrackingBox_Mac(self)
     elif self.OStype == 'win':
         colorTrackingBox_Win(self)
@@ -281,7 +281,7 @@ def colorTracking(self):
 
         self.lbl1_CT = pg.PlotWidget(self.colorTrackingBox)
         self.lbl2_CT = pg.PlotWidget(self.colorTrackingBox)
-        if self.OStype == 'mac':
+        if self.OStype == 'mac' or self.OStype == 'lin':
             self.lbl1_CT.setGeometry(370, 25, 330, 250)
             self.lbl2_CT.setGeometry(710, 25, 330, 250)
         elif self.OStype == 'win':

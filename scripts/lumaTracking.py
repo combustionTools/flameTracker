@@ -26,7 +26,7 @@ from boxesGUI_OS import *
 
 def createLumaTrackingBox(self):
     self.lumaTrackingValue = True
-    if self.OStype == 'mac':
+    if self.OStype == 'mac' or self.OStype == 'lin':
         lumaTrackingBox_Mac(self)
     elif self.OStype == 'win':
         lumaTrackingBox_Win(self)
@@ -278,7 +278,7 @@ def lumaTracking(self):
         self.lbl1_LT = pg.PlotWidget(self.lumaTrackingBox)
         self.lbl2_LT = pg.PlotWidget(self.lumaTrackingBox)
 
-        if self.OStype == 'mac':
+        if self.OStype == 'mac' or self.OStype == 'lin':
             self.lbl1_LT.setGeometry(190, 25, 420, 300)
             self.lbl2_LT.setGeometry(620, 25, 420, 300)
         elif self.OStype == 'win':
