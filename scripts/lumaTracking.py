@@ -21,51 +21,71 @@ Author: Luca Carmignani, PhD
 Contact: flameTrackerContact@gmail.com
 """
 
-from flameTracker import *
-from boxesGUI_OS import *
+# from flameTracker import *
+# from boxesGUI_OS import *
+from PyQt5 import QtGui
+from PyQt5.QtGui import *
+from PyQt5.QtWidgets import *
+from PyQt5.QtCore import *
+from itertools import zip_longest
 
-def createLumaTrackingBox(self):
-    self.lumaTrackingValue = True
-    if self.OStype == 'mac' or self.OStype == 'lin':
-        lumaTrackingBox_Mac(self)
-    elif self.OStype == 'win':
-        lumaTrackingBox_Win(self)
+import flameTracker as ft
+import boxesGUI_OS as gui
+import csv
+import cv2
+import pyqtgraph as pg
+import numpy as np
+
+def initVars(self):
+    # default variables
+    global flameDir
+    flameDir = 'toRight'
+    #self.lightROI_MT_recorded = False
+
+#def createTrackingBox(self):
+    #self.lumaTrackingValue = True
+    # if self.OStype == 'mac' or self.OStype == 'lin':
+    #     gui.lumaTrackingBox_Mac(self)
+    # elif self.OStype == 'win':
+    #     gui.lumaTrackingBox_Win(self)
+
+#    gui.lumaTrackingBox(self)
 
     # default variables
-    self.flameDir = 'toRight'
-    self.lumaTrackingBox.show()
+    #self.flameDir = 'toRight'
+#    self.lumaTrackingBox.show()
 
-def checkEditing_LT(self, frameNumber):
-    # open the frame selected
-    if self.openSelection == 'video':
-        self.fVideo.set(1, frameNumber)
-        ret, frame = self.fVideo.read()
-    elif self.openSelection == 'image(s)':
-        imageNumber = self.imagesList[int(frameNumber)]
-        frame = cv2.imread(imageNumber)
-    # check for previous corrections
-    if self.perspectiveValue == True:
-        if self.rotationValue == True:
-            frame = rotationCorrection_LT(self, frame, self.anglePerspective)
-        frame = perspectiveCorrection_LT(self, frame)
-        #the rotation has already been included in the perspective correction, but it could happen that a further rotation is needed after the correction (e.g. for the analysis)
-        if self.anglePerspective != float(self.rotationAngleIn.text()):
-            angle = float(self.rotationAngleIn.text()) - self.anglePerspective
-            frame = rotationCorrection_LT(self, frame, angle)
-    elif float(self.rotationAngleIn.text()) != 0: #in case there is no perspective correction
-        angle = float(self.rotationAngleIn.text())
-        frame = rotationCorrection_LT(self, frame, angle)
-    if int(self.brightnessSlider.value()) != 0 or int(self.contrastSlider.value()) != 0:
-        frameContainer = np.zeros(frame.shape, frame.dtype)
-        alpha = (int(self.contrastSlider.value()) + 100) * 2 / 200
-        beta = int(self.brightnessSlider.value())    # Simple brightness control [0-100]. We have [-50-50]
-        frame = cv2.convertScaleAbs(frame, alpha=alpha, beta=beta)
+# def checkEditing(self, frameNumber):
+#     # open the frame selected
+#     if self.openSelection == 'video':
+#         self.fVideo.set(1, frameNumber)
+#         ret, frame = self.fVideo.read()
+#     elif self.openSelection == 'image(s)':
+#         imageNumber = self.imagesList[int(frameNumber)]
+#         frame = cv2.imread(imageNumber)
+#     # check for previous corrections
+#     if self.perspectiveValue == True:
+#         if self.rotationValue == True:
+#             frame = rotationCorrection(self, frame, self.anglePerspective)
+#         frame = perspectiveCorrection(self, frame)
+#         #the rotation has already been included in the perspective correction, but it could happen that a further rotation is needed after the correction (e.g. for the analysis)
+#         if self.anglePerspective != float(self.rotationAngleIn.text()):
+#             angle = float(self.rotationAngleIn.text()) - self.anglePerspective
+#             frame = rotationCorrection(self, frame, angle)
+#     elif float(self.rotationAngleIn.text()) != 0: #in case there is no perspective correction
+#         angle = float(self.rotationAngleIn.text())
+#         frame = rotationCorrection(self, frame, angle)
+#     if int(self.brightnessSlider.value()) != 0 or int(self.contrastSlider.value()) != 0:
+#         frameContainer = np.zeros(frame.shape, frame.dtype)
+#         alpha = (int(self.contrastSlider.value()) + 100) * 2 / 200
+#         beta = int(self.brightnessSlider.value())    # Simple brightness control [0-100]. We have [-50-50]
+#         frame = cv2.convertScaleAbs(frame, alpha=alpha, beta=beta)
+#
+#     # crop frame
+#     frameCrop = frame[int(self.roiTwoIn.text()) : (int(self.roiTwoIn.text()) + int(self.roiFourIn.text())), int(self.roiOneIn.text()) : (int(self.roiOneIn.text()) + int(self.roiThreeIn.text()))]
+#     return(frame, frameCrop)
 
-    # crop frame
-    frameCrop = frame[int(self.roiTwoIn.text()) : (int(self.roiTwoIn.text()) + int(self.roiFourIn.text())), int(self.roiOneIn.text()) : (int(self.roiOneIn.text()) + int(self.roiThreeIn.text()))]
-    return(frame, frameCrop)
-
-def getLumaFrame(self, frame):
+def getFilteredFrame(self, frame):
     # Transform the frame into the YCC space
     frameYCC = cv2.cvtColor(frame, cv2.COLOR_BGR2YCR_CB)
     Y, C, C = cv2.split(frameYCC)
@@ -124,10 +144,10 @@ def findFlameEdges(self, frameBW, flamePx):
     self.xMax = int(self.xMax/int(self.avgLEIn_LT.text()))
     self.xMin = int(self.xMin/int(self.avgLEIn_LT.text()))
 
-    if self.flameDir == 'toRight':
+    if flameDir == 'toRight':
         self.xRight = int(self.roiOneIn.text()) + self.xMax
         self.xLeft = int(self.roiOneIn.text()) + self.xMin
-    elif self.flameDir == 'toLeft':
+    elif flameDir == 'toLeft':
         self.xRight = self.vWidth - int(self.roiOneIn.text()) - self.xMax
         self.xLeft = self.vWidth - int(self.roiOneIn.text()) - self.xMin
 
@@ -174,7 +194,7 @@ def lumaTracking(self):
     if scale: #this condition prevents crashes in case the scale is not specified
         while (currentFrame < lastFrame):
             print('Frame #:', currentFrame)
-            frame, frameCrop = checkEditing_LT(self, currentFrame)
+            frame, frameCrop = ft.checkEditing(self, currentFrame)
             if self.filterLight.isChecked() == True:
                 if self.lightROI_LT_recorded == True:
                     # looking for frames with a light on (which would increase the red and green channel values of the background)
@@ -197,14 +217,14 @@ def lumaTracking(self):
                     break
 
                 if len(flamePx_light[0]) < 0.5 * area_light:
-                    getLumaFrame(self, frameCrop)
+                    getFilteredFrame(self, frameCrop)
                     print('frame counted')
                 else:
                     currentFrame = currentFrame + 1 + int(self.skipFrameIn.text())
                     print('frame not counted')
                     continue
             else:
-                getLumaFrame(self, frameCrop)
+                getFilteredFrame(self, frameCrop)
 
             self.xRight_mm.append(self.xRight / float(self.scaleIn.text()))
             self.xLeft_mm.append(self.xLeft / float(self.scaleIn.text()))
@@ -310,20 +330,21 @@ def lumaTrackingPlot(label, x, y, name, symbol, color):
     pen = pg.mkPen(color)
     label.plot(x, y, pen = pen, name = name, symbol = symbol, symbolSize = 7, symbolBrush = (color))
 
-def chooseFlameDirection_LT(self, text):
+def chooseFlameDirection(self, text):
+    global flameDir
     selection = self.directionBox.currentText()
     if selection == 'Left to right':
-        self.flameDir = 'toRight'
+        flameDir = 'toRight'
     elif selection == 'Right to left':
-        self.flameDir = 'toLeft'
+        flameDir = 'toLeft'
 
-def saveData_LT(self):
+def saveData(self):
     fileName = QFileDialog.getSaveFileName(self, 'Save tracking data')
     fileName = fileName[0]
     if not fileName[-4:] == '.csv':
         fileName = fileName + '.csv'
 
-    fileInfo = ['Name', self.fNameLbl.text(), 'Scale [px/mm]', self.scaleIn.text(), 'Moving avg', self.movAvgIn_LT.text(), 'Points LE', self.avgLEIn_LT.text(), 'Luma threshold', self.thresholdIn.text(), 'Flame dir.:', self.flameDir]
+    fileInfo = ['Name', self.fNameLbl.text(), 'Scale [px/mm]', self.scaleIn.text(), 'Moving avg', self.movAvgIn_LT.text(), 'Points LE', self.avgLEIn_LT.text(), 'Luma threshold', self.thresholdIn.text(), 'Flame dir.:', flameDir]
     lbl = ['File info', 'Frame', 'Time [s]', 'Right edge [mm]', 'Left edge [mm]', 'Length [mm]', 'Spread Rate RE [mm/s]', 'Spread Rate LE [mm/s]', 'Area [mm^2]']
     rows = [fileInfo, self.frameCount, self.timeCount, self.xRight_mm, self.xLeft_mm, self.flameLength_mm, self.spreadRateRight, self.spreadRateLeft, self.flameArea]
     rows_zip = zip_longest(*rows)
@@ -335,7 +356,7 @@ def saveData_LT(self):
             writer.writerow(row)
     self.msgLabel.setText('Data succesfully saved.')
 
-def absValue_LT(self):
+def absValue(self):
     abs_frames = list()
     abs_time = list()
     abs_xRight_mm = list()
@@ -366,48 +387,48 @@ def absValue_LT(self):
     lumaTrackingPlot(self.lbl2_LT, self.timeCount, self.spreadRateRight, '', 'o', 'b')
     lumaTrackingPlot(self.lbl2_LT, self.timeCount, self.spreadRateLeft, '', 't', 'r')
 
-def perspectiveCorrection_LT(self, frame):
-    # M is the matrix transformation calculated with the size of the sample (calculated from user input), and the sampleMod from the user clicks
-    M = cv2.getPerspectiveTransform(self.sample, self.sampleMod)
-    # If the perspective is done on a rotated video, the corrected image might have a much larger size than the original one, here we check this
-    originalFrame = np.float32([[0,0], [self.vWidth, 0], [self.vWidth, self.vHeight], [0, self.vHeight]])
-    width = int(frame.shape[1])
-    height = int(frame.shape[0])
-    for point in self.sampleMod:
-        if point[0] > width:
-            width = int(point[0])
-        if point[1] > height:
-            height = int(point[1])
+# def perspectiveCorrection(self, frame):
+#     # M is the matrix transformation calculated with the size of the sample (calculated from user input), and the sampleMod from the user clicks
+#     M = cv2.getPerspectiveTransform(self.sample, self.sampleMod)
+#     # If the perspective is done on a rotated video, the corrected image might have a much larger size than the original one, here we check this
+#     originalFrame = np.float32([[0,0], [self.vWidth, 0], [self.vWidth, self.vHeight], [0, self.vHeight]])
+#     width = int(frame.shape[1])
+#     height = int(frame.shape[0])
+#     for point in self.sampleMod:
+#         if point[0] > width:
+#             width = int(point[0])
+#         if point[1] > height:
+#             height = int(point[1])
+#
+#     frame = cv2.warpPerspective(frame, M, (width, height))
+#     return(frame)
 
-    frame = cv2.warpPerspective(frame, M, (width, height))
-    return(frame)
-
-def filterParticleSldr_LT(self):
-    frame, frameCrop = checkEditing_LT(self, self.frameNumber)
-    getLumaFrame(self, frameCrop)
+def filterParticleSldr(self):
+    frame, frameCrop = ft.checkEditing(self, self.frameNumber)
+    getFilteredFrame(self, frameCrop)
     self.lbl1_LT.setPixmap(QPixmap.fromImage(self.frameY))
     self.lbl2_LT.setPixmap(QPixmap.fromImage(self.frameBW))
     self.filterParticleSldr_LT.setMaximum(int(self.particleSldrMax.text()))
 
-def rotationCorrection_LT(self, frame, angle):
-    # rotation matrix:
-    width = int(self.vWidth)
-    height = int(self.vHeight)
-    center = (width/2, height/2)
-    matrix = cv2.getRotationMatrix2D(center, angle, 1) #center of rotation, angle, zoom In/zoom Out
-    # rotation calculates the cos and sin, taking absolutes of those (these extra steps are used to avoid cropping )
-    abs_cos = abs(matrix[0,0])
-    abs_sin = abs(matrix[0,1])
-    # find the new width and height bounds
-    region_w = int(height * abs_sin + width * abs_cos)
-    region_h = int(height * abs_cos + width * abs_sin)
-    # subtract old image center (bringing image back to origo) and adding the new image center coordinates
-    matrix[0, 2] += region_w/2 - center[0]
-    matrix[1, 2] += region_h/2 - center[1]
-    frame = cv2. warpAffine(frame, matrix, (region_w, region_h)) #resolution is specified
-    return(frame)
+# def rotationCorrection(self, frame, angle):
+#     # rotation matrix:
+#     width = int(self.vWidth)
+#     height = int(self.vHeight)
+#     center = (width/2, height/2)
+#     matrix = cv2.getRotationMatrix2D(center, angle, 1) #center of rotation, angle, zoom In/zoom Out
+#     # rotation calculates the cos and sin, taking absolutes of those (these extra steps are used to avoid cropping )
+#     abs_cos = abs(matrix[0,0])
+#     abs_sin = abs(matrix[0,1])
+#     # find the new width and height bounds
+#     region_w = int(height * abs_sin + width * abs_cos)
+#     region_h = int(height * abs_cos + width * abs_sin)
+#     # subtract old image center (bringing image back to origo) and adding the new image center coordinates
+#     matrix[0, 2] += region_w/2 - center[0]
+#     matrix[1, 2] += region_h/2 - center[1]
+#     frame = cv2. warpAffine(frame, matrix, (region_w, region_h)) #resolution is specified
+#     return(frame)
 
-def showFrameLarge_LT(self):
+def showFrameLarge(self):
     cv2.namedWindow(('Frame (luminance): ' + self.frameIn.text()), cv2.WINDOW_AUTOSIZE)
     cv2.imshow(('Frame (luminance): ' + self.frameIn.text()), self.currentFrameY_LT)
     cv2.namedWindow(('Frame (black/white): ' + self.frameIn.text()), cv2.WINDOW_AUTOSIZE)
@@ -417,14 +438,14 @@ def showFrameLarge_LT(self):
             cv2.destroyAllWindows()
             return
 
-def lightROIBtn_LT(self):
-    frame, frameCrop = checkEditing_LT(self, self.frameNumber)
+def lightROIBtn(self):
+    frame, frameCrop = ft.checkEditing(self, self.frameNumber)
     self.lightROI_LT = cv2.selectROI(frame)
     cv2.destroyAllWindows()
 #    lightROI_crop = frame[self.lightROI_LT[1] : (self.lightROI_LT[1] + self.lightROI_LT[3]), self.lightROI_LT[0] : (self.lightROI_LT[0] + self.lightROI_LT[2])]
     self.lightROI_LT_recorded = True
 
-def helpBtn_LT(self):
+def helpBtn(self):
     msg = QMessageBox(self)
     msg.setText("""In this analysis the luminance intensity of each pixel is used to isolate the flame. The frames are transformed from the RGB to the YCC color space. Only the Y (luma intensity) component is considered, and the threshold to filter the flame from the background can be adjusted by the user (from 0 to 255).
 

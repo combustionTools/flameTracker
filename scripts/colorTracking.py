@@ -21,54 +21,75 @@ Author: Luca Carmignani, PhD
 Contact: flameTrackerContact@gmail.com
 """
 
-from flameTracker import *
-from boxesGUI_OS import *
+#from flameTracker import *
+#from boxesGUI_OS import *
+from PyQt5 import QtGui
+from PyQt5.QtGui import *
+from PyQt5.QtWidgets import *
+from PyQt5.QtCore import *
+from itertools import zip_longest
 
-def createColorTrackingBox(self):
-    self.colorTrackingValue = True
+import flameTracker as ft
+import boxesGUI_OS as gui
+import csv
+import cv2
+import pyqtgraph as pg
+import numpy as np
 
-    if self.OStype == 'mac' or self.OStype == 'lin':
-        colorTrackingBox_Mac(self)
-    elif self.OStype == 'win':
-        colorTrackingBox_Win(self)
-
-    # default variables
-    self.flameDir = 'toRight'
-    self.connectivity_CT = 4
+def initVars(self):
+    global flameDir, connectivity_CT
+    flameDir = 'toRight'
+    connectivity_CT = 4
     self.lightROI_CT_recorded = False
 
-    self.colorTrackingBox.show()
+# def createTrackingBox(self):
+#     #self.colorTrackingValue = True
+#
+#     gui.colorTrackingBox(self)
+#
+#     # if self.OStype == 'mac' or self.OStype == 'lin':
+#     #     gui.colorTrackingBox_Mac(self)
+#     # elif self.OStype == 'win':
+#     #     gui.colorTrackingBox_Win(self)
+#
+#     initiateVariables(self)
+#     # default variables
+#     #self.flameDir = 'toRight'
+#     #self.connectivity_CT = 4
+#     #self.lightROI_CT_recorded = False
+#
+#     self.colorTrackingBox.show()
 
-def checkEditing_CT(self, frameNumber):
-    if self.openSelection == 'video':
-        self.fVideo.set(1, frameNumber)
-        ret, frame = self.fVideo.read()
-    elif self.openSelection == 'image(s)':
-        imageNumber = self.imagesList[int(frameNumber)]
-        frame = cv2.imread(imageNumber)
-    # check for previous corrections
-    if self.perspectiveValue == True:
-        if self.rotationValue == True:
-            frame = rotationCorrection_CT(self, frame, self.anglePerspective)
-        frame = perspectiveCorrection_CT(self, frame)
-        #the rotation has already been included in the perspective correction, but it could happen that a further rotation is needed after the correction (e.g. for the analysis)
-        if self.anglePerspective != float(self.rotationAngleIn.text()):
-            angle = float(self.rotationAngleIn.text()) - self.anglePerspective
-            frame = rotationCorrection_CT(self, frame, angle)
-    elif float(self.rotationAngleIn.text()) != 0: #in case there is no perspective correction
-            angle = float(self.rotationAngleIn.text())
-            frame = rotationCorrection_CT(self, frame, angle)
-    if int(self.brightnessSlider.value()) != 0 or int(self.contrastSlider.value()) != 0:
-        frameContainer = np.zeros(frame.shape, frame.dtype)
-        alpha = (int(self.contrastSlider.value()) + 100) * 2 / 200
-        beta = int(self.brightnessSlider.value())    # Simple brightness control [0-100]. Instead, we have [-50-50]
-        frame = cv2.convertScaleAbs(frame, alpha=alpha, beta=beta)
+# def checkEditing(self, frameNumber):
+#     if self.openSelection == 'video':
+#         self.fVideo.set(1, frameNumber)
+#         ret, frame = self.fVideo.read()
+#     elif self.openSelection == 'image(s)':
+#         imageNumber = self.imagesList[int(frameNumber)]
+#         frame = cv2.imread(imageNumber)
+#     # check for previous corrections
+#     if self.perspectiveValue == True:
+#         if self.rotationValue == True:
+#             frame = rotationCorrection(self, frame, self.anglePerspective)
+#         frame = perspectiveCorrection(self, frame)
+#         #the rotation has already been included in the perspective correction, but it could happen that a further rotation is needed after the correction (e.g. for the analysis)
+#         if self.anglePerspective != float(self.rotationAngleIn.text()):
+#             angle = float(self.rotationAngleIn.text()) - self.anglePerspective
+#             frame = rotationCorrection(self, frame, angle)
+#     elif float(self.rotationAngleIn.text()) != 0: #in case there is no perspective correction
+#             angle = float(self.rotationAngleIn.text())
+#             frame = rotationCorrection(self, frame, angle)
+#     if int(self.brightnessSlider.value()) != 0 or int(self.contrastSlider.value()) != 0:
+#         frameContainer = np.zeros(frame.shape, frame.dtype)
+#         alpha = (int(self.contrastSlider.value()) + 100) * 2 / 200
+#         beta = int(self.brightnessSlider.value())    # Simple brightness control [0-100]. Instead, we have [-50-50]
+#         frame = cv2.convertScaleAbs(frame, alpha=alpha, beta=beta)
+#
+#     # crop frame
+#     frameCrop = frame[int(self.roiTwoIn.text()) : (int(self.roiTwoIn.text()) + int(self.roiFourIn.text())), int(self.roiOneIn.text()) : (int(self.roiOneIn.text()) + int(self.roiThreeIn.text()))]
+#     return(frame, frameCrop)
 
-    # crop frame
-    frameCrop = frame[int(self.roiTwoIn.text()) : (int(self.roiTwoIn.text()) + int(self.roiFourIn.text())), int(self.roiOneIn.text()) : (int(self.roiOneIn.text()) + int(self.roiThreeIn.text()))]
-    return(frame, frameCrop)
-
-def getColorFilteredFrame(self, frame):
+def getFilteredFrame(self, frame):
     blueLow = self.blueMinSlider.value()
     blueHigh = self.blueMaxSlider.value()
     greenLow = self.greenMinSlider.value()
@@ -85,7 +106,7 @@ def getColorFilteredFrame(self, frame):
     (threshold, frameBW) = cv2.threshold(grayFrame, 0, 255, cv2.THRESH_BINARY)
 
     # Find all the connected components (8 means in the four directions and diagonals)
-    componentNum, componentLbl, stats, centroids = cv2.connectedComponentsWithStats(frameBW, connectivity = self.connectivity_CT)
+    componentNum, componentLbl, stats, centroids = cv2.connectedComponentsWithStats(frameBW, connectivity = connectivity_CT)
     ### 1 = number of labels; 2 = array; 3 = [[x location (left), y location (top), width, height, area]] for each label; 4 = [centroid of each label, x and y]. Note: the background is the first component
 
     # minimum area (measured in px) for filtering the components
@@ -101,7 +122,7 @@ def getColorFilteredFrame(self, frame):
 
     flamePx = np.where(frameBW == [255]) # total area in px
 
-    findFlameEdges_CT(self, frameBW, flamePx)
+    findFlameEdges(self, frameBW, flamePx)
 
     if self.showEdges.isChecked() == True:
         cv2.line(frame, (self.xMax, 0),(self.xMax, int(self.roiFourIn.text())), (255, 255, 255), 2)
@@ -125,7 +146,7 @@ def getColorFilteredFrame(self, frame):
     self.frameBW = QImage(frameBW.data, frameBW.shape[1], frameBW.shape[0], bytesPerLineBW, QImage.Format_Grayscale8)#.rgbSwapped() #shape[0] = height, [1] = width QImage.Format_Indexed8 or Grayscale8 BGR888
     self.frameBW = self.frameBW.scaled(self.lbl1_CT.size(), Qt.KeepAspectRatio, Qt.SmoothTransformation)
 
-def findFlameEdges_CT(self, frameBW, flamePx):
+def findFlameEdges(self, frameBW, flamePx):
     self.flameArea = len(flamePx[0])
     self.xMax = 0
     self.xMin = 0
@@ -142,10 +163,10 @@ def findFlameEdges_CT(self, frameBW, flamePx):
 
         self.xMax = int(self.xMax/int(self.avgLEIn_CT.text()))
         self.xMin = int(self.xMin/int(self.avgLEIn_CT.text()))
-        if self.flameDir == 'toRight':
+        if flameDir == 'toRight':
             self.xRight = int(self.roiOneIn.text()) + self.xMax
             self.xLeft = int(self.roiOneIn.text()) + self.xMin
-        elif self.flameDir == 'toLeft':
+        elif flameDir == 'toLeft':
             self.xRight = self.vWidth - int(self.roiOneIn.text()) - self.xMax
             self.xLeft = self.vWidth - int(self.roiOneIn.text()) - self.xMin
     except:
@@ -182,7 +203,7 @@ def colorTracking(self):
     if scale: #this condition prevents crashes in case the scale is not specified
         while (currentFrame < lastFrame):
             print('Frame #:', currentFrame) #beta
-            frame, frameCrop = checkEditing_CT(self, currentFrame)
+            frame, frameCrop = ft.checkEditing(self, currentFrame)
             if self.filterLight_CT.isChecked() == True:
                 if self.lightROI_CT_recorded == True: #beta
                     # looking for frames with a light on (which would increase the red and green channel values of the background)
@@ -204,14 +225,14 @@ def colorTracking(self):
                     break
 
                 if len(flamePx_light[0]) < 0.5 * area_lightROI: #if the bright area is larger than the ROI area
-                    getColorFilteredFrame(self, frameCrop)
+                    getFilteredFrame(self, frameCrop)
                     print('frame counted')
                 else:
                     currentFrame = currentFrame + 1 + int(self.skipFrameIn.text())
                     print('frame not counted')
                     continue
             else:
-                getColorFilteredFrame(self, frameCrop)
+                getFilteredFrame(self, frameCrop)
 
             self.xRight_mm.append(self.xRight / float(self.scaleIn.text()))
             self.xLeft_mm.append(self.xLeft / float(self.scaleIn.text()))
@@ -314,67 +335,69 @@ def colorTrackingPlot(label, x, y, name, symbol, color):
     label.plot(x, y, pen = pen, name = name, symbol = symbol, symbolSize = 7, symbolBrush = (color))
 
 def colorSlider_released(self):
-    frame, frameCrop = checkEditing_CT(self, self.frameNumber)
-    getColorFilteredFrame(self, frameCrop)
+    frame, frameCrop = ft.checkEditing(self, self.frameNumber)
+    getFilteredFrame(self, frameCrop)
     self.lbl1_CT.setPixmap(QPixmap.fromImage(self.frame))
     self.lbl2_CT.setPixmap(QPixmap.fromImage(self.frameBW))
 
-def filterParticleSldr_CT(self):
-    frame, frameCrop = checkEditing_CT(self, self.frameNumber)
-    getColorFilteredFrame(self, frameCrop)
+def filterParticleSldr(self):
+    frame, frameCrop = ft.checkEditing(self, self.frameNumber)
+    getFilteredFrame(self, frameCrop)
     self.lbl1_CT.setPixmap(QPixmap.fromImage(self.frame))
     self.lbl2_CT.setPixmap(QPixmap.fromImage(self.frameBW))
     self.filterParticleSldr_CT.setMaximum(int(self.particleSldrMax.text()))
 
-def perspectiveCorrection_CT(self, frame):
-    # M is the matrix transformation calculated with the size of the sample (calculated from user input), and the sampleMod from the user clicks
-    M = cv2.getPerspectiveTransform(self.sample, self.sampleMod)
-    # If the perspective is done on a rotated video, the corrected image might have a much larger size than the original one, here we check this
-    originalFrame = np.float32([[0,0], [self.vWidth, 0], [self.vWidth, self.vHeight], [0, self.vHeight]])
-    width = int(frame.shape[1])
-    height = int(frame.shape[0])
-    for point in self.sampleMod:
-        if point[0] > width:
-            width = int(point[0])
-        if point[1] > height:
-            height = int(point[1])
+# def perspectiveCorrection(self, frame):
+#     # M is the matrix transformation calculated with the size of the sample (calculated from user input), and the sampleMod from the user clicks
+#     M = cv2.getPerspectiveTransform(self.sample, self.sampleMod)
+#     # If the perspective is done on a rotated video, the corrected image might have a much larger size than the original one, here we check this
+#     originalFrame = np.float32([[0,0], [self.vWidth, 0], [self.vWidth, self.vHeight], [0, self.vHeight]])
+#     width = int(frame.shape[1])
+#     height = int(frame.shape[0])
+#     for point in self.sampleMod:
+#         if point[0] > width:
+#             width = int(point[0])
+#         if point[1] > height:
+#             height = int(point[1])
+#
+#     frame = cv2.warpPerspective(frame, M, (width, height))
+#     return(frame)
 
-    frame = cv2.warpPerspective(frame, M, (width, height))
-    return(frame)
+# def rotationCorrection(self, frame, angle):
+#     # rotation matrix:
+#     width = int(self.vWidth)
+#     height = int(self.vHeight)
+#     center = (width/2, height/2)
+#     matrix = cv2.getRotationMatrix2D(center, angle, 1) #center of rotation, angle, zoom In/zoom Out
+#     # rotation calculates the cos and sin, taking absolutes of those (these extra steps are used to avoid cropping )
+#     abs_cos = abs(matrix[0,0])
+#     abs_sin = abs(matrix[0,1])
+#     # find the new width and height bounds
+#     region_w = int(height * abs_sin + width * abs_cos)
+#     region_h = int(height * abs_cos + width * abs_sin)
+#     # subtract old image center (bringing image back to origo) and adding the new image center coordinates
+#     matrix[0, 2] += region_w/2 - center[0]
+#     matrix[1, 2] += region_h/2 - center[1]
+#     frame = cv2. warpAffine(frame, matrix, (region_w, region_h)) #resolution is specified
+#     return(frame)
 
-def rotationCorrection_CT(self, frame, angle):
-    # rotation matrix:
-    width = int(self.vWidth)
-    height = int(self.vHeight)
-    center = (width/2, height/2)
-    matrix = cv2.getRotationMatrix2D(center, angle, 1) #center of rotation, angle, zoom In/zoom Out
-    # rotation calculates the cos and sin, taking absolutes of those (these extra steps are used to avoid cropping )
-    abs_cos = abs(matrix[0,0])
-    abs_sin = abs(matrix[0,1])
-    # find the new width and height bounds
-    region_w = int(height * abs_sin + width * abs_cos)
-    region_h = int(height * abs_cos + width * abs_sin)
-    # subtract old image center (bringing image back to origo) and adding the new image center coordinates
-    matrix[0, 2] += region_w/2 - center[0]
-    matrix[1, 2] += region_h/2 - center[1]
-    frame = cv2. warpAffine(frame, matrix, (region_w, region_h)) #resolution is specified
-    return(frame)
-
-def chooseFlameDirection_CT(self, text):
+def chooseFlameDirection(self, text):
+    global flameDir
     selection = self.directionBox.currentText()
     if selection == 'Left to right':
-        self.flameDir = 'toRight'
+        flameDir = 'toRight'
     elif selection == 'Right to left':
-        self.flameDir = 'toLeft'
+        flameDir = 'toLeft'
 
-def connectivityBox_CT(self, text):
+def connectivityBox(self, text):
+    global connectivity_CT
     selection = self.connectivityBox.currentText()
     if selection == '4':
-        self.connectivity_CT = 4
+        connectivity_CT = 4
     elif selection == '8':
-        self.connectivity_CT = 8
+        connectivity_CT = 8
 
-def saveChannelsBtn_CT(self):
+def saveChannelsBtn(self):
     name = QFileDialog.getSaveFileName(self, 'Save channel values')
     name = name[0]
     if not name[-4:] == '.csv':
@@ -394,12 +417,12 @@ def saveChannelsBtn_CT(self):
                 writer.writerow(['Particle size', str(self.filterParticleSldr_CT.value())])
                 writer.writerow(['Moving average', str(self.movAvgIn_CT.text())])
                 writer.writerow(['Points LE', str(self.avgLEIn_CT.text())])
-                writer.writerow(['Connectivity', str(self.connectivity_CT)])
+                writer.writerow(['Connectivity', str(connectivity_CT)])
             self.msgLabel.setText('Channel values saved.')
         except:
             self.msgLabel.setText('Ops! The values were not saved.')
 
-def loadChannelsBtn_CT(self):
+def loadChannelsBtn(self):
     name = QFileDialog.getOpenFileName(self, 'Load channel values')
     try:
         with open(name[0], 'r') as csvfile:
@@ -427,7 +450,7 @@ def loadChannelsBtn_CT(self):
         notParameters_dlg.showMessage('Ops! There was a problem loading the parameters.')
         self.msgLabel.setText('Ops! Parameters were not loaded.')
 
-def absValBtn_CT(self):
+def absValBtn(self):
     abs_frames = list()
     abs_time = list()
     abs_xRight_mm = list()
@@ -458,13 +481,13 @@ def absValBtn_CT(self):
     colorTrackingPlot(self.lbl2_CT, self.timeCount, self.spreadRateRight, '', 'o', 'b')
     colorTrackingPlot(self.lbl2_CT, self.timeCount, self.spreadRateLeft, '','t', 'r')
 
-def saveBtn_CT(self):
+def saveBtn(self):
     fileName = QFileDialog.getSaveFileName(self, 'Save tracking data')
     fileName = fileName[0]
     if not fileName[-4:] == '.csv':
         fileName = fileName + '.csv'
 
-    fileInfo = ['Name', self.fNameLbl.text(), 'Scale [px/mm]', self.scaleIn.text(), 'Moving avg', self.movAvgIn_CT.text(), 'Points LE', self.avgLEIn_CT.text(), 'Flame dir.:', self.flameDir]
+    fileInfo = ['Name', self.fNameLbl.text(), 'Scale [px/mm]', self.scaleIn.text(), 'Moving avg', self.movAvgIn_CT.text(), 'Points LE', self.avgLEIn_CT.text(), 'Flame dir.:', flameDir]
     lbl = ['File info', 'Frame', 'Time [s]', 'Right Edge [mm]', 'Left Edge [mm]', 'Length [mm]', 'Spread Rate RE [mm/s]', 'Spread Rate LE [mm/s]', 'Area [mm^2]']
     clms = [fileInfo, self.frameCount, self.timeCount, self.xRight_mm, self.xLeft_mm, self.flameLength_mm, self.spreadRateRight, self.spreadRateLeft, self.flameArea]
     clms_zip = zip_longest(*clms)
@@ -482,7 +505,7 @@ def saveBtn_CT(self):
         except:
             self.msgLabel.setText('Ops! The values were not saved.')
 
-def showFrameLarge_CT(self):
+def showFrameLarge(self):
     cv2.namedWindow(('Frame (RGB): ' + self.frameIn.text()), cv2.WINDOW_AUTOSIZE)
     cv2.imshow(('Frame (RGB): ' + self.frameIn.text()), self.currentFrameRGB_CT)
     cv2.namedWindow(('Frame (black/white): ' + self.frameIn.text()), cv2.WINDOW_AUTOSIZE)
@@ -492,62 +515,62 @@ def showFrameLarge_CT(self):
             cv2.destroyAllWindows()
             return
 
-def lightROIBtn_CT(self):
-    frame, frameCrop = checkEditing_CT(self, self.frameNumber)
+def lightROIBtn(self):
+    frame, frameCrop = ft.checkEditing(self, self.frameNumber)
     self.lightROI_CT = cv2.selectROI(frame)
     cv2.destroyAllWindows()
     self.lightROI_CT_recorded = True
 
-def redMinLeftBtn_CT(self):
+def redMinLeftBtn(self):
     currentValue = self.redMinSlider.value()
     self.redMinSlider.setValue(currentValue - 1)
     colorSlider_released(self)
-def redMinRightBtn_CT(self):
+def redMinRightBtn(self):
     currentValue = self.redMinSlider.value()
     self.redMinSlider.setValue(currentValue + 1)
     colorSlider_released(self)
-def redMaxLeftBtn_CT(self):
+def redMaxLeftBtn(self):
     currentValue = self.redMaxSlider.value()
     self.redMaxSlider.setValue(currentValue - 1)
     colorSlider_released(self)
-def redMaxRightBtn_CT(self):
+def redMaxRightBtn(self):
     currentValue = self.redMaxSlider.value()
     self.redMaxSlider.setValue(currentValue + 1)
     colorSlider_released(self)
-def greenMinLeftBtn_CT(self):
+def greenMinLeftBtn(self):
     currentValue = self.greenMinSlider.value()
     self.greenMinSlider.setValue(currentValue - 1)
     colorSlider_released(self)
-def greenMinRightBtn_CT(self):
+def greenMinRightBtn(self):
     currentValue = self.greenMinSlider.value()
     self.greenMinSlider.setValue(currentValue + 1)
     colorSlider_released(self)
-def greenMaxLeftBtn_CT(self):
+def greenMaxLeftBtn(self):
     currentValue = self.greenMaxSlider.value()
     self.greenMaxSlider.setValue(currentValue - 1)
     colorSlider_released(self)
-def greenMaxRightBtn_CT(self):
+def greenMaxRightBtn(self):
     currentValue = self.greenMaxSlider.value()
     self.greenMaxSlider.setValue(currentValue + 1)
     colorSlider_released(self)
-def blueMinLeftBtn_CT(self):
+def blueMinLeftBtn(self):
     currentValue = self.blueMinSlider.value()
     self.blueMinSlider.setValue(currentValue - 1)
     colorSlider_released(self)
-def blueMinRightBtn_CT(self):
+def blueMinRightBtn(self):
     currentValue = self.blueMinSlider.value()
     self.blueMinSlider.setValue(currentValue + 1)
     colorSlider_released(self)
-def blueMaxLeftBtn_CT(self):
+def blueMaxLeftBtn(self):
     currentValue = self.blueMaxSlider.value()
     self.blueMaxSlider.setValue(currentValue - 1)
     colorSlider_released(self)
-def blueMaxRightBtn_CT(self):
+def blueMaxRightBtn(self):
     currentValue = self.blueMaxSlider.value()
     self.blueMaxSlider.setValue(currentValue + 1)
     colorSlider_released(self)
 
-def helpBtn_CT(self):
+def helpBtn(self):
     msg = QMessageBox(self)
     msg.setText("""In this analysis the flame is tracked based on the image colors. After specifying the video parameters and the flame direction, the flame region can be identified by choosing appropriate values of the RGB channels. The channel values vary between 0 and 255, and the code will consider the range between minimum and maximum of each channel adjusted with the sliders.
 

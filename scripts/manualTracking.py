@@ -21,65 +21,86 @@ Author: Luca Carmignani, PhD
 Contact: flameTrackerContact@gmail.com
 """
 
-from flameTracker import *
-from boxesGUI_OS import *
+from PyQt5 import QtGui
+from PyQt5.QtGui import *
+from PyQt5.QtWidgets import *
+from PyQt5.QtCore import *
+from itertools import zip_longest
+# from flameTracker import *
+# from boxesGUI_OS import *
+import csv
+import cv2
+import flameTracker as ft
+import boxesGUI_OS as gui
+import pyqtgraph as pg
+import numpy as np
 
-def createManualTrackingBox(self):
-    self.manualTrackingValue = True
-    self.lumaTrackingValue = True
-    if self.OStype == 'mac' or self.OStype == 'lin':
-        manualTrackingBox_Mac(self)
-    elif self.OStype == 'win':
-        manualTrackingBox_Win(self)
 
+def initVars(self):
     # default variables
-    self.flameDir = 'toRight'
-    self.lightStatus = 'None'
+    global flameDir, lightStatus
+    flameDir = 'toRight'
+    lightStatus = 'None'
     self.lightROI_MT_recorded = False
+    
+# def createTrackingBox(self):
 
-    self.manualTrackingBox.show()
+    # gui.manualTrackingBox(self)
+    # # if self.OStype == 'mac' or self.OStype == 'lin':
+    # #     gui.manualTrackingBox_Mac(self)
+    # # elif self.OStype == 'win':
+    # #     gui.manualTrackingBox_Win(self)
+    #
+    # initVars(self)
+    # # default variables
+    # self.flameDir = 'toRight'
+    # self.lightStatus = 'None'
+    # self.lightROI_MT_recorded = False
 
-def checkEditing_MT(self, frameNumber):
-    roiOne = int(self.roiOneIn.text())
-    roiTwo = int(self.roiTwoIn.text())
-    roiThree = int(self.roiThreeIn.text())
-    roiFour = int(self.roiFourIn.text())
+    # self.manualTrackingBox.show()
 
-    if self.openSelection == 'video':
-        self.fVideo.set(1, int(frameNumber))
-        ret, frame = self.fVideo.read()
-    elif self.openSelection == 'image(s)':
-        imageNumber = self.imagesList[int(frameNumber)]
-        frame = cv2.imread(imageNumber)
+# def checkEditing(self, frameNumber):
+#     roiOne = int(self.roiOneIn.text())
+#     roiTwo = int(self.roiTwoIn.text())
+#     roiThree = int(self.roiThreeIn.text())
+#     roiFour = int(self.roiFourIn.text())
+#
+#     if self.openSelection == 'video':
+#         self.fVideo.set(1, int(frameNumber))
+#         ret, frame = self.fVideo.read()
+#     elif self.openSelection == 'image(s)':
+#         imageNumber = self.imagesList[int(frameNumber)]
+#         frame = cv2.imread(imageNumber)
+#
+#     try:
+#         if self.perspectiveValue == True:
+#             if self.rotationValue == True:
+#                 frame = rotationCorrection(self, frame, self.anglePerspective)
+#             frame = perspectiveCorrection(self, frame)
+#             #the rotation has already been included in the perspective correction, but it could happen that a further rotation is needed after the correction (e.g. for the analysis)
+#             if self.anglePerspective != float(self.rotationAngleIn.text()):
+#                 angle = float(self.rotationAngleIn.text()) - self.anglePerspective
+#                 frame = rotationCorrection(self, frame, angle)
+#         elif float(self.rotationAngleIn.text()) != 0: #in case there is no perspective correction
+#                 angle = float(self.rotationAngleIn.text())
+#                 frame = rotationCorrection(self, frame, angle)
+#         if self.brightnessLbl.text() != '0' or self.contrastLbl.text() != '0':
+#             frameContainer = np.zeros(frame.shape, frame.dtype)
+#             alpha = (int(self.contrastSlider.value()) + 100) * 2 / 200
+#             beta = int(self.brightnessSlider.value())    # Simple brightness control [0-100]. Instead, we have [-50-50]
+#             frame = cv2.convertScaleAbs(frame, alpha=alpha, beta=beta)
+#         if self.grayscale.isChecked() == True:
+#             frame = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+#     except:
+#         pass
+#
+#     # crop image
+#     frameCrop = frame[roiTwo : (roiTwo + roiFour), roiOne : (roiOne + roiThree)]
+#
+#     return(frame, frameCrop)
 
-    try:
-        if self.perspectiveValue == True:
-            if self.rotationValue == True:
-                frame = rotationCorrection_MT(self, frame, self.anglePerspective)
-            frame = perspectiveCorrection_MT(self, frame)
-            #the rotation has already been included in the perspective correction, but it could happen that a further rotation is needed after the correction (e.g. for the analysis)
-            if self.anglePerspective != float(self.rotationAngleIn.text()):
-                angle = float(self.rotationAngleIn.text()) - self.anglePerspective
-                frame = rotationCorrection_MT(self, frame, angle)
-        elif float(self.rotationAngleIn.text()) != 0: #in case there is no perspective correction
-                angle = float(self.rotationAngleIn.text())
-                frame = rotationCorrection_MT(self, frame, angle)
-        if self.brightnessLbl.text() != '0' or self.contrastLbl.text() != '0':
-            frameContainer = np.zeros(frame.shape, frame.dtype)
-            alpha = (int(self.contrastSlider.value()) + 100) * 2 / 200
-            beta = int(self.brightnessSlider.value())    # Simple brightness control [0-100]. Instead, we have [-50-50]
-            frame = cv2.convertScaleAbs(frame, alpha=alpha, beta=beta)
-        if self.grayscale.isChecked() == True:
-            frame = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
-    except:
-        pass
-
-    # crop image
-    frameCrop = frame[roiTwo : (roiTwo + roiFour), roiOne : (roiOne + roiThree)]
-
-    return(frame, frameCrop)
-
-def manualTracking(self):
+def startTracking(self):
+    global clk, nClicks
     # transforming the first label into a plot
     self.lbl1_MT = pg.PlotWidget(self.manualTrackingBox)
     self.lbl1_MT.setGeometry(190, 25, 420, 300)
@@ -97,7 +118,6 @@ def manualTracking(self):
 
     #Set up the first frame for analysis and clk for the mouse event
     currentFrame = firstFrame
-    global clk
 
     clk = False # False unless the mouse is clicked
     posX = dict()
@@ -109,9 +129,9 @@ def manualTracking(self):
 
     # find out how many points to be selected in each frame
     try:
-        self.nClicks = int(self.nClicksLbl.text())
+        nClicks = int(self.nClicksLbl.text())
     except:
-        self.nClicks = 1
+        nClicks = 1
         self.msgLabel.setText('Clicks not specified (=1)')
 
     while (currentFrame < lastFrame):
@@ -123,7 +143,7 @@ def manualTracking(self):
             msg.exec_()
             break
 
-        frame, frameCrop = checkEditing_MT(self, currentFrame)
+        frame, frameCrop = ft.checkEditing(self, currentFrame)
 
         if self.lightROI_MT_recorded == True:
             # looking for frames with a light on (which would increase the red and green channel values of the background)
@@ -139,14 +159,16 @@ def manualTracking(self):
             grayFrame_light = cv2.cvtColor(frame_light, cv2.COLOR_BGR2GRAY)
             (thresh_light, BW_light) = cv2.threshold(grayFrame_light, 0, 255, cv2.THRESH_BINARY)
             flamePx_light = np.where(BW_light == [255])
-            area_lightROI = int(self.lightROI_MT[3] * self.lightROI_MT[2])
+            area_light = int(self.lightROI_MT[3] * self.lightROI_MT[2])
 
-            if self.lightStatus == 'lightOff':
-                if len(current_lightROI[0]) > 0.5 * area_lightROI:
+            print('area_light', area_light)
+            print('flamePx_light', len(flamePx_light[0]))
+            if lightStatus == 'lightOff':
+                if len(flamePx_light[0]) > 0.5 * area_light: #avoid this frame
                     currentFrame = currentFrame + 1 + int(self.skipFrameIn.text())
                     continue
-            elif self.lightStatus == 'lightOn':
-                if len(current_lightROI[0]) < 0.5 * area_lightROI:
+            elif lightStatus == 'lightOn':
+                if len(flamePx_light[0]) < 0.5 * area_light: #avoid this frame
                     currentFrame = currentFrame + 1 + int(self.skipFrameIn.text())
                     continue
 
@@ -154,23 +176,25 @@ def manualTracking(self):
         cv2.namedWindow('manualTracking', cv2.WINDOW_AUTOSIZE)
         cv2.setMouseCallback('manualTracking', click)
 
-        if currentFrame > firstFrame:
-            for n in range(self.nClicks):
+        #if currentFrame > firstFrame:
+        if len(posY) > 0:
+            for n in range(nClicks):
                 if self.showEdges_MT.isChecked() == True:
                     cv2.line(frameCrop, (0, int(posY[str(n+1)][0])),(int(self.roiThreeIn.text()), int(posY[str(n+1)][0])), (0, 245, 184), 2)
 
         cv2.imshow('manualTracking',frameCrop)
 
         self.msgLabel.setText('Tracking started, press (Esc) to quit.')
-        for n in range(self.nClicks):
+        for n in range(nClicks):
             # wait for the mouse event or 'escape' key
             while (True):
                 if clk == True:
                     clk = False
                     # the zero location changes based on the flame direction
-                    if self.flameDir == 'toRight':
+                    print('flameDirection', flameDir)
+                    if flameDir == 'toRight':
                         xClick = xPos + int(self.roiOneIn.text())
-                    elif self.flameDir == 'toLeft':
+                    elif flameDir == 'toLeft':
                         xClick = self.vWidth - int(self.roiOneIn.text()) - xPos
                     break
 
@@ -213,7 +237,7 @@ def manualTracking(self):
     # moving average of the spread rate values
     self.spreadRate = dict()
     if scale:
-        for n in range(self.nClicks):
+        for n in range(nClicks):
             for i in range(len(timeCount['1'])-1):
                 xCoeff = np.polyfit(timeCount['1'][(i):(i + 2)], posX_mm[str(n+1)][(i):(i + 2)], 1)
                 spreadRate = xCoeff[0]
@@ -227,7 +251,7 @@ def manualTracking(self):
         self.lbl2_MT.clear()
         self.lbl2_MT.addLegend(offset = [1, 0.1]) # background color modified in line 122 and 123 of python3.7/site-packages/pyqtgraph/graphicsItems
         color = ['b', 'r', 'k', 'g', 'c', 'y']
-        for n in range(self.nClicks):
+        for n in range(nClicks):
             name = 'click{}'.format([n+1])
             try:
                 clr = color[n]
@@ -252,7 +276,7 @@ def manualTrackingPlot(label, x, y, lineName, symbol, color):
     pen = pg.mkPen(color)
     label.plot(x, y, pen = pen, name = lineName, symbol = symbol, symbolSize = 7, symbolBrush = (color))
 
-def absValue_MT(self):
+def absValue(self):
       abs_frame = list()
       abs_time = list()
 
@@ -279,7 +303,7 @@ def absValue_MT(self):
       self.lbl1_MT.clear()
       self.lbl2_MT.clear()
       color = ['b', 'r', 'k', 'g', 'c', 'y']
-      for n in range(self.nClicks):
+      for n in range(nClicks):
           name = 'click{}'.format([n+1])
           try:
               clr = color[n]
@@ -289,101 +313,104 @@ def absValue_MT(self):
           manualTrackingPlot(self.lbl1_MT, self.time_plot['1'], self.posX_plot[str(n+1)], '', 'o', clr)
           manualTrackingPlot(self.lbl2_MT, self.time_plot['1'], self.spreadRate[str(n+1)], '', 'o', clr)
 
-def chooseFlameDirection_MT(self, text):
+def chooseFlameDirection(self):
+    global flameDir
     selection = self.directionBox.currentText()
     if selection == 'Left to right':
-        self.flameDir = 'toRight'
+        flameDir = 'toRight'
     elif selection == 'Right to left':
-        self.flameDir = 'toLeft'
+        flameDir = 'toLeft'
 
-def chooseLightFilter_MT(self, text):
+
+def chooseLightFilter(self):
+    global lightStatus
     selection = self.filterLight_MT.currentText()
     if selection == 'Track every frame':
-        self.lightStatus = 'None'
+        lightStatus = 'None'
     elif selection == 'Frames light on':
-        self.lightStatus = 'lightOn'
+        lightStatus = 'lightOn'
     elif selection == 'Frames light off':
-        self.lightStatus = 'lightOff'
+        lightStatus = 'lightOff'
 
-def perspectiveCorrection_MT(self, frame):
-    # M is the matrix transformation calculated with the size of the sample (calculated from user input), and the sampleMod from the user clicks
-    M = cv2.getPerspectiveTransform(self.sample, self.sampleMod)
-    # If the perspective is done on a rotated video, the corrected image might have a much larger size than the original one, here we check this
-    originalFrame = np.float32([[0,0], [self.vWidth, 0], [self.vWidth, self.vHeight], [0, self.vHeight]])
-    width = int(frame.shape[1])
-    height = int(frame.shape[0])
-    for point in self.sampleMod:
-        if point[0] > width:
-            width = int(point[0])
-        if point[1] > height:
-            height = int(point[1])
+# def perspectiveCorrection(self, frame):
+#     # M is the matrix transformation calculated with the size of the sample (calculated from user input), and the sampleMod from the user clicks
+#     M = cv2.getPerspectiveTransform(self.sample, self.sampleMod)
+#     # If the perspective is done on a rotated video, the corrected image might have a much larger size than the original one, here we check this
+#     originalFrame = np.float32([[0,0], [self.vWidth, 0], [self.vWidth, self.vHeight], [0, self.vHeight]])
+#     width = int(frame.shape[1])
+#     height = int(frame.shape[0])
+#     for point in self.sampleMod:
+#         if point[0] > width:
+#             width = int(point[0])
+#         if point[1] > height:
+#             height = int(point[1])
+#
+#     frame = cv2.warpPerspective(frame, M, (width, height))
+#     return(frame)
 
-    frame = cv2.warpPerspective(frame, M, (width, height))
-    return(frame)
+# def rotationCorrection(self, frame, angle):
+#     # rotation matrix:
+#     width = int(self.vWidth)
+#     height = int(self.vHeight)
+#     center = (width/2, height/2)
+#     matrix = cv2.getRotationMatrix2D(center, angle, 1) #center of rotation, angle, zoom In/zoom Out
+#     # rotation calculates the cos and sin, taking absolutes of those (these extra steps are used to avoid cropping )
+#     abs_cos = abs(matrix[0,0])
+#     abs_sin = abs(matrix[0,1])
+#     # find the new width and height bounds
+#     region_w = int(height * abs_sin + width * abs_cos)
+#     region_h = int(height * abs_cos + width * abs_sin)
+#     # subtract old image center (bringing image back to origo) and adding the new image center coordinates
+#     matrix[0, 2] += region_w/2 - center[0]
+#     matrix[1, 2] += region_h/2 - center[1]
+#     frame = cv2. warpAffine(frame, matrix, (region_w, region_h)) #resolution is specified
+#     return(frame)
 
-def rotationCorrection_MT(self, frame, angle):
-    # rotation matrix:
-    width = int(self.vWidth)
-    height = int(self.vHeight)
-    center = (width/2, height/2)
-    matrix = cv2.getRotationMatrix2D(center, angle, 1) #center of rotation, angle, zoom In/zoom Out
-    # rotation calculates the cos and sin, taking absolutes of those (these extra steps are used to avoid cropping )
-    abs_cos = abs(matrix[0,0])
-    abs_sin = abs(matrix[0,1])
-    # find the new width and height bounds
-    region_w = int(height * abs_sin + width * abs_cos)
-    region_h = int(height * abs_cos + width * abs_sin)
-    # subtract old image center (bringing image back to origo) and adding the new image center coordinates
-    matrix[0, 2] += region_w/2 - center[0]
-    matrix[1, 2] += region_h/2 - center[1]
-    frame = cv2. warpAffine(frame, matrix, (region_w, region_h)) #resolution is specified
-    return(frame)
-
-def lightROIBtn_MT(self):
-    frame, frameCrop = checkEditing_MT(self, self.frameNumber)
+def lightROIBtn(self):
+    frame, frameCrop = ft.checkEditing(self, self.frameNumber)
     self.lightROI_MT = cv2.selectROI(frame)
     cv2.destroyAllWindows()
     self.lightROI_MT_recorded = True
 
-def saveData_MT(self):
+def saveData(self):
     fileName = QFileDialog.getSaveFileName(self, 'Save tracking data')
     fileName = fileName[0]
     if not fileName[-4:] == '.csv':
         fileName = fileName + '.csv'
 
-    try:
-        fileInfo = ['Name', self.fNameLbl.text(), 'Scale [px/mm]', self.scaleIn.text(), 'Flame dir.:', self.flameDir]
-        lbl = ['File info', 'Frame', 'Time [s]']
-        clmns = [fileInfo, self.frames_plot['1'], self.time_plot['1']]
+    #try:
+    fileInfo = ['Name', self.fNameLbl.text(), 'Scale [px/mm]', self.scaleIn.text(), 'Flame dir.:', flameDir]
+    lbl = ['File info', 'Frame', 'Time [s]']
+    clmns = [fileInfo, self.frames_plot['1'], self.time_plot['1']]
 
-        for n in range(int(self.nClicksLbl.text())):
-            lbl.append('xPos_click{} [px]'.format([n+1]))
-            clmns.append(self.posX_px[str(n+1)])
-            lbl.append('xPos_click{} [mm]'.format([n+1]))
-            clmns.append(np.round((self.posX_plot[str(n+1)]), 2))
-            lbl.append('Vf_click{}'.format([n+1]))
-            clmns.append(self.spreadRate[str(n+1)])
+    for n in range(int(self.nClicksLbl.text())):
+        lbl.append('xPos_click{} [px]'.format([n+1]))
+        clmns.append(self.posX_px[str(n+1)])
+        lbl.append('xPos_click{} [mm]'.format([n+1]))
+        clmns.append(np.round((self.posX_plot[str(n+1)]), 2))
+        lbl.append('Vf_click{}'.format([n+1]))
+        clmns.append(self.spreadRate[str(n+1)])
 
-        clmns_zip = zip_longest(*clmns)
-    except:
-        self.msgLabel.setText('Ops! Something went wrong with the click recordings.')
+    clmns_zip = zip_longest(*clmns)
+#    except:
+#        self.msgLabel.setText('Ops! Something went wrong with the click recordings.')
 
     if fileName == '.csv': #this prevents name issues when the user closes the dialog without saving
         self.msgLabel.setText('Ops! The values were not saved.')
     else:
-        try:
-            with open(fileName, 'w', newline = '') as csvfile:
-                writer = csv.writer(csvfile, delimiter = ',')
-                writer.writerow(lbl)
-                for row in clmns_zip:
-                    writer.writerow(row)
-            self.msgLabel.setText('Data successfully saved.')
-        except:
-            notParameters_dlg = QErrorMessage(self)
-            notParameters_dlg.showMessage('Ops! Something went wrong, the values were not saved.')
-            self.msgLabel.setText('Data not saved.')
+        #try:
+        with open(fileName, 'w', newline = '') as csvfile:
+            writer = csv.writer(csvfile, delimiter = ',')
+            writer.writerow(lbl)
+            for row in clmns_zip:
+                writer.writerow(row)
+        self.msgLabel.setText('Data successfully saved.')
+#        except:
+#            notParameters_dlg = QErrorMessage(self)
+#            notParameters_dlg.showMessage('Ops! Something went wrong, the values were not saved.')
+#            self.msgLabel.setText('Data not saved.')
 
-def helpBtn_MT(self):
+def helpBtn(self):
     msg = QMessageBox(self)
     msg.setText("""Manual Tracking allows you to click on the desired location(s) in the frames considered. You can select more than one click per frame by changing the 'Tracking points #:'.
 
