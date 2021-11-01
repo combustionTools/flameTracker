@@ -50,6 +50,7 @@ import csv
 import cv2
 import pyqtgraph as pg
 import numpy as np
+import sys
 
 def initVars(self):
     global flameDir
@@ -460,6 +461,8 @@ def HSVTracking(self):
 
             self.xRight_mm.append(self.xRight / float(self.scaleIn.text()))
             self.xLeft_mm.append(self.xLeft / float(self.scaleIn.text()))
+            print('right', self.xRight_mm)
+            print('left', self.xLeft_mm)
             flameArea.append(self.flameArea)
             self.frameCount.append(currentFrame)
             if self.exportEdges_HT.isChecked() and not self.exportTrackOverlay_HT.isChecked():
@@ -796,9 +799,9 @@ def showFrameLarge_HT(self):
 def filterParticleSldr(self):
     frame, frameCrop = ft.checkEditing(self, self.frameNumber)
     getFilteredFrame(self, frameCrop)
-    self.lbl1_LT.setPixmap(QPixmap.fromImage(self.frameY))
-    self.lbl2_LT.setPixmap(QPixmap.fromImage(self.frameBW))
-    self.filterParticleSldr_LT.setMaximum(int(self.particleSldrMax.text()))
+    self.lbl1_HT.setPixmap(QPixmap.fromImage(self.frame))
+    self.lbl2_HT.setPixmap(QPixmap.fromImage(self.frameBW))
+    self.filterParticleSldr_HT.setMaximum(int(self.particleSldrMax.text()))
 
 def lightROIBtn(self):
     frame, frameCrop = ft.checkEditing(self, self.frameNumber)
