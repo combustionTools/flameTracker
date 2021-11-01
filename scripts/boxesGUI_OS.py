@@ -36,7 +36,7 @@ import sys
 def previewBox(self):
 #    global OStype
 
-    self.setWindowTitle('Flame Tracker (v1.1.2beta)')
+    self.setWindowTitle('Flame Tracker (v1.1.12beta)')
 
     if sys.platform == 'darwin':
         # OStype = 'mac'
