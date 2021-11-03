@@ -35,6 +35,7 @@ import csv
 import cv2
 import pyqtgraph as pg
 import numpy as np
+import sys
 
 def initVars(self):
     # default variables
@@ -298,12 +299,22 @@ def lumaTracking(self):
         self.lbl1_LT = pg.PlotWidget(self.lumaTrackingBox)
         self.lbl2_LT = pg.PlotWidget(self.lumaTrackingBox)
 
-        if self.OStype == 'mac' or self.OStype == 'lin':
-            self.lbl1_LT.setGeometry(190, 25, 420, 300)
-            self.lbl2_LT.setGeometry(620, 25, 420, 300)
-        elif self.OStype == 'win':
-            self.lbl1_LT.setGeometry(190, 15, 420, 300)
-            self.lbl2_LT.setGeometry(620, 15, 420, 300)
+        if sys.platform == 'darwin':
+            lbl1 = [190, 25, 420, 300]
+            lbl2 = [620, 25, 420, 300]
+        elif sys.platform == 'win32':
+            lbl1 = [190, 15, 420, 300]
+            lbl2 = [620, 15, 420, 300]
+        elif sys.platform == 'linux':
+            lbl1 = [190, 25, 420, 300]
+            lbl2 = [620, 25, 420, 300]
+
+        # if self.OStype == 'mac' or self.OStype == 'lin':
+        #     self.lbl1_LT.setGeometry()
+        #     self.lbl2_LT.setGeometry()
+        # elif self.OStype == 'win':
+        self.lbl1_LT.setGeometry(lbl1[0], lbl1[1], lbl1[2], lbl1[3])
+        self.lbl2_LT.setGeometry(lbl2[0], lbl2[1], lbl2[2], lbl2[3])
 
         self.lbl1_LT.setBackground('w')
         self.lbl1_LT.setLabel('left', 'Position [mm]', color='black', size=14)

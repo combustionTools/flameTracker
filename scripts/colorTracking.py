@@ -35,6 +35,7 @@ import csv
 import cv2
 import pyqtgraph as pg
 import numpy as np
+import sys
 
 def initVars(self):
     global flameDir, connectivity_CT
@@ -302,12 +303,21 @@ def colorTracking(self):
 
         self.lbl1_CT = pg.PlotWidget(self.colorTrackingBox)
         self.lbl2_CT = pg.PlotWidget(self.colorTrackingBox)
-        if self.OStype == 'mac' or self.OStype == 'lin':
-            self.lbl1_CT.setGeometry(370, 25, 330, 250)
-            self.lbl2_CT.setGeometry(710, 25, 330, 250)
-        elif self.OStype == 'win':
-            self.lbl1_CT.setGeometry(370, 15, 330, 250)
-            self.lbl2_CT.setGeometry(710, 15, 330, 250)
+        if sys.platform == 'darwin':
+            lbl1 = [370, 25, 330, 250]
+            lbl2 = [710, 25, 330, 250]
+        elif sys.platform == 'win32':
+            lbl1 = [370, 15, 330, 250]
+            lbl2 = [710, 15, 330, 250]
+        elif sys.platform == 'linux':
+            lbl1 = [370, 25, 330, 250]
+            lbl2 = [710, 25, 330, 250]
+        # if self.OStype == 'mac' or self.OStype == 'lin':
+        #     self.lbl1_CT.setGeometry()
+        #     self.lbl2_CT.setGeometry()
+        # elif self.OStype == 'win':
+        self.lbl1_CT.setGeometry(lbl1[0], lbl1[1], lbl1[2], lbl1[3])
+        self.lbl2_CT.setGeometry(lbl2[0], lbl2[1], lbl2[2], lbl2[3])
         #self.lbl1_CT.setGeometry(370, 25, 330, 250)
         self.lbl1_CT.setBackground('w')
         self.lbl1_CT.setLabel('left', 'Position [mm]', color='black', size=14)

@@ -44,7 +44,7 @@ def previewBox(self):
         self.setGeometry(10, 10, 1070, 800)
     elif sys.platform == 'win32':
 #        OStype = 'win'
-        self.setStyleSheet('font: 12pt Helvetica')
+        self.setStyleSheet('font: 8pt Arial')
         self.setGeometry(25, 25, 1070, 780)
     elif sys.platform == 'linux':
 #        OStype = 'lin'
@@ -94,11 +94,14 @@ def previewBox(self):
         x4 = [500, 490, 500, 490, 490, 500, 500, 610, 500, 595, 500, 595, 500, 595, 490]
         y4 = [ 20,  45,  70,  95, 125, 155, 200, 199, 225, 229, 255, 259, 285, 289, 315]
         w4 = [ 60, 150, 130, 150, 150, 150, 150,  30, 120,  40, 100,  40, 100,  40, 150]
-        # labels
-        x5 = [650,   650,  740,   790,       650,   930]
-        y5 = [ 35,   310,  314,   310,       340,   310]
-        w5 = [390,   120,   45,   100,       390,   115]
-        h5 = [270, h_txt, h_lbl, h_btn, h_slider, h_btn]
+
+        # other objects
+        x5 = [650, 740, 790, 650, 930]
+        y5 = [310, 314, 310, 340, 310]
+        w5 = [120,  45, 100, 390, 115]
+
+        # preview window
+        win1 = [650, 35, 390, 270]
 
     elif sys.platform == 'win32':
         parametersBox.setGeometry(10, 5, 1050, 390)
@@ -112,30 +115,32 @@ def previewBox(self):
         h_slider = 15
 
         # first column
-        x1 = [10,   10,  10,  65,  10,  10, 105,  10,  45,  10,  45,  10, 105,  10,  45]
-        y1 = [20,  135, 165, 166, 200, 225, 230, 255, 260, 285, 290, 315, 320, 345, 350]
+        x1 = [10,   10,  10,  65,  10,  10, 105,  10, 105,  10, 105,  10, 105,  10, 105]
+        y1 = [20,  135, 165, 165, 200, 225, 230, 255, 260, 285, 290, 315, 320, 345, 350]
         w1 = [140, 140,  50,  85, 140,  60,  45,  60,  45,  85,  45,  65,  45,  65,  45]
 
         # second column
         x2 = [170, 170, 260, 170, 260, 170, 260, 170, 260, 170, 170, 170, 260, 170, 260, 170, 260, 170, 260, 170]
         y2 = [ 10,  35,  40,  65,  70,  95, 100, 125, 130, 160, 190, 225, 230, 255, 260, 285, 290, 315, 320, 347]
-        w2 = [120,  80,  50,  80,  50,  80,  50,  80,  50, 140,  80,  50,  80,  50,  80,  50,  80,  50,  80, 140]
+        w2 = [120,  80,  50,  80,  50,  80,  50,  80,  50, 140, 140,  50,  50,  50,  50,  50,  50,  50,  50, 140]
 
         # third column
         x3 = [330, 330, 420, 330, 420, 330, 330, 420, 330, 330, 330, 330, 420, 330, 420, 330, 330]
         y3 = [ 10,  35,  39,  65,  70,  95, 110, 115, 140, 165, 195, 220, 225, 250, 255, 280, 315]
-        w3 = [100, 120,  50, 150,  50, 137, 150,  50, 137, 100, 140, 130,  50,  60,  60, 140, 140]
+        w3 = [100, 120,  50, 150,  50, 137, 150,  50, 137, 100, 140, 130,  50,  60,  50, 140, 140]
 
         # # fourth column
-        x4 = [490, 490, 490, 490, 490, 500, 610, 500, 490, 580, 490, 580, 490, 580, 490]
-        y4 = [ 10,  35,  60,  85, 115, 155, 195, 200, 220, 225, 250, 255, 280, 285, 315]
-        w4 = [ 60, 140,  60, 140, 140, 140,  20, 150, 120,  50, 100,  50, 100,  50, 140]
+        x4 = [490, 490, 490, 490, 490, 500, 490, 610, 490, 590, 490, 590, 490, 590, 490]
+        y4 = [ 10,  35,  60,  85, 115, 155, 195, 195, 220, 225, 250, 255, 280, 285, 315]
+        w4 = [ 60, 140, 100, 140, 140, 140, 140,  20, 120,  40, 100,  40, 100,  40, 140]
 
-        # labels
-        x5 = [650,   650,  740,          875,       650,         945]
-        y5 = [ 15,   290,  296,          293,       325,         293]
-        w5 = [390,   120,   50,          100,       390,          90]
-        h5 = [270, h_txt, h_lbl, (h_btn - 2),  h_slider, (h_btn - 2)]
+        # other objects
+        x5 = [650, 740, 795, 650, 930]
+        y5 = [290, 296, 293, 330, 293]
+        w5 = [120,  50, 100, 390, 90]
+
+        # preview window
+        win1 = [650, 15, 390, 270]
 
     elif sys.platform == 'linux':
         parametersBox.setGeometry(10, 5, 1050, 390)
@@ -168,11 +173,13 @@ def previewBox(self):
         y4 = [ 20,  45,  70,  95, 125, 155, 200, 199, 225, 229, 255, 259, 285, 289, 315]
         w4 = [ 60, 150, 130, 150, 150, 150, 150,  30, 120,  40, 100,  40, 100,  40, 150]
 
-        # labels
-        x5 = [650,   650,  740,   790,       650,   930]
-        y5 = [ 25,   295,  299,   295,       325,   295]
-        w5 = [390,   120,   45,   100,       390,   115]
-        h5 = [270, h_txt, h_lbl, h_btn, h_slider, h_btn]
+        # other objects
+        x5 = [650, 740, 790, 650, 930]
+        y5 = [310, 314, 310, 340, 310]
+        w5 = [120,  45, 100, 390, 115]
+
+        # preview window
+        win1 = [650, 25, 390, 270]
 
     #self.setStyleSheet('font: 12pt Helvetica')
     #self.setWindowTitle('Flame Tracker (v1.1.2beta)')
@@ -301,7 +308,7 @@ def previewBox(self):
     self.brightnessTxt = QLabel('Brightness:', parametersBox)
     self.brightnessTxt.setGeometry(x3[3], y3[3], w3[3], h_txt)
     self.brightnessLbl = QLabel('0', parametersBox)
-    self.brightnessLbl.setGeometry(x3[4], y3[4], w3[4], h_lbl - 4)
+    self.brightnessLbl.setGeometry(x3[4], y3[4], w3[4], h_lbl)
     self.brightnessLbl.setStyleSheet('background-color: white')
     self.brightnessSlider = QSlider(Qt.Horizontal, parametersBox)
     self.brightnessSlider.setGeometry(x3[5], y3[5], w3[5], h_slider)
@@ -312,7 +319,7 @@ def previewBox(self):
     self.contrastTxt = QLabel('Contrast:', parametersBox)
     self.contrastTxt.setGeometry(x3[6], y3[6], w3[6], h_txt)
     self.contrastLbl = QLabel('0', parametersBox)
-    self.contrastLbl.setGeometry(x3[7], y3[7], w3[7], h_lbl - 4)
+    self.contrastLbl.setGeometry(x3[7], y3[7], w3[7], h_lbl)
     self.contrastLbl.setStyleSheet('background-color: white')
     self.contrastSlider = QSlider(Qt.Horizontal, parametersBox)
     self.contrastSlider.setGeometry(x3[8], y3[8], w3[8], h_slider)
@@ -383,25 +390,28 @@ def previewBox(self):
     self.exportVideoBtn.setGeometry(x4[14], y4[14], w4[14], h_btn)
     self.exportVideoBtn.clicked.connect(self.exportVideoBtn_clicked)
 
-    # preview label
-    # x_cln1 = 650
-    self.win1 = QLabel(parametersBox)
-    self.win1.setGeometry(x5[0], y5[0], w5[0], h5[0])
-    self.win1.setStyleSheet('background-color: white')
+    # other objects
     self.frameTxt = QLabel('Current frame:', parametersBox)
-    self.frameTxt.setGeometry(x5[1], y5[1], w5[1], h5[1])
+    self.frameTxt.setGeometry(x5[0], y5[0], w5[0], h_txt)
     self.frameIn = QLineEdit('0', parametersBox)
-    self.frameIn.setGeometry(x5[2], y5[2], w5[2], h5[2])
+    self.frameIn.setGeometry(x5[1], y5[1], w5[1], h_lbl)
     self.goToFrameBtn = QPushButton('Go to frame', parametersBox)
-    self.goToFrameBtn.setGeometry(x5[3], y5[3], w5[3], h5[3])
+    self.goToFrameBtn.setGeometry(x5[2], y5[2], w5[2], h_btn)
     self.goToFrameBtn.clicked.connect(self.goToFrameBtn_clicked)
     self.previewSlider = QSlider(Qt.Horizontal, parametersBox)
-    self.previewSlider.setGeometry(x5[4], y5[4], w5[4], h5[4])
+    self.previewSlider.setGeometry(x5[3], y5[3], w5[3], h_slider)
     self.previewSlider.sliderReleased.connect(self.sliderValue_released)
 #    self.previewSlider.valueChanged.connect(self.sliderValue_released)
     self.showFrameLargeBtn = QPushButton('Show frame', parametersBox)
-    self.showFrameLargeBtn.setGeometry(x5[5], y5[5], w5[5], h5[5])
+    self.showFrameLargeBtn.setGeometry(x5[4], y5[4], w5[4], h_btn)
     self.showFrameLargeBtn.clicked.connect(self.showFrameLargeBtn_clicked)
+
+    # preview label
+    # x_cln1 = 650
+    self.win1 = QLabel(parametersBox)
+    self.win1.setGeometry(win1[0], win1[1], win1[2], win1[3])
+    self.win1.setStyleSheet('background-color: white')
+
 
 # def previewBox_Linux(self):
 #    print('Welcome Linux user!')
@@ -676,7 +686,7 @@ def manualTrackingBox(self):
         # size of GUI labels:
         h_lbl = 22
         h_txt = 30
-        h_btn = 30
+        h_btn = 25
 
         # first column
         x1 = [ 10,  10,  10,  10,  10,  10, 120,  10,  10,  10,  10,  10]
@@ -1595,8 +1605,8 @@ def HSVTrackingBox(self):
         # size of GUI labels:
         h_lbl = 22
         h_txt = 30
-        h_btn = 30
-        h_slider = 25
+        h_btn = 25
+        h_slider = 15
 
         # first column without hsv channels objects
         x1 = [ 10,   5,  10, 140,  10,  10, 145,  10, 120]
@@ -1605,7 +1615,7 @@ def HSVTrackingBox(self):
 
         # first column - 'hsv' objects
         x_hsv = [ 10,  10,  35, 175,  60,  10,  35, 175,  60]
-        w_hsv = [100, 100,  30,  30, 120, 100,  30,  30, 120]
+        w_hsv = [100, 100,  20,  20, 120, 100,  20,  20, 120]
 
         y_h   = [ 70,  92,  90,  90,  95, 114, 112, 112, 117]
         y_s   = [140, 162, 160, 160, 165, 184, 182, 182, 187]
@@ -1614,7 +1624,7 @@ def HSVTrackingBox(self):
         # second column
         x2 = [210, 210, 210, 220, 210, 220, 220, 325, 210, 210, 210]
         y2 = [ 30,  60,  90, 120, 145, 170, 200, 204, 230, 260, 290]
-        w2 = [150, 150, 150, 120, 150, 135, 130,  30, 150, 150, 150]
+        w2 = [140, 140, 140, 120, 140, 135, 130,  30, 140, 140, 140]
 
         # other objects
         x3 = [780, 930, 780, 780]

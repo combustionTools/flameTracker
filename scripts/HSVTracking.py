@@ -426,9 +426,10 @@ def HSVTracking(self):
 
     if scale: #this condition prevents crashes in case the scale is not specified
         #import numpy #CAS Added for tracking line #LC why not using np??
-        print('Frame #:', currentFrame) #beta
-        frame, frameCrop = ft.checkEditing(self, currentFrame)
         while (currentFrame < lastFrame):
+            print('Frame #:', currentFrame) #beta
+            frame, frameCrop = ft.checkEditing(self, currentFrame)
+            
             if self.filterLight_HT.isChecked() == True:
                 if self.lightROI_HT_recorded == True: #beta
                     # looking for frames with a light on (which would increase the red and green channel values of the background)

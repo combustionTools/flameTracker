@@ -713,7 +713,7 @@ class Window(QWidget):
         vName = QFileDialog.getSaveFileName(self, 'Save File')
         vName = vName[0]
         if not vName[-len(vFormat):] == vFormat:
-            print('Appending', vFormat, 'to filename')
+            # print('Appending', vFormat, 'to filename')
             vName = str(vName) + '.' + str(vFormat) # alternative: 'output.{}'.format(vFormat)
         fourcc = cv2.VideoWriter_fourcc(*codec)
         size = (int(self.roiThreeIn.text()), int(self.roiFourIn.text()))
@@ -738,7 +738,7 @@ class Window(QWidget):
                 #     imageNumber = self.imagesList[currentFrame]
                 #     frame = cv2.imread(imageNumber)
 
-                frame, frameCrop = checkEditing(self, self.frameNumber)
+                frame, frameCrop = checkEditing(self, currentFrame)
         #        frameCrop = frame[int(self.roiTwoIn.text()) : (int(self.roiTwoIn.text()) + int(self.roiFourIn.text())), int(self.roiOneIn.text()) : (int(self.roiOneIn.text()) + int(self.roiThreeIn.text()))]
                 vout.write(frameCrop)
                 print('Progress: ', round((currentFrame - firstFrame)/(lastFrame - firstFrame) * 10000)/100, '%')
@@ -1037,12 +1037,11 @@ def checkAnalysisBox(self, frameNumber):
     # true value when the analysis is selected
     if manualTrackingValue == True:
         if sys.platform == 'darwin':
-            if sys.platform == 'darwin':
-                lbl1 = [190, 25, 420, 300]
-            elif sys.platform == 'win32':
-                lbl1 = [190, 15, 420, 300]
-            elif sys.platform == 'linux':
-                lbl1 = [190, 25, 420, 300]
+            lbl1 = [190, 25, 420, 300]
+        elif sys.platform == 'win32':
+            lbl1 = [190, 15, 420, 300]
+        elif sys.platform == 'linux':
+            lbl1 = [190, 25, 420, 300]
 
         # label 1 might have become a plot widget, so we need to update them again
         self.lbl1_MT = QLabel(self.manualTrackingBox)
@@ -1067,15 +1066,14 @@ def checkAnalysisBox(self, frameNumber):
 
     if lumaTrackingValue == True:
         if sys.platform == 'darwin':
-            if sys.platform == 'darwin':
-                lbl1 = [190, 25, 420, 300]
-                lbl2 = [620, 25, 420, 300]
-            elif sys.platform == 'win32':
-                lbl1 = [190, 15, 420, 300]
-                lbl2 = [620, 15, 420, 300]
-            elif sys.platform == 'linux':
-                lbl1 = [190, 25, 420, 300]
-                lbl2 = [620, 25, 420, 300]
+            lbl1 = [190, 25, 420, 300]
+            lbl2 = [620, 25, 420, 300]
+        elif sys.platform == 'win32':
+            lbl1 = [190, 15, 420, 300]
+            lbl2 = [620, 15, 420, 300]
+        elif sys.platform == 'linux':
+            lbl1 = [190, 25, 420, 300]
+            lbl2 = [620, 25, 420, 300]
         # the labels might have become plot widgets, so we need to update them again
         self.lbl1_LT = QLabel(self.lumaTrackingBox)
         self.lbl2_LT = QLabel(self.lumaTrackingBox)
@@ -1103,15 +1101,14 @@ def checkAnalysisBox(self, frameNumber):
 
     if colorTrackingValue == True:
         if sys.platform == 'darwin':
-            if sys.platform == 'darwin':
-                lbl1 = [370, 25, 330, 250]
-                lbl2 = [710, 25, 330, 250]
-            elif sys.platform == 'win32':
-                lbl1 = [370, 15, 330, 250]
-                lbl2 = [710, 15, 330, 250]
-            elif sys.platform == 'linux':
-                lbl1 = [370, 25, 330, 250]
-                lbl2 = [710, 25, 330, 250]
+            lbl1 = [370, 25, 330, 250]
+            lbl2 = [710, 25, 330, 250]
+        elif sys.platform == 'win32':
+            lbl1 = [370, 15, 330, 250]
+            lbl2 = [710, 15, 330, 250]
+        elif sys.platform == 'linux':
+            lbl1 = [370, 25, 330, 250]
+            lbl2 = [710, 25, 330, 250]
 
         self.lbl1_CT = QLabel(self.colorTrackingBox)
         self.lbl2_CT = QLabel(self.colorTrackingBox)
@@ -1139,15 +1136,15 @@ def checkAnalysisBox(self, frameNumber):
 
     if HSVTrackingValue == True:
         if sys.platform == 'darwin':
-            if sys.platform == 'darwin':
-                lbl1 = [370, 25, 670, 125]
-                lbl2 = [370, 150, 670, 125]
-            elif sys.platform == 'win32':
-                lbl1 = [370, 15, 330, 250]
-                lbl2 = [370, 150, 670, 125]
-            elif sys.platform == 'linux':
-                lbl1 = [370, 25, 670, 125]
-                lbl2 = [370, 150, 670, 125]
+            lbl1 = [370, 25, 670, 125]
+            lbl2 = [370, 150, 670, 125]
+        elif sys.platform == 'win32':
+            lbl1 = [370, 15, 330, 250]
+            lbl2 = [370, 150, 670, 125]
+        elif sys.platform == 'linux':
+            lbl1 = [370, 25, 670, 125]
+            lbl2 = [370, 150, 670, 125]
+
         self.lbl1_HT = QLabel(self.HSVTrackingBox)
         self.lbl2_HT = QLabel(self.HSVTrackingBox)
 
