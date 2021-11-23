@@ -60,7 +60,7 @@ def previewBox(self):
     tempBox = QGroupBox(' ', self.analysisGroupBox)
     tempBox.setGeometry(0, 0, 1050, 390)
     introTxt = QLabel('Select the analysis method from -Choose analysis- to activate this panel', tempBox)
-    introTxt.setGeometry(100, 100, 600, 100)
+    introTxt.setGeometry(100, 100, 700, 100)
     introTxt.setStyleSheet('font: 16pt Helvetica')
 
     # OS-dependent coordinates for GUI objects:
@@ -154,14 +154,17 @@ def previewBox(self):
         h_slider = 25
 
         # first column
-        x1 = [10,    5,   5,  58,  10,  10, 105,  10, 105,  10,  45,  10, 105,  10,  45]
+        x1 = [10,    5,   5,  58,  10,  10, 105,  10, 105,  10, 105,  10, 85,  10,  95]
         y1 = [25,  135, 165, 166, 200, 225, 229, 255, 259, 285, 289, 315, 319, 345, 349]
-        w1 = [140, 150,  60, 100, 140,  70,  45,  70,  45,  90,  45,  70,  45,  70,  45]
+        w1 = [140, 150,  60, 100, 140,  90,  45,  90,  45,  90,  45,  90,  65,  90,  55]
 
         # second column
-        x2 = [180, 180, 265, 180, 265, 180, 265, 180, 265, 170, 170, 180, 265, 180, 180, 265, 180, 265, 170]
-        y2 = [ 20,  45,  49,  75,  79, 105, 109, 135, 139, 165, 195, 225, 229, 255, 285, 289, 315, 319, 345]
-        w2 = [80,   80,  50,  80,  50,  80,  50,  80,  50, 150, 150,  80,  50,  80,  80,  50,  80,  50, 150]
+        x2 = [180, 180, 265, 180, 265, 180, 275, 180, 265, 180, 262, 180, 265, 180, 265, 180, 265, 180, 265, 170]
+        y2 = [ 20,  45,  49,  75,  79, 105, 109, 135, 139, 170, 175, 225, 229, 255, 259, 285, 289, 315, 319, 345]
+        w2 = [120,  80,  50,  80,  50,  90,  40,  80,  50,  80,  60,  80,  50,  80,  50,  80,  50,  80,  50, 150]
+        #x2 = [180, 180, 265, 180, 265, 180, 265, 180, 265, 170, 170, 180, 265, 180, 180, 265, 180, 265, 170]
+        #y2 = [ 20,  45,  49,  75,  79, 105, 109, 135, 139, 165, 195, 225, 229, 255, 285, 289, 315, 319, 345]
+        #w2 = [80,   80,  50,  80,  50,  80,  50,  80,  50, 150, 150,  80,  50,  80,  80,  50,  80,  50, 150]
 
         # third column
         x3 = [340, 340, 425, 340, 428, 340, 340, 428, 340, 325, 335, 340, 425, 340, 425, 330, 330]
@@ -169,14 +172,14 @@ def previewBox(self):
         w3 = [100, 120,  50, 150,  45, 137, 150,  45, 115, 100, 150, 130,  50,  60,  60, 150, 150]
 
         # fourth column
-        x4 = [500, 490, 500, 490, 490, 500, 500, 610, 500, 595, 500, 595, 500, 595, 490]
+        x4 = [500, 490, 500, 490, 490, 500, 500, 610, 500, 595, 500, 575, 500, 575, 490]
         y4 = [ 20,  45,  70,  95, 125, 155, 200, 199, 225, 229, 255, 259, 285, 289, 315]
-        w4 = [ 60, 150, 130, 150, 150, 150, 150,  30, 120,  40, 100,  40, 100,  40, 150]
+        w4 = [ 60, 150, 130, 150, 150, 150, 150,  30, 120,  40, 100,  60, 100,  60, 150]
 
         # other objects
-        x5 = [650, 740, 790, 650, 930]
+        x5 = [650, 750, 820, 650, 930]
         y5 = [310, 314, 310, 340, 310]
-        w5 = [120,  45, 100, 390, 115]
+        w5 = [120,  65, 100, 390, 115]
 
         # preview window
         win1 = [650, 25, 390, 270]
@@ -264,16 +267,27 @@ def previewBox(self):
     self.skipFrameTxt.setGeometry(x2[5], y2[5], w2[5], h_txt)
     self.skipFrameIn = QLineEdit(parametersBox)
     self.skipFrameIn.setGeometry(x2[6], y2[6], w2[6], h_lbl)
+
+    # CAS Swap/overlay label for measure button
     self.scaleTxt = QLabel('Scale (px/mm):', parametersBox)
     self.scaleTxt.setGeometry(x2[7], y2[7], w2[7], h_txt)
     self.scaleIn = QLineEdit(parametersBox)
     self.scaleIn.setGeometry(x2[8], y2[8], w2[8], h_lbl)
-    self.measureScaleBtn = QPushButton('Measure scale', parametersBox)
-    self.measureScaleBtn.setGeometry(x2[9], y2[9], w2[9], h_btn)
+    #self.measureScaleBtn = QPushButton('Measure scale', parametersBox)
+    self.measureScaleBtn = QPushButton('px/mm', parametersBox)
+    #self.measureScaleBtn.setGeometry(x2[9], y2[9], w2[9], h_btn)
+    self.measureScaleBtn.setGeometry(x2[7], y2[7], w2[7], h_btn)
     self.measureScaleBtn.clicked.connect(self.measureScaleBtn_clicked)
-    self.refPointBtn = QPushButton('Reference point', parametersBox)
-    self.refPointBtn.setGeometry(x2[10], y2[10], w2[10], h_btn)
+
+    # CAS Move reference point to display
+    #self.refPointBtn = QPushButton('Reference point', parametersBox)
+    self.refPointBtn = QPushButton('Ref. point', parametersBox)
+    #self.refPointBtn.setGeometry(x2[10], y2[10], w2[10], h_btn)
+    self.refPointBtn.setGeometry(x2[9], y2[9], w2[9], h_btn)
     self.refPointBtn.clicked.connect(self.refPointBtn_clicked)
+    self.refPointTxt = QLineEdit(parametersBox)
+    self.refPointTxt.setGeometry(x2[10], y2[10], w2[10], h_lbl)
+
     self.roiOneTxt = QLabel('ROI, x:', parametersBox)
     self.roiOneTxt.setGeometry(x2[11], y2[11], w2[11], h_txt)
     self.roiOneIn = QLineEdit(parametersBox)

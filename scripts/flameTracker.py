@@ -494,11 +494,12 @@ class Window(QWidget):
                         y = re.findall('\s([0-9]+.[0-9]*$)', points)
                         self.sampleMod.append([np.float32(x[0]), np.float32(y[0])])
                     self.sampleMod = np.array(self.sampleMod)
-                if 'Ref. point' in row:
+                if 'Ref. point (abs)' in row:
                     x = re.findall('^\[(.+),', row[1])
                     y = re.findall('^\[.+,\s(.+)\]$', row[1])
-                    print('x', x[0])
-                    print('y', y[0])
+                    #print('x', x[0])
+                    #print('y', y[0])
+                    self.refPointTxt.setText(str([x[0],y[0]]))
                 #CAS Add to save reference txt
                 #if self.xrefTxt.text() in row:
 #                if 'xref' in row:
@@ -691,6 +692,7 @@ class Window(QWidget):
         # print(f'Reference point (absolute): ({self.refPoint[0]}, {self.refPoint[1]})')
         # print(f'Reference point (ROI dependent): ({self.refPoint_ROI[0]}, {self.refPoint_ROI[1]})')
         self.msgLabel.setText(f'Reference point (absolute): ({self.refPoint[0]}, {self.refPoint[1]}); (ROI dependent): ({self.refPoint_ROI[0]}, {self.refPoint_ROI[1]})')
+        self.refPointTxt.setText(str(self.refPoint) )
         cv2.destroyAllWindows()
         # except:
         #     print('Unexpected error:', sys.exc_info())
