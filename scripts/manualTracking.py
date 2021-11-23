@@ -42,7 +42,7 @@ def initVars(self):
     flameDir = 'toRight'
     lightStatus = 'None'
     self.lightROI_MT_recorded = False
-    
+
 # def createTrackingBox(self):
 
     # gui.manualTrackingBox(self)
@@ -191,7 +191,6 @@ def startTracking(self):
                 if clk == True:
                     clk = False
                     # the zero location changes based on the flame direction
-                    print('flameDirection', flameDir)
                     if flameDir == 'toRight':
                         xClick = xPos + int(self.roiOneIn.text())
                     elif flameDir == 'toLeft':

@@ -429,7 +429,7 @@ def HSVTracking(self):
         while (currentFrame < lastFrame):
             print('Frame #:', currentFrame) #beta
             frame, frameCrop = ft.checkEditing(self, currentFrame)
-            
+
             if self.filterLight_HT.isChecked() == True:
                 if self.lightROI_HT_recorded == True: #beta
                     # looking for frames with a light on (which would increase the red and green channel values of the background)
@@ -462,8 +462,8 @@ def HSVTracking(self):
 
             self.xRight_mm.append(self.xRight / float(self.scaleIn.text()))
             self.xLeft_mm.append(self.xLeft / float(self.scaleIn.text()))
-            print('right', self.xRight_mm)
-            print('left', self.xLeft_mm)
+#            print('right', self.xRight_mm)
+#            print('left', self.xLeft_mm)
             flameArea.append(self.flameArea)
             self.frameCount.append(currentFrame)
             if self.exportEdges_HT.isChecked() and not self.exportTrackOverlay_HT.isChecked():

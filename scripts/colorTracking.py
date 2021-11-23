@@ -203,7 +203,7 @@ def colorTracking(self):
 
     if scale: #this condition prevents crashes in case the scale is not specified
         while (currentFrame < lastFrame):
-            print('Frame #:', currentFrame) #beta
+            print('Frame #:', currentFrame)
             frame, frameCrop = ft.checkEditing(self, currentFrame)
             if self.filterLight_CT.isChecked() == True:
                 if self.lightROI_CT_recorded == True: #beta

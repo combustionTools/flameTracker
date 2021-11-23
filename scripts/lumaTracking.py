@@ -236,6 +236,12 @@ def lumaTracking(self):
             print('Progress: ', round((currentFrame - firstFrame)/(lastFrame - firstFrame) * 10000)/100, '%')
             currentFrame = currentFrame + 1 + int(self.skipFrameIn.text())
 
+        print('Progress: 100 % - Tracking completed')
+        self.msgLabel.setText('Tracking completed')
+        if self.exportEdges_LT.isChecked():
+            vout.release()
+            self.msgLabel.setText('Tracking completed and Y channel video created.')
+
         try:
             self.flameArea = [areaN / (float(self.scaleIn.text())**2) for areaN in flameArea]
             self.flameArea = np.round(self.flameArea, 3)
@@ -249,12 +255,6 @@ def lumaTracking(self):
 
         flameLength_mm = np.round(flameLength_mm, 2)
         self.flameLength_mm = flameLength_mm.tolist()
-        print('Progress: 100 % - Tracking completed')
-        self.msgLabel.setText('Tracking completed')
-
-        if self.exportEdges_LT.isChecked():
-            vout.release()
-            self.msgLabel.setText('Tracking completed and Y channel video created.')
 
         movAvgPt = int(self.movAvgIn_LT.text()) #this number is half of the interval considered for the spread rate (movAvgPt = 2 means I am considering a total of 5 points (my point, 2 before and 2 after))
         self.spreadRateRight = list()

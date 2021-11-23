@@ -426,7 +426,8 @@ class Window(QWidget):
                     writer.writerow(['sampleMod', self.sampleMod[0], self.sampleMod[1], self.sampleMod[2], self.sampleMod[3]])
 
                 if self.refPoint != []:
-                    writer.writerow(['Ref. point', [self.refPoint[0], self.refPoint[1]]])
+                    writer.writerow(['Ref. point (abs)', [self.refPoint[0], self.refPoint[1]]])
+                    writer.writerow(['Ref. point (ROI)', [self.refPoint_ROI[0], self.refPoint_ROI[1]]])
                     #CAS Add to save reference txt
                     # LC we will include a button for this in the next version
                     #writer.writerow([self.xrefTxt.text(), str(self.xref.text())]) #CAS Add to save reference txt
@@ -671,9 +672,8 @@ class Window(QWidget):
         # wait for the mouse event or 'escape' key to quit
         while (True):
             if clk == True:
-                #CAS soft add to save reference txt, relative to frameCrop...
-                xPos_ROI = xPos - roiOne
-                yPos_ROI = yPos - roiTwo
+                xPos_abs = xPos + roiOne
+                yPos_abs = yPos + roiTwo
 
                 break
 
@@ -682,14 +682,15 @@ class Window(QWidget):
                  break
 
         if self.figSize.isChecked() == True:
-            self.refPoint = [(xPos * 2), (yPos * 2)] #absolute point
-            refPoint_ROI = [(xPos_ROI * 2), (yPos_ROI * 2)] #point function of ROI
+            self.refPoint = [(xPos_abs * 2), (yPos_abs * 2)] #absolute point
+            self.refPoint_ROI = [(xPos * 2), (yPos * 2)] #point function of ROI
         else:
-            self.refPoint = [xPos, yPos] #absolute point
-            refPoint_ROI = [xPos_ROI, yPos_ROI] #point function of ROI
+            self.refPoint = [xPos_abs, yPos_abs] #absolute point
+            self.refPoint_ROI = [xPos, yPos] #point function of ROI
 
-        print(f'Reference point recorded ({self.refPoint[0]}, {self.refPoint[1]})')
-        self.msgLabel.setText(f'Reference point recorded ({self.refPoint[0]}, {self.refPoint[1]})')
+        # print(f'Reference point (absolute): ({self.refPoint[0]}, {self.refPoint[1]})')
+        # print(f'Reference point (ROI dependent): ({self.refPoint_ROI[0]}, {self.refPoint_ROI[1]})')
+        self.msgLabel.setText(f'Reference point (absolute): ({self.refPoint[0]}, {self.refPoint[1]}); (ROI dependent): ({self.refPoint_ROI[0]}, {self.refPoint_ROI[1]})')
         cv2.destroyAllWindows()
         # except:
         #     print('Unexpected error:', sys.exc_info())
@@ -930,6 +931,7 @@ def initVars(self):
     self.perspectiveValue = False
     self.rotationValue = False
     self.refPoint = []
+    self.refPoint_ROI = []
     manualTrackingValue = False
     lumaTrackingValue = False
     colorTrackingValue = False
@@ -1047,7 +1049,6 @@ def checkAnalysisBox(self, frameNumber):
         self.lbl1_MT = QLabel(self.manualTrackingBox)
         self.lbl1_MT.setGeometry(lbl1[0], lbl1[1], lbl1[2], lbl1[3])
         self.lbl1_MT.setStyleSheet('background-color: white')
-        print('test')
 
         frame, frameCrop = checkEditing(self, frameNumber)
         # create the ROI rectangle and show it in label1
