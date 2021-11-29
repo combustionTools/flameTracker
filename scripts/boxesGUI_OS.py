@@ -34,20 +34,15 @@ import pyqtgraph as pg
 import sys
 
 def previewBox(self):
-#    global OStype
-
-    self.setWindowTitle('Flame Tracker (v1.1.12beta)')
+    self.setWindowTitle(f'Flame Tracker ({self.FTversion})')
 
     if sys.platform == 'darwin':
-        # OStype = 'mac'
         self.setStyleSheet('font: 12pt Helvetica')
         self.setGeometry(10, 10, 1070, 800)
     elif sys.platform == 'win32':
-#        OStype = 'win'
         self.setStyleSheet('font: 8pt Arial')
-        self.setGeometry(25, 25, 1070, 780)
+        self.setGeometry(25, 25, 1070, 770)
     elif sys.platform == 'linux':
-#        OStype = 'lin'
         self.setStyleSheet('font: 12pt Helvetica')
         self.setGeometry(10, 10, 1070, 780)
     else:
@@ -81,9 +76,11 @@ def previewBox(self):
         w1 = [140, 150,  60, 100, 140, 140,  45,  70,  45,  90,  45,  70,  45,  70,  45]
 
         # second column
-        x2 = [180, 180, 265, 180, 265, 180, 265, 180, 265, 170, 170, 180, 265, 180, 265, 180, 265, 180, 265, 170]
-        y2 = [ 20,  45,  49,  75,  79, 105, 109, 135, 139, 165, 195, 225, 229, 255, 259, 285, 289, 315, 319, 345]
-        w2 = [120,  80,  50,  80,  50,  80,  50,  80,  50, 150, 150,  80,  50,  80,  50,  80,  50,  80,  50, 150]
+    #    x2 = [180, 180, 265, 180, 265, 180, 265, 180, 265, 170, 170, 180, 265, 180, 265, 180, 265, 180, 265, 170]
+        x2 = [180, 180, 265, 180, 265, 180, 265, 170, 265, 170, 265, 180, 265, 180, 265, 180, 265, 180, 265, 170]
+        y2 = [ 20,  45,  49,  75,  79, 105, 109, 135, 140, 165, 170, 225, 229, 255, 259, 285, 289, 315, 319, 345]
+    #    w2 = [120,  80,  50,  80,  50,  80,  50,  80,  50, 150, 150,  80,  50,  80,  50,  80,  50,  80,  50, 150]
+        w2 = [120,  80,  50,  80,  50,  80,  50, 100,  50, 100, 50,  80,  50,  80,  50,  80,  50,  80,  50, 150]
 
         # third column
         x3 = [340, 340, 425, 340, 428, 340, 340, 428, 340, 335, 340, 340, 425, 340, 425, 330, 330]
@@ -104,8 +101,8 @@ def previewBox(self):
         win1 = [650, 35, 390, 270]
 
     elif sys.platform == 'win32':
-        parametersBox.setGeometry(10, 5, 1050, 390)
-        self.analysisGroupBox.setGeometry(10, 400, 1050, 370)
+        parametersBox.setGeometry(10, 5, 1050, 380)
+        self.analysisGroupBox.setGeometry(10, 390, 1050, 370)
 
         # size of GUI labels:
         h_msgLbl = 105
@@ -184,25 +181,7 @@ def previewBox(self):
         # preview window
         win1 = [650, 25, 390, 270]
 
-    #self.setStyleSheet('font: 12pt Helvetica')
-    #self.setWindowTitle('Flame Tracker (v1.1.2beta)')
-    # self.setGeometry(10, 10, 1070, 800)
-    #Box to choose video parameters, the widgets are listed below
-#    parametersBox = QGroupBox('Preview box', self)
-#    parametersBox.setGeometry(10, 5, 1050, 390)
-    #This box changes for each analysis;
-    #widgets must be declared in the specific py file
-#    self.analysisGroupBox = QGroupBox('Analysis box', self)
-#    self.analysisGroupBox.setGeometry(10, 400, 1050, 390)
-
-
-    ### parametersBox
     # first column
-    # x_cln1 = 10
-    # x_cln2 = 105
-    # h_lbl = 20
-    # h_txt = 30
-    # h_btn = 30
     self.msgLabel = QLabel('Welcome to the Flame Tracker! \n\n Click on the Help button to get started.', parametersBox)
     self.msgLabel.setGeometry(x1[0], y1[0], w1[0], h_msgLbl)
     self.msgLabel.setStyleSheet('background-color: white')
@@ -248,11 +227,6 @@ def previewBox(self):
     self.vDurationLbl.setStyleSheet('background-color: white')
 
     #second column
-    # x_cln1 = 180
-    # x_cln2 = 265
-    # w_cln1 = 80
-    # w_cln2 = 50
-    # h_lbl = 22
     clmn2_Txt = QLabel('Video parameters:', parametersBox)
     clmn2_Txt.setGeometry(x2[0], y2[0], w2[0], h_txt)
     self.firstFrameTxt = QLabel('First frame:', parametersBox)
@@ -267,17 +241,15 @@ def previewBox(self):
     self.skipFrameTxt.setGeometry(x2[5], y2[5], w2[5], h_txt)
     self.skipFrameIn = QLineEdit(parametersBox)
     self.skipFrameIn.setGeometry(x2[6], y2[6], w2[6], h_lbl)
-
-    # CAS Swap/overlay label for measure button
-    self.scaleTxt = QLabel('Scale (px/mm):', parametersBox)
-    self.scaleTxt.setGeometry(x2[7], y2[7], w2[7], h_txt)
+    self.measureScaleBtn = QPushButton('Scale px/mm', parametersBox)
+    self.measureScaleBtn.setGeometry(x2[7], y2[7], w2[7], h_btn)
+    self.measureScaleBtn.clicked.connect(self.measureScaleBtn_clicked)
     self.scaleIn = QLineEdit(parametersBox)
     self.scaleIn.setGeometry(x2[8], y2[8], w2[8], h_lbl)
     #self.measureScaleBtn = QPushButton('Measure scale', parametersBox)
-    self.measureScaleBtn = QPushButton('px/mm', parametersBox)
+
     #self.measureScaleBtn.setGeometry(x2[9], y2[9], w2[9], h_btn)
-    self.measureScaleBtn.setGeometry(x2[7], y2[7], w2[7], h_btn)
-    self.measureScaleBtn.clicked.connect(self.measureScaleBtn_clicked)
+
 
     # CAS Move reference point to display
     #self.refPointBtn = QPushButton('Reference point', parametersBox)
@@ -285,8 +257,8 @@ def previewBox(self):
     #self.refPointBtn.setGeometry(x2[10], y2[10], w2[10], h_btn)
     self.refPointBtn.setGeometry(x2[9], y2[9], w2[9], h_btn)
     self.refPointBtn.clicked.connect(self.refPointBtn_clicked)
-    self.refPointTxt = QLineEdit(parametersBox)
-    self.refPointTxt.setGeometry(x2[10], y2[10], w2[10], h_lbl)
+    self.refPointIn = QLineEdit(parametersBox)
+    self.refPointIn.setGeometry(x2[10], y2[10], w2[10], h_lbl)
 
     self.roiOneTxt = QLabel('ROI, x:', parametersBox)
     self.roiOneTxt.setGeometry(x2[11], y2[11], w2[11], h_txt)
@@ -309,10 +281,6 @@ def previewBox(self):
     self.roiBtn.clicked.connect(self.roiBtn_clicked)
 
     #third column
-    # x_cln1 = 340
-    # x_cln2 = 425
-    # w_cln1 = 60
-    # w_cln2 = 50
     adjustFramesTxt = QLabel('Edit frames:', parametersBox)
     adjustFramesTxt.setGeometry(x3[0], y3[0], w3[0], h_txt)
     self.rotationAngleInTxt = QLabel('Rotation (deg):', parametersBox)
@@ -361,8 +329,6 @@ def previewBox(self):
     self.originalBtn.clicked.connect(self.originalBtn_clicked)
 
     # fourth column
-    # x_cln1 = 500
-    # x_cln2 = 595
     analysisTxt = QLabel('Analysis:', parametersBox)
     analysisTxt.setGeometry(x4[0], y4[0], w4[0], h_txt)
     self.analysisSelectionBox = QComboBox(parametersBox)
@@ -415,264 +381,15 @@ def previewBox(self):
     self.previewSlider = QSlider(Qt.Horizontal, parametersBox)
     self.previewSlider.setGeometry(x5[3], y5[3], w5[3], h_slider)
     self.previewSlider.sliderReleased.connect(self.sliderValue_released)
-#    self.previewSlider.valueChanged.connect(self.sliderValue_released)
+    self.previewSlider.valueChanged.connect(self.sliderValue_scrolled)
     self.showFrameLargeBtn = QPushButton('Show frame', parametersBox)
     self.showFrameLargeBtn.setGeometry(x5[4], y5[4], w5[4], h_btn)
     self.showFrameLargeBtn.clicked.connect(self.showFrameLargeBtn_clicked)
 
     # preview label
-    # x_cln1 = 650
     self.win1 = QLabel(parametersBox)
     self.win1.setGeometry(win1[0], win1[1], win1[2], win1[3])
     self.win1.setStyleSheet('background-color: white')
-
-
-# def previewBox_Linux(self):
-#    print('Welcome Linux user!')
-#    self.setStyleSheet('font: 12pt Helvetica')
-#    self.setWindowTitle('Flame Tracker (v1.1.2beta)')
-    #self.setGeometry(10, 10, 1070, 780)
-    #Box to choose video parameters, the widgets are listed below
-#    parametersBox = QGroupBox('Preview box', self)
-#    parametersBox.setGeometry(10, 5, 1050, 390)
-    #This box changes for each analysis;
-    #widgets must be declared in the specific py file
-#    self.analysisGroupBox = QGroupBox('Analysis box', self)
-#    self.analysisGroupBox.setGeometry(10, 400, 1050, 390)
-
-    # this text box is only shown at the beginning
-    # tempBox = QGroupBox(' ', self.analysisGroupBox)
-    # tempBox.setGeometry(0, 0, 1050, 390)
-    # introTxt = QLabel('Select the analysis method from -Choose analysis- to activate this panel', tempBox)
-    # introTxt.setGeometry(100, 100, 600, 100)
-    # introTxt.setStyleSheet('font: 16pt Helvetica')
-    #
-    #
-    # ### parametersBox
-    # # first column
-    # x_cln1 = 10
-    # x_cln2 = 105
-    # h_lbl = 20
-    # h_txt = 30
-    # h_btn = 30
-    # self.msgLabel = QLabel('Welcome to the Flame Tracker! \n\n Click on the Help button to get started.', parametersBox)
-    # self.msgLabel.setGeometry(x_cln1, 25, 140, h_lbl + 85)
-    # self.msgLabel.setStyleSheet('background-color: white')
-    # self.msgLabel.setWordWrap(True)
-    # self.helpBtn = QPushButton('Help', parametersBox)
-    # self.helpBtn.setGeometry(x_cln1 - 5, 135, 150, h_btn)
-    # self.helpBtn.clicked.connect(self.helpBtn_clicked)
-    # self.openBtn = QPushButton('Open', parametersBox)
-    # self.openBtn.setGeometry(x_cln1 - 5, 165, 60, h_btn)
-    # self.openBtn.clicked.connect(self.openBtn_clicked)
-    # self.openSelectionBox = QComboBox(parametersBox)
-    # self.openSelectionBox.setGeometry(x_cln1 + 48, 166, 100, h_btn)
-    # self.openSelectionBox.addItem('Video')
-    # self.openSelectionBox.addItem('Image(s)')
-    # self.openSelectionBox.activated[str].connect(self.openSelection_click)
-    # self.fNameLbl = QLabel('(file name)', parametersBox)
-    # self.fNameLbl.setGeometry(x_cln1, 200, 140, h_lbl)
-    # self.fNameLbl.setStyleSheet('background-color: white')
-    # vWidthTxt = QLabel('Width (px):', parametersBox)
-    # vWidthTxt.setGeometry(x_cln1, 225, 70, h_txt)
-    # self.vWidthLbl = QLabel(parametersBox)
-    # self.vWidthLbl.setGeometry(x_cln2, 229, 45, h_lbl)
-    # self.vWidthLbl.setStyleSheet('background-color: white')
-    # vHeightTxt = QLabel('Height (px):', parametersBox)
-    # vHeightTxt.setGeometry(x_cln1, 255, 70, h_txt)
-    # self.vHeightLbl = QLabel(parametersBox)
-    # self.vHeightLbl.setGeometry(x_cln2, 259, 45, h_lbl)
-    # self.vHeightLbl.setStyleSheet('background-color: white')
-    # vFpsTxt = QLabel('Frame rate (fps):', parametersBox)
-    # vFpsTxt.setGeometry(x_cln1, 285, 90, h_txt)
-    # self.vFpsLbl = QLabel(parametersBox)
-    # self.vFpsLbl.setGeometry(x_cln2, 289, 45, h_lbl)
-    # self.vFpsLbl.setStyleSheet('background-color: white')
-    # vFramesTxt = QLabel('Frames #:', parametersBox)
-    # vFramesTxt.setGeometry(x_cln1, 315, 70, h_txt)
-    # self.vFramesLbl = QLabel(parametersBox)
-    # self.vFramesLbl.setGeometry(x_cln2, 319, 45, h_lbl)
-    # self.vFramesLbl.setStyleSheet('background-color: white')
-    # vDurationTxt = QLabel('Duration (s):', parametersBox)
-    # vDurationTxt.setGeometry(x_cln1, 345, 70, h_txt)
-    # self.vDurationLbl = QLabel(parametersBox)
-    # self.vDurationLbl.setGeometry(x_cln2, 349, 45, h_lbl)
-    # self.vDurationLbl.setStyleSheet('background-color: white')
-
-    # #second column
-    # x_cln1 = 180
-    # x_cln2 = 265
-    # w_cln1 = 80
-    # w_cln2 = 50
-    # h_lbl = 22
-    # clmn2_Txt = QLabel('Video parameters:', parametersBox)
-    # clmn2_Txt.setGeometry(x_cln1, 20, 120, h_txt)
-    #
-    #CAS Squish to fit xrefpix to display
-    # self.firstFrameTxt = QLabel('First frame:', parametersBox)
-    # self.firstFrameTxt.setGeometry(x_cln1, 40, w_cln1, h_txt)
-    # self.firstFrameIn = QLineEdit(parametersBox)
-    # self.firstFrameIn.setGeometry(x_cln2, 44, w_cln2, h_lbl)
-    # self.lastFrameTxt = QLabel('Last frame:', parametersBox)
-    # self.lastFrameTxt.setGeometry(x_cln1, 65, w_cln1, h_txt)
-    # self.lastFrameIn = QLineEdit(parametersBox)
-    # self.lastFrameIn.setGeometry(x_cln2, 69, w_cln2, h_lbl)
-    # self.skipFrameTxt = QLabel('Skip frames:', parametersBox)
-    # self.skipFrameTxt.setGeometry(x_cln1, 90, w_cln1, h_txt)
-    # self.skipFrameIn = QLineEdit(parametersBox)
-    # self.skipFrameIn.setGeometry(x_cln2, 94, w_cln2, h_lbl)
-    # self.scaleTxt = QLabel('Scale (px/mm):', parametersBox)
-    # self.scaleTxt.setGeometry(x_cln1, 115, w_cln1, h_txt)
-    # self.scaleIn = QLineEdit(parametersBox)
-    # self.scaleIn.setGeometry(x_cln2, 119, w_cln2, h_lbl)
-
-    #CAS add xref line
-    # self.xrefTxt = QLabel('xref (px):', parametersBox)
-    # self.xrefTxt.setGeometry(x_cln1, 140, w_cln1, h_txt)
-    # self.xref = QLineEdit(parametersBox)
-    # xRefGUI_shiftBackAmnt = 20
-    # xRefGUI_extendAmnt = 20
-    # self.xref.setGeometry(x_cln2-xRefGUI_shiftBackAmnt, 144, w_cln2+xRefGUI_shiftBackAmnt+xRefGUI_extendAmnt, h_lbl)
-    #
-    # self.measureScaleBtn = QPushButton('Measure scale', parametersBox)
-    # #self.measureScaleBtn.setGeometry(x_cln1 - 10, 165, 150, h_btn)
-    # self.measureScaleBtn.setGeometry(x_cln1 - 10, 168, 150, h_btn-2)
-    # self.measureScaleBtn.clicked.connect(self.measureScaleBtn_clicked)
-    # self.roiOneTxt = QLabel('ROI, x:', parametersBox)
-    # self.roiOneTxt.setGeometry(x_cln1, 225, w_cln1, h_txt)
-    # self.roiOneIn = QLineEdit(parametersBox)
-    # self.roiOneIn.setGeometry(x_cln2, 229, w_cln2, h_lbl)
-    # self.roiTwoTxt = QLabel('ROI, y:', parametersBox)
-    # self.roiTwoTxt.setGeometry(x_cln1, 255, w_cln1, h_txt)
-    # self.roiTwoIn = QLineEdit(parametersBox)
-    # self.roiTwoIn.setGeometry(x_cln2, 259, w_cln2, h_lbl)
-    # self.roiThreeTxt = QLabel('ROI, w:', parametersBox)
-    # self.roiThreeTxt.setGeometry(x_cln1, 285, w_cln1, h_txt)
-    # self.roiThreeIn = QLineEdit(parametersBox)
-    # self.roiThreeIn.setGeometry(x_cln2, 289, w_cln2, h_lbl)
-    # self.roiFourTxt = QLabel('ROI, h:', parametersBox)
-    # self.roiFourTxt.setGeometry(x_cln1, 315, w_cln1, h_txt)
-    # self.roiFourIn = QLineEdit(parametersBox)
-    # self.roiFourIn.setGeometry(x_cln2, 319, w_cln2, h_lbl)
-    # self.roiBtn = QPushButton('Select ROI', parametersBox)
-    # self.roiBtn.setGeometry(x_cln1 - 10, 345, 150, h_btn)
-    # self.roiBtn.clicked.connect(self.roiBtn_clicked)
-
-    #third column
-    # x_cln1 = 340
-    # x_cln2 = 425
-    # w_cln1 = 60
-    # w_cln2 = 50
-    # adjustFramesTxt = QLabel('Adjust frames:', parametersBox)
-    # adjustFramesTxt.setGeometry(x_cln1, 20, 100, h_txt)
-    # self.rotationAngleInTxt = QLabel('Rotation (deg):', parametersBox)
-    # self.rotationAngleInTxt.setGeometry(x_cln1, 45, 120, h_txt)
-    # self.rotationAngleIn = QLineEdit(parametersBox)
-    # self.rotationAngleIn.setGeometry(x_cln2, 49, w_cln2, h_lbl)
-    # self.brightnessTxt = QLabel('Brightness:', parametersBox)
-    # self.brightnessTxt.setGeometry(x_cln1, 75, 150, h_txt)
-    # self.brightnessSlider = QSlider(Qt.Horizontal, parametersBox)
-    # self.brightnessSlider.setGeometry(x_cln1, 105, 115, 25)
-    # self.brightnessSlider.setMinimum(-50)
-    # self.brightnessSlider.setMaximum(50)
-    # self.brightnessSlider.setValue(0)
-    # self.brightnessSlider.sliderReleased.connect(self.editFramesSlider_released)
-    # self.brightnessSlider.valueChanged.connect(self.editFramesSlider_released)
-    # self.brightnessLbl = QLabel('0', parametersBox)
-    # self.brightnessLbl.setGeometry(x_cln2 + 3, 80, w_cln2 - 5, h_lbl - 4)
-    # self.brightnessLbl.setStyleSheet('background-color: white')
-    # self.contrastTxt = QLabel('Contrast:', parametersBox)
-    # self.contrastTxt.setGeometry(x_cln1, 125, 150, h_txt)
-    # self.contrastSlider = QSlider(Qt.Horizontal, parametersBox)
-    # self.contrastSlider.setGeometry(x_cln1, 155, 115, 25)
-    # self.contrastSlider.setMinimum(-100)
-    # self.contrastSlider.setMaximum(+100)
-    # self.contrastSlider.setValue(0)
-    # self.contrastSlider.sliderReleased.connect(self.editFramesSlider_released)
-    # self.contrastSlider.valueChanged.connect(self.editFramesSlider_released)
-    # self.contrastLbl = QLabel('0', parametersBox)
-    # self.contrastLbl.setGeometry(x_cln2 + 3, 130, w_cln2 - 5, h_lbl - 4)
-    # self.contrastLbl.setStyleSheet('background-color: white')
-    # self.grayscale = QCheckBox('Grayscale', parametersBox)
-    # self.grayscale.setGeometry(x_cln1 - 5, 175, 100, h_btn)
-    # correctionTxt = QLabel('Correction lengths (mm):', parametersBox)
-    # correctionTxt.setGeometry(x_cln1, 200, 150, h_txt)
-    # self.sLengthTxt = QLabel('Horizontal:', parametersBox)
-    # self.sLengthTxt.setGeometry(x_cln1, 225, 130, h_txt)
-    # self.sLengthIn = QLineEdit('-', parametersBox)
-    # self.sLengthIn.setGeometry(x_cln2, 229, w_cln2, h_lbl)
-    # self.sWidthTxt = QLabel('Vertical:', parametersBox)
-    # self.sWidthTxt.setGeometry(x_cln1, 255, 130, h_txt)
-    # self.sWidthIn = QLineEdit('-', parametersBox)
-    # self.sWidthIn.setGeometry(x_cln2, 259, w_cln2, h_lbl)
-    # self.perspectiveBtn = QPushButton('Correct perspective', parametersBox)
-    # self.perspectiveBtn.setGeometry(x_cln1 - 10, 285, 150, h_btn)
-    # self.perspectiveBtn.clicked.connect(self.perspectiveBtn_clicked)
-    # self.originalBtn = QPushButton('Restore original', parametersBox)
-    # self.originalBtn.setGeometry(x_cln1 - 10, 315, 150, h_btn)
-    # self.originalBtn.clicked.connect(self.originalBtn_clicked)
-
-    # # fourth column
-    # x_cln1 = 500
-    # x_cln2 = 595
-    # analysisTxt = QLabel('Analysis:', parametersBox)
-    # analysisTxt.setGeometry(x_cln1, 20, w_cln1, h_txt)
-    # self.analysisSelectionBox = QComboBox(parametersBox)
-    # self.analysisSelectionBox.setGeometry(x_cln1 - 10, 45, 150, h_btn)
-    # self.analysisSelectionBox.addItem('Choose analysis')
-    # self.analysisSelectionBox.addItem('Manual tracking')
-    # self.analysisSelectionBox.addItem('Luma tracking')
-    # self.analysisSelectionBox.addItem('Color tracking')
-    # self.analysisSelectionBox.addItem('HSV tracking')
-    # self.analysisSelectionBox.activated[str].connect(self.analysis_click)
-    # saveLoadTxt = QLabel('Save/Load:', parametersBox)
-    # saveLoadTxt.setGeometry(x_cln1, 70, w_cln1, h_txt)
-    # self.saveParBtn = QPushButton('Save parameters', parametersBox)
-    # self.saveParBtn.setGeometry(x_cln1 - 10, 95, 150, h_btn)
-    # self.saveParBtn.clicked.connect(self.saveParBtn_clicked)
-    # self.loadParBtn = QPushButton('Load parameters', parametersBox)
-    # self.loadParBtn.setGeometry(x_cln1 - 10, 125, 150, h_btn)
-    # self.loadParBtn.clicked.connect(self.loadParBtn_clicked)
-    # exportTxt = QLabel('Save edited video:', parametersBox)
-    # exportTxt.setGeometry(x_cln1, 200, 150, h_txt)
-    # self.newVideoHelpBtn = QPushButton('?', parametersBox)
-    # self.newVideoHelpBtn.setGeometry(x_cln2 + 15, 199, 30, h_btn)
-    # self.newVideoHelpBtn.clicked.connect(self.newVideoHelpBtn_clicked)
-    # fpsTxt = QLabel('Frame rate (fps):', parametersBox)
-    # fpsTxt.setGeometry(x_cln1, 225, 120, h_txt)
-    # self.fpsIn = QLineEdit('30', parametersBox)
-    # self.fpsIn.setGeometry(x_cln2, 229, 40, h_lbl)
-    # codecTxt = QLabel('Codec:', parametersBox)
-    # codecTxt.setGeometry(x_cln1, 255, 100, h_txt)
-    # self.codecIn = QLineEdit('mp4v', parametersBox)
-    # self.codecIn.setGeometry(x_cln2, 259, 40, h_lbl)
-    # formatTxt = QLabel('Format:', parametersBox)
-    # formatTxt.setGeometry(x_cln1, 285, 100, h_txt)
-    # self.formatIn = QLineEdit('mp4', parametersBox)
-    # self.formatIn.setGeometry(x_cln2, 289, 40, h_lbl)
-    # self.exportVideoBtn = QPushButton('Export video', parametersBox)
-    # self.exportVideoBtn.setGeometry(x_cln1 - 10, 315, 150, h_btn)
-    # self.exportVideoBtn.clicked.connect(self.exportVideoBtn_clicked)
-
-    # preview label
-    # x_cln1 = 650
-    # self.win1 = QLabel(parametersBox)
-    # self.win1.setGeometry(x_cln1, 25, 390, 270)
-    # self.win1.setStyleSheet('background-color: white')
-    # self.frameTxt = QLabel('Current frame:', parametersBox)
-    # self.frameTxt.setGeometry(x_cln1, 295, 120, h_txt)
-    # self.frameIn = QLineEdit('0', parametersBox)
-    # self.frameIn.setGeometry(x_cln1 + 90, 299, w_cln2, h_lbl)
-    # self.goToFrameBtn = QPushButton('Go to frame', parametersBox)
-    # self.goToFrameBtn.setGeometry(x_cln1 + 140, 295, 100, h_btn)
-    # self.goToFrameBtn.clicked.connect(self.goToFrameBtn_clicked)
-    # self.previewSlider = QSlider(Qt.Horizontal, parametersBox)
-    # self.previewSlider.setGeometry(x_cln1, 325, 390, 25)
-    # self.previewSlider.sliderReleased.connect(self.sliderValue_released)
-    # self.previewSlider.valueChanged.connect(self.sliderValue_released)
-    # self.showFrameLargeBtn = QPushButton('Show frame', parametersBox)
-    # self.showFrameLargeBtn.setGeometry(930, 295, 115, h_btn)
-    # self.showFrameLargeBtn.clicked.connect(self.showFrameLargeBtn_clicked)
 
 def manualTrackingBox(self):
     if sys.platform == 'darwin':
@@ -729,19 +446,9 @@ def manualTrackingBox(self):
         lbl1 = [190, 25, 420, 300]
         lbl2 = [620, 25, 420, 300]
 
-
-#    self.manualTrackingBox = QGroupBox(' ', self.analysisGroupBox)
-#    self.manualTrackingBox.setGeometry(0,0, 1050, 390)
     self.manualTrackingBox.setStyleSheet('background-color: None')
 
     # #first column
-    # x_cln1 = 10
-    # x_cln2 = 120
-    # h_txt = 30
-    # h_btn = 30
-    # h_lbl = 22
-    # w_cln1 = 80
-    # w_cln2 = 50
     directionBoxTxt = QLabel('Flame direction:', self.manualTrackingBox)
     directionBoxTxt.setGeometry(x1[0], y1[0], w1[0], h_txt)
     self.directionBox = QComboBox(self.manualTrackingBox)
@@ -794,71 +501,6 @@ def manualTrackingBox(self):
     self.lbl2_MT.getAxis('bottom').setPen(color=(0, 0, 0))
     self.lbl2_MT.getAxis('left').setPen(color=(0, 0, 0))
 
-# def manualTrackingBox_Win(self):
-    #self.manualTrackingBox = QGroupBox('Analysis box', self.analysisGroupBox)
-#    self.manualTrackingBox.setGeometry(0, 0, 1050, 370)
-    #self.manualTrackingBox.setStyleSheet('background-color: None')
-
-    #first column
-    # x_cln1 = 10
-    # x_cln2 = 120
-    # h_txt = 30
-    # h_lbl = 22
-    # h_btn = 25
-    # w_cln1 = 80
-    # w_cln2 = 50
-    # directionBoxTxt = QLabel('Flame direction:', self.manualTrackingBox)
-    # directionBoxTxt.setGeometry(x_cln1, 15, 120, h_txt)
-    # self.directionBox = QComboBox(self.manualTrackingBox)
-    # self.directionBox.setGeometry(x_cln1, 40, 140, h_btn)
-    # self.directionBox.addItem('Left to right')
-    # self.directionBox.addItem('Right to left')
-    # self.directionBox.activated.connect(self.directionMT_clicked)
-    # lightTxt = QLabel('Flashing light (optional):', self.manualTrackingBox)
-    # lightTxt.setGeometry(x_cln1, 70, 140, h_txt)
-    # self.lightROIBtn_MT = QPushButton('Pick bright region', self.manualTrackingBox)
-    # self.lightROIBtn_MT.setGeometry(x_cln1, 95, 140, h_btn)
-    # self.lightROIBtn_MT.clicked.connect(self.lightROIBtn_MT_clicked)
-    # self.filterLight_MT = QComboBox(self.manualTrackingBox)
-    # self.filterLight_MT.setGeometry(x_cln1, 125, 140, h_btn)
-    # self.filterLight_MT.addItem('Track every frame')
-    # self.filterLight_MT.addItem('Frames light on')
-    # self.filterLight_MT.addItem('Frames light off')
-    # self.filterLight_MT.activated.connect(self.filterLight_MT_clicked)
-    # nClicksTxt = QLabel('Tracking points #:', self.manualTrackingBox)
-    # nClicksTxt.setGeometry(x_cln1, 155, 140, h_txt)
-    # self.nClicksLbl = QLineEdit('1', self.manualTrackingBox)
-    # self.nClicksLbl.setGeometry(x_cln2, 160, 30, h_lbl)
-    # self.showEdges_MT = QCheckBox('Show tracking lines', self.manualTrackingBox)
-    # self.showEdges_MT.setGeometry(x_cln1, 185, 140, h_btn)
-    # self.showEdges_MT.setChecked(True)
-    # self.manualTrackingBtn = QPushButton('Start Tracking', self.manualTrackingBox)
-    # self.manualTrackingBtn.setGeometry(x_cln1, 215, 140, h_btn)
-    # self.manualTrackingBtn.clicked.connect(self.manualTrackingBtn_clicked)
-    # self.absValBtn = QPushButton('Absolute values', self.manualTrackingBox)
-    # self.absValBtn.setGeometry(x_cln1, 245, 140, h_btn)
-    # self.absValBtn.clicked.connect(self.absValBtn_MT_clicked)
-    # self.saveBtn_MT = QPushButton('Save data', self.manualTrackingBox)
-    # self.saveBtn_MT.setGeometry(x_cln1, 275, 140, h_btn)
-    # self.saveBtn_MT.clicked.connect(self.saveBtn_MT_clicked)
-    # self.helpBtn_MT = QPushButton('Help', self.manualTrackingBox)
-    # self.helpBtn_MT.setGeometry(x_cln1, 305, 140, h_btn)
-    # self.helpBtn_MT.clicked.connect(self.helpBtn_MT_clicked)
-    #
-    # # first label
-    # self.lbl1_MT = QLabel(self.manualTrackingBox)
-    # self.lbl1_MT.setGeometry(190, 25, 420, 300)
-    # self.lbl1_MT.setStyleSheet('background-color: white')
-    #
-    # # second label
-    # self.lbl2_MT = pg.PlotWidget(self.manualTrackingBox)
-    # self.lbl2_MT.setGeometry(620, 25, 420, 300)
-    # self.lbl2_MT.setBackground('w')
-    # self.lbl2_MT.setLabel('left', 'Spread Rate [mm/s]', color='black', size=14)
-    # self.lbl2_MT.setLabel('bottom', 'Time [s]', color='black', size=14)
-    # self.lbl2_MT.getAxis('bottom').setPen(color=(0, 0, 0))
-    # self.lbl2_MT.getAxis('left').setPen(color=(0, 0, 0))
-
 def lumaTrackingBox(self):
     if sys.platform == 'darwin':
         self.lumaTrackingBox = QGroupBox(' ', self.analysisGroupBox)
@@ -891,7 +533,7 @@ def lumaTrackingBox(self):
         h_lbl = 22
         h_txt = 30
         h_btn = 25
-        h_slider = 25
+        h_slider = 15
 
         # first column
         x1 = [ 10,  10,  10, 115,  10, 105,  10,  10, 115,  10,  10,  10,  10, 115,  10,  10,  10, 190]
@@ -929,13 +571,9 @@ def lumaTrackingBox(self):
         lbl1 = [190, 25, 420, 300]
         lbl2 = [620, 25, 420, 300]
 
+    self.lumaTrackingBox.setStyleSheet('background-color: None')
+
     #first column
-    # x_cln1 = 10
-    # x_cln2 = 120
-    # w_btn = 150
-    # h_btn = 30
-    # h_txt = 30
-    # h_lbl = 22
     directionBoxTxt = QLabel('Flame direction:', self.lumaTrackingBox)
     directionBoxTxt.setGeometry(x1[0], y1[0], w1[0], h_txt)
     self.directionBox = QComboBox(self.lumaTrackingBox)
@@ -994,7 +632,7 @@ def lumaTrackingBox(self):
     self.showFrameLargeBtn_LT.setGeometry(x2[2], y2[2], w2[2], h_btn)
     self.showFrameLargeBtn_LT.clicked.connect(self.showFrameLargeBtn_LT_clicked)
 
-    # below is defined in flameTracker.py already in an OS specific way
+    # below is defined in flameTracker.py already in an OS specific way (line 973 in "lumaTrackingValue" condition)
     # first label
     self.lbl1_LT = QLabel(self.lumaTrackingBox)
     self.lbl1_LT.setGeometry(lbl1[0], lbl1[1], lbl1[2], lbl1[3])
@@ -1005,90 +643,6 @@ def lumaTrackingBox(self):
     self.lbl2_LT.setGeometry(lbl2[0], lbl2[1], lbl2[2], lbl2[3])
     self.lbl2_LT.setStyleSheet('background-color: white')
 
-# def lumaTrackingBox_Win(self):
-    # self.lumaTrackingBox = QGroupBox('Analysis box', self.analysisGroupBox)
-    # self.lumaTrackingBox.setGeometry(0,0, 1050, 370)
-
-    # h_btn = 25
-    # h_txt = 30
-    # h_lbl = 22
-    # w_lbl = 35
-    #
-    # #first column
-    # x_cln1 = 10
-    # x_cln2 = 115
-    # directionBoxTxt = QLabel('Flame direction:', self.lumaTrackingBox)
-    # directionBoxTxt.setGeometry(x_cln1, 15, 140, h_txt)
-    # self.directionBox = QComboBox(self.lumaTrackingBox)
-    # self.directionBox.setGeometry(x_cln1, 40, 140, h_btn)
-    # self.directionBox.addItem('Left to right')
-    # self.directionBox.addItem('Right to left')
-    # self.directionBox.activated.connect(self.directionLT_clicked)
-    # thresholdTxt = QLabel('Luma threshold:', self.lumaTrackingBox)
-    # thresholdTxt.setGeometry(x_cln1, 70, 80, h_txt)
-    # self.thresholdIn = QLineEdit('30', self.lumaTrackingBox)
-    # self.thresholdIn.setGeometry(x_cln2, 75, w_lbl, h_lbl)
-
-    # filterParticleTxt = QLabel('Filter particles:', self.lumaTrackingBox)
-    # filterParticleTxt.setGeometry(x_cln1, 95, 150, h_txt)
-    # self.particleSldrMax = QLineEdit('1000', self.lumaTrackingBox)
-    # self.particleSldrMax.setGeometry(x_cln2 - 10, 103, 45, h_lbl) #beta
-    # self.filterParticleSldr_LT = QSlider(Qt.Horizontal, self.lumaTrackingBox)
-    # self.filterParticleSldr_LT.setGeometry(x_cln1, 125, 135, 15)
-    # self.filterParticleSldr_LT.setMinimum(1)
-    # self.filterParticleSldr_LT.setMaximum(1000)
-    # self.filterParticleSldr_LT.setValue(10)
-    # self.filterParticleSldr_LT.sliderReleased.connect(self.filterParticleSldr_LT_released)
-    #
-    # avgLE_txt = QLabel('#px to locate edges:', self.lumaTrackingBox)
-    # avgLE_txt.setGeometry(x_cln1, 140, 140, h_txt)
-    # self.avgLEIn_LT = QLineEdit('5', self.lumaTrackingBox)
-    # self.avgLEIn_LT.setGeometry(x_cln2, 145, w_lbl, h_lbl)
-    # trackingTxt = QLabel('Flame tracking:', self.lumaTrackingBox)
-    # trackingTxt.setGeometry(x_cln1, 165, 120, h_txt)
-    # self.lightROIBtn_LT = QPushButton('Pick bright region', self.lumaTrackingBox)
-    # self.lightROIBtn_LT.setGeometry(x_cln1, 190, 140, h_btn)
-    # self.lightROIBtn_LT.clicked.connect(self.lightROIBtn_LT_clicked)
-    # self.filterLight = QCheckBox('Ignore flashing light', self.lumaTrackingBox)
-    # self.filterLight.setGeometry(x_cln1, 215, 140, h_btn)
-    # movAvgTxt = QLabel('Moving avg points:', self.lumaTrackingBox)
-    # movAvgTxt.setGeometry(x_cln1, 240, 100, h_txt)
-    # self.movAvgIn_LT = QLineEdit('2', self.lumaTrackingBox)
-    # self.movAvgIn_LT.setGeometry(x_cln2, 245, w_lbl, h_lbl)
-    # self.lumaTrackingBtn = QPushButton('Start Tracking', self.lumaTrackingBox)
-    # self.lumaTrackingBtn.setGeometry(x_cln1, 275, 140, h_btn)
-    # self.lumaTrackingBtn.clicked.connect(self.lumaTrackingBtn_clicked)
-    # self.absValBtn = QPushButton('Absolute values', self.lumaTrackingBox)
-    # self.absValBtn.setGeometry(x_cln1, 305, 140, h_btn)
-    # self.absValBtn.clicked.connect(self.absValBtn_LT_clicked)
-    # self.saveBtn_LT = QPushButton('Save data', self.lumaTrackingBox)
-    # self.saveBtn_LT.setGeometry(x_cln1, 335, 140, h_btn)
-    # self.saveBtn_LT.clicked.connect(self.saveDataBtn_LT_clicked)
-    #
-    # self.helpBtn_LT = QPushButton('Help', self.lumaTrackingBox)
-    # self.helpBtn_LT.setGeometry(190, 335, 140, h_btn)
-    # self.helpBtn_LT.clicked.connect(self.helpBtn_LT_clicked)
-
-    # self.showEdges = QCheckBox('Show edges location', self.lumaTrackingBox)
-    # self.showEdges.setGeometry(750, 320, 140, h_btn)
-    # self.showEdges.setChecked(True)
-    # self.exportEdges_LT = QCheckBox('Output video analysis', self.lumaTrackingBox)
-    # self.exportEdges_LT.setGeometry(750, 340, 140, h_btn)
-    # self.showFrameLargeBtn_LT = QPushButton('Show frames', self.lumaTrackingBox)
-    # self.showFrameLargeBtn_LT.setGeometry(920, 325, 120, h_btn)
-    # self.showFrameLargeBtn_LT.clicked.connect(self.showFrameLargeBtn_LT_clicked)
-    #
-    # # below is defined in flameTracker.py already in an OS specific way
-    # # first label
-    # self.lbl1_LT = QLabel(self.lumaTrackingBox)
-    # self.lbl1_LT.setGeometry(190, 15, 420, 300)
-    # self.lbl1_LT.setStyleSheet('background-color: white')
-    #
-    # # second label
-    # self.lbl2_LT = QLabel(self.lumaTrackingBox)
-    # self.lbl2_LT.setGeometry(620, 15, 420, 300)
-    # self.lbl2_LT.setStyleSheet('background-color: white')
-
 def colorTrackingBox(self):
     if sys.platform == 'darwin':
         self.colorTrackingBox = QGroupBox(' ', self.analysisGroupBox)
@@ -1098,6 +652,7 @@ def colorTrackingBox(self):
         h_lbl = 22
         h_txt = 30
         h_btn = 30
+        h_btn_arrows = 30
         h_slider = 25
 
         # first column without color channels objects
@@ -1135,20 +690,21 @@ def colorTrackingBox(self):
         h_lbl = 22
         h_txt = 30
         h_btn = 25
+        h_btn_arrows = 20
         h_slider = 15
 
         # first column without color channels objects
         x1 = [ 10,  10,  10, 140,  10,  10, 120,  10, 120]
-        y1 = [ 15,  40, 250, 253, 275, 295, 300, 325, 330]
+        y1 = [ 10,  35, 255, 260, 280, 295, 300, 325, 330]
         w1 = [100, 140, 150,  35, 170, 100,  30, 100,  35]
 
         # first column - 'colors' objects
         x_rgb = [ 10,  10, 40, 185,  60,  10,  40, 185,  60]
         w_rgb = [100, 100, 15,  15, 120, 100,  15,  15, 120]
 
-        y_r   = [ 65,  85,  92,  92,  92, 105, 112, 112, 112]
-        y_g   = [125, 145, 152, 152, 152, 165, 185, 172, 172]
-        y_b   = [185, 205, 212, 212, 212, 225, 232, 232, 232]
+        y_r   = [ 60,  80,  85,  85,  88, 100, 105, 105, 108]
+        y_g   = [125, 145, 150, 150, 153, 165, 170, 170, 173]
+        y_b   = [190, 210, 215, 215, 218, 230, 235, 235, 238]
 
         # second column
         x2 = [220, 220, 220, 220, 220, 220, 220, 330, 220, 220, 220]
@@ -1172,6 +728,7 @@ def colorTrackingBox(self):
         h_lbl = 22
         h_txt = 30
         h_btn = 30
+        h_btn_arrows = 30
         h_slider = 25
 
         # first column without color channels objects
@@ -1201,14 +758,9 @@ def colorTrackingBox(self):
         lbl1 = [370, 25, 330, 250]
         lbl2 = [710, 25, 330, 250]
 
-    # self.colorTrackingBox = QGroupBox(' ', self.analysisGroupBox)
-    # self.colorTrackingBox.setGeometry(0, 0, 1050, 390)
     self.colorTrackingBox.setStyleSheet('background-color: None')
 
-
-    # w_btn2 = 30
     # #first column
-    # x_cln1 = 10
     directionBoxTxt = QLabel('Flame direction:', self.colorTrackingBox)
     directionBoxTxt.setGeometry(x1[0], y1[0], w1[0], h_txt)
     self.directionBox = QComboBox(self.colorTrackingBox)
@@ -1244,10 +796,10 @@ def colorTrackingBox(self):
     redMinTxt = QLabel('Min:', self.colorTrackingBox)
     redMinTxt.setGeometry(x_rgb[1], y_r[1], w_rgb[1], h_txt)
     self.redMinLeftBtn_CT = QPushButton('<', self.colorTrackingBox)
-    self.redMinLeftBtn_CT.setGeometry(x_rgb[2], y_r[2], w_rgb[2], h_btn)
+    self.redMinLeftBtn_CT.setGeometry(x_rgb[2], y_r[2], w_rgb[2], h_btn_arrows)
     self.redMinLeftBtn_CT.clicked.connect(self.redMinLeftBtn_CT_clicked)
     self.redMinRightBtn_CT = QPushButton('>', self.colorTrackingBox)
-    self.redMinRightBtn_CT.setGeometry(x_rgb[3], y_r[3], w_rgb[3], h_btn)
+    self.redMinRightBtn_CT.setGeometry(x_rgb[3], y_r[3], w_rgb[3], h_btn_arrows)
     self.redMinRightBtn_CT.clicked.connect(self.redMinRightBtn_CT_clicked)
     self.redMinSlider = QSlider(Qt.Horizontal, self.colorTrackingBox)
     self.redMinSlider.setGeometry(x_rgb[4], y_r[4], w_rgb[4], h_slider)
@@ -1258,13 +810,13 @@ def colorTrackingBox(self):
     redMaxTxt = QLabel('Max:', self.colorTrackingBox)
     redMaxTxt.setGeometry(x_rgb[5], y_r[5], w_rgb[5], h_txt)
     self.redMaxLeftBtn_CT = QPushButton('<', self.colorTrackingBox)
-    self.redMaxLeftBtn_CT.setGeometry(x_rgb[6], y_r[6], w_rgb[6], h_btn)
+    self.redMaxLeftBtn_CT.setGeometry(x_rgb[6], y_r[6], w_rgb[6], h_btn_arrows)
     self.redMaxLeftBtn_CT.clicked.connect(self.redMaxLeftBtn_CT_clicked)
     self.redMaxRightBtn_CT = QPushButton('>', self.colorTrackingBox)
-    self.redMaxRightBtn_CT.setGeometry(x_rgb[7], y_r[7], w_rgb[7], h_btn)
+    self.redMaxRightBtn_CT.setGeometry(x_rgb[7], y_r[7], w_rgb[7], h_btn_arrows)
     self.redMaxRightBtn_CT.clicked.connect(self.redMaxRightBtn_CT_clicked)
     self.redMaxSlider = QSlider(Qt.Horizontal, self.colorTrackingBox)
-    self.redMaxSlider.setGeometry(x_rgb[8], y_r[8], w_rgb[8], 25)
+    self.redMaxSlider.setGeometry(x_rgb[8], y_r[8], w_rgb[8], h_slider)
     self.redMaxSlider.setMinimum(0)
     self.redMaxSlider.setMaximum(255)
     self.redMaxSlider.setValue(255)
@@ -1274,10 +826,10 @@ def colorTrackingBox(self):
     greenMinTxt = QLabel('Min:', self.colorTrackingBox)
     greenMinTxt.setGeometry(x_rgb[1], y_g[1], w_rgb[1], h_txt)
     self.greenMinLeftBtn_CT = QPushButton('<', self.colorTrackingBox)
-    self.greenMinLeftBtn_CT.setGeometry(x_rgb[2], y_g[2], w_rgb[2], h_btn)
+    self.greenMinLeftBtn_CT.setGeometry(x_rgb[2], y_g[2], w_rgb[2], h_btn_arrows)
     self.greenMinLeftBtn_CT.clicked.connect(self.greenMinLeftBtn_CT_clicked)
     self.greenMinRightBtn_CT = QPushButton('>', self.colorTrackingBox)
-    self.greenMinRightBtn_CT.setGeometry(x_rgb[3], y_g[3], w_rgb[3], h_btn)
+    self.greenMinRightBtn_CT.setGeometry(x_rgb[3], y_g[3], w_rgb[3], h_btn_arrows)
     self.greenMinRightBtn_CT.clicked.connect(self.greenMinRightBtn_CT_clicked)
     self.greenMinSlider = QSlider(Qt.Horizontal, self.colorTrackingBox)
     self.greenMinSlider.setGeometry(x_rgb[4], y_g[4], w_rgb[4], h_slider)
@@ -1288,10 +840,10 @@ def colorTrackingBox(self):
     greenMaxTxt = QLabel('Max:', self.colorTrackingBox)
     greenMaxTxt.setGeometry(x_rgb[5], y_g[5], w_rgb[5], h_txt)
     self.greenMaxLeftBtn_CT = QPushButton('<', self.colorTrackingBox)
-    self.greenMaxLeftBtn_CT.setGeometry(x_rgb[6], y_g[6], w_rgb[6], h_btn)
+    self.greenMaxLeftBtn_CT.setGeometry(x_rgb[6], y_g[6], w_rgb[6], h_btn_arrows)
     self.greenMaxLeftBtn_CT.clicked.connect(self.greenMaxLeftBtn_CT_clicked)
     self.greenMaxRightBtn_CT = QPushButton('>', self.colorTrackingBox)
-    self.greenMaxRightBtn_CT.setGeometry(x_rgb[7], y_g[7], w_rgb[7], h_btn)
+    self.greenMaxRightBtn_CT.setGeometry(x_rgb[7], y_g[7], w_rgb[7], h_btn_arrows)
     self.greenMaxRightBtn_CT.clicked.connect(self.greenMaxRightBtn_CT_clicked)
     self.greenMaxSlider = QSlider(Qt.Horizontal, self.colorTrackingBox)
     self.greenMaxSlider.setGeometry(x_rgb[8], y_g[8], w_rgb[8], h_slider)
@@ -1304,10 +856,10 @@ def colorTrackingBox(self):
     blueMinTxt = QLabel('Min:', self.colorTrackingBox)
     blueMinTxt.setGeometry(x_rgb[1], y_b[1], w_rgb[1], h_txt)
     self.blueMinLeftBtn_CT = QPushButton('<', self.colorTrackingBox)
-    self.blueMinLeftBtn_CT.setGeometry(x_rgb[2], y_b[2], w_rgb[2], h_btn)
+    self.blueMinLeftBtn_CT.setGeometry(x_rgb[2], y_b[2], w_rgb[2], h_btn_arrows)
     self.blueMinLeftBtn_CT.clicked.connect(self.blueMinLeftBtn_CT_clicked)
     self.blueMinRightBtn_CT = QPushButton('>', self.colorTrackingBox)
-    self.blueMinRightBtn_CT.setGeometry(x_rgb[3], y_b[3], w_rgb[3], h_btn)
+    self.blueMinRightBtn_CT.setGeometry(x_rgb[3], y_b[3], w_rgb[3], h_btn_arrows)
     self.blueMinRightBtn_CT.clicked.connect(self.blueMinRightBtn_CT_clicked)
     self.blueMinSlider = QSlider(Qt.Horizontal, self.colorTrackingBox)
     self.blueMinSlider.setGeometry(x_rgb[4], y_b[4], w_rgb[4], h_slider)
@@ -1317,10 +869,10 @@ def colorTrackingBox(self):
     blueMaxTxt = QLabel('Max:', self.colorTrackingBox)
     blueMaxTxt.setGeometry(x_rgb[5], y_b[5], w_rgb[5], h_txt)
     self.blueMaxLeftBtn_CT = QPushButton('<', self.colorTrackingBox)
-    self.blueMaxLeftBtn_CT.setGeometry(x_rgb[6], y_b[6], w_rgb[6], h_btn)
+    self.blueMaxLeftBtn_CT.setGeometry(x_rgb[6], y_b[6], w_rgb[6], h_btn_arrows)
     self.blueMaxLeftBtn_CT.clicked.connect(self.blueMaxLeftBtn_CT_clicked)
     self.blueMaxRightBtn_CT = QPushButton('>', self.colorTrackingBox)
-    self.blueMaxRightBtn_CT.setGeometry(x_rgb[7], y_b[7], w_rgb[7], h_btn)
+    self.blueMaxRightBtn_CT.setGeometry(x_rgb[7], y_b[7], w_rgb[7], h_btn_arrows)
     self.blueMaxRightBtn_CT.clicked.connect(self.blueMaxRightBtn_CT_clicked)
     self.blueMaxSlider = QSlider(Qt.Horizontal, self.colorTrackingBox)
     self.blueMaxSlider.setGeometry(x_rgb[8], y_b[8], w_rgb[8], h_slider)
@@ -1330,7 +882,6 @@ def colorTrackingBox(self):
     self.blueMaxSlider.sliderReleased.connect(self.singleColorSlider_released)
 
     #second column
-    # x_cln1 = 220
     self.saveChannelsBtn_CT = QPushButton('Save filter values', self.colorTrackingBox)
     self.saveChannelsBtn_CT.setGeometry(x2[0], y2[0], w2[0], h_btn)
     self.saveChannelsBtn_CT.clicked.connect(self.saveChannelsBtn_CT_clicked)
@@ -1383,197 +934,6 @@ def colorTrackingBox(self):
     self.lbl2_CT.setGeometry(lbl2[0], lbl2[1], lbl2[2], lbl2[3])
     self.lbl2_CT.setStyleSheet('background-color: white')
 
-
-# def colorTrackingBox_Win(self):
-    # self.colorTrackingBox = QGroupBox('Analysis box', self.analysisGroupBox)
-    # self.colorTrackingBox.setGeometry(0, 0, 1050, 370)
-    # self.colorTrackingBox.setStyleSheet('background-color: None')
-
-    # h_btn = 25
-    # h_btn2 = 15
-    # h_txt = 30
-    # h_lbl = 22
-    # w_btn2 = 15
-    # #first column
-    # x_cln1 = 10
-    # x_cln2 = 120
-    # directionBoxTxt = QLabel('Flame direction:', self.colorTrackingBox)
-    # directionBoxTxt.setGeometry(x_cln1, 15, 100, h_txt)
-    # self.directionBox = QComboBox(self.colorTrackingBox)
-    # self.directionBox.setGeometry(x_cln1, 40, 140, h_btn)
-    # self.directionBox.addItem('Left to right')
-    # self.directionBox.addItem('Right to left')
-    # self.directionBox.activated.connect(self.directionCT_clicked)
-    # redChannelTxt = QLabel('Red channel:', self.colorTrackingBox)
-    # redChannelTxt.setGeometry(x_cln1, 65, 100, h_txt)
-    # redMinTxt = QLabel('Min:', self.colorTrackingBox)
-    # redMinTxt.setGeometry(x_cln1, 85, 80, h_txt)
-    # self.redMinLeftBtn_CT = QPushButton('<', self.colorTrackingBox)
-    # self.redMinLeftBtn_CT.setGeometry(40, 92, w_btn2, h_btn2)
-    # self.redMinLeftBtn_CT.clicked.connect(self.redMinLeftBtn_CT_clicked)
-    # self.redMinRightBtn_CT = QPushButton('>', self.colorTrackingBox)
-    # self.redMinRightBtn_CT.setGeometry(185, 92, w_btn2, h_btn2)
-    # self.redMinRightBtn_CT.clicked.connect(self.redMinRightBtn_CT_clicked)
-    # self.redMinSlider = QSlider(Qt.Horizontal, self.colorTrackingBox)
-    # self.redMinSlider.setGeometry(60, 92, 120, h_btn2)
-    # self.redMinSlider.setMinimum(0)
-    # self.redMinSlider.setMaximum(255)
-    # self.redMinSlider.setValue(10)
-    # self.redMinSlider.sliderReleased.connect(self.singleColorSlider_released)
-    # self.redMinSlider.valueChanged.connect(self.singleColorSlider_released)
-    # redMaxTxt = QLabel('Max:', self.colorTrackingBox)
-    # redMaxTxt.setGeometry(x_cln1, 105, 100, h_txt)
-    # self.redMaxLeftBtn_CT = QPushButton('<', self.colorTrackingBox)
-    # self.redMaxLeftBtn_CT.setGeometry(40, 112, w_btn2, h_btn2)
-    # self.redMaxLeftBtn_CT.clicked.connect(self.redMaxLeftBtn_CT_clicked)
-    # self.redMaxRightBtn_CT = QPushButton('>', self.colorTrackingBox)
-    # self.redMaxRightBtn_CT.setGeometry(185, 112, w_btn2, h_btn2)
-    # self.redMaxRightBtn_CT.clicked.connect(self.redMaxRightBtn_CT_clicked)
-    # self.redMaxSlider = QSlider(Qt.Horizontal, self.colorTrackingBox)
-    # self.redMaxSlider.setGeometry(60, 112, 120, h_btn2)
-    # self.redMaxSlider.setMinimum(0)
-    # self.redMaxSlider.setMaximum(255)
-    # self.redMaxSlider.setValue(255)
-    # self.redMaxSlider.sliderReleased.connect(self.singleColorSlider_released)
-    # self.redMaxSlider.valueChanged.connect(self.singleColorSlider_released)
-    # greenChannelTxt = QLabel('Green channel:', self.colorTrackingBox)
-    # greenChannelTxt.setGeometry(x_cln1, 125, 100, h_txt)
-    # greenMinTxt = QLabel('Min:', self.colorTrackingBox)
-    # greenMinTxt.setGeometry(x_cln1, 145, 100, h_txt)
-    # self.greenMinLeftBtn_CT = QPushButton('<', self.colorTrackingBox)
-    # self.greenMinLeftBtn_CT.setGeometry(40, 152, w_btn2, h_btn2)
-    # self.greenMinLeftBtn_CT.clicked.connect(self.greenMinLeftBtn_CT_clicked)
-    # self.greenMinRightBtn_CT = QPushButton('>', self.colorTrackingBox)
-    # self.greenMinRightBtn_CT.setGeometry(185, 152, w_btn2, h_btn2)
-    # self.greenMinRightBtn_CT.clicked.connect(self.greenMinRightBtn_CT_clicked)
-    # self.greenMinSlider = QSlider(Qt.Horizontal, self.colorTrackingBox)
-    # self.greenMinSlider.setGeometry(60, 152, 120, h_btn2)
-    # self.greenMinSlider.setMinimum(0)
-    # self.greenMinSlider.setMaximum(255)
-    # self.greenMinSlider.setValue(10)
-    # self.greenMinSlider.sliderReleased.connect(self.singleColorSlider_released)
-    # self.greenMinSlider.valueChanged.connect(self.singleColorSlider_released)
-    # greenMaxTxt = QLabel('Max:', self.colorTrackingBox)
-    # greenMaxTxt.setGeometry(x_cln1, 165, 100, h_txt)
-    # self.greenMaxLeftBtn_CT = QPushButton('<', self.colorTrackingBox)
-    # self.greenMaxLeftBtn_CT.setGeometry(40, 172, w_btn2, h_btn2)
-    # self.greenMaxLeftBtn_CT.clicked.connect(self.greenMaxLeftBtn_CT_clicked)
-    # self.greenMaxRightBtn_CT = QPushButton('>', self.colorTrackingBox)
-    # self.greenMaxRightBtn_CT.setGeometry(185, 172, w_btn2, h_btn2)
-    # self.greenMaxRightBtn_CT.clicked.connect(self.greenMaxRightBtn_CT_clicked)
-    # self.greenMaxSlider = QSlider(Qt.Horizontal, self.colorTrackingBox)
-    # self.greenMaxSlider.setGeometry(60, 172, 120, h_btn2)
-    # self.greenMaxSlider.setMinimum(0)
-    # self.greenMaxSlider.setMaximum(255)
-    # self.greenMaxSlider.setValue(255)
-    # self.greenMaxSlider.sliderReleased.connect(self.singleColorSlider_released)
-    # self.greenMaxSlider.valueChanged.connect(self.singleColorSlider_released)
-    # blueChannelTxt = QLabel('Blue channel:', self.colorTrackingBox)
-    # blueChannelTxt.setGeometry(x_cln1, 185, 100, h_txt)
-    # blueMinTxt = QLabel('Min:', self.colorTrackingBox)
-    # blueMinTxt.setGeometry(x_cln1, 205, 100, h_txt)
-    # self.blueMinLeftBtn_CT = QPushButton('<', self.colorTrackingBox)
-    # self.blueMinLeftBtn_CT.setGeometry(40, 212, w_btn2, h_btn2)
-    # self.blueMinLeftBtn_CT.clicked.connect(self.blueMinLeftBtn_CT_clicked)
-    # self.blueMinRightBtn_CT = QPushButton('>', self.colorTrackingBox)
-    # self.blueMinRightBtn_CT.setGeometry(185, 212, w_btn2, h_btn2)
-    # self.blueMinRightBtn_CT.clicked.connect(self.blueMinRightBtn_CT_clicked)
-    # self.blueMinSlider = QSlider(Qt.Horizontal, self.colorTrackingBox)
-    # self.blueMinSlider.setGeometry(60, 212, 120, h_btn2)
-    # self.blueMinSlider.setMinimum(0)
-    # self.blueMinSlider.setMaximum(255)
-    # self.blueMinSlider.sliderReleased.connect(self.singleColorSlider_released)
-    # self.blueMinSlider.valueChanged.connect(self.singleColorSlider_released)
-    # blueMaxTxt = QLabel('Max:', self.colorTrackingBox)
-    # blueMaxTxt.setGeometry(x_cln1, 225, 100, h_txt)
-    # self.blueMaxLeftBtn_CT = QPushButton('<', self.colorTrackingBox)
-    # self.blueMaxLeftBtn_CT.setGeometry(40, 232, w_btn2, h_btn2)
-    # self.blueMaxLeftBtn_CT.clicked.connect(self.blueMaxLeftBtn_CT_clicked)
-    # self.blueMaxRightBtn_CT = QPushButton('>', self.colorTrackingBox)
-    # self.blueMaxRightBtn_CT.setGeometry(185, 232, w_btn2, h_btn2)
-    # self.blueMaxRightBtn_CT.clicked.connect(self.blueMaxRightBtn_CT_clicked)
-    # self.blueMaxSlider = QSlider(Qt.Horizontal, self.colorTrackingBox)
-    # self.blueMaxSlider.setGeometry(60, 232, 120, h_btn2)
-    # self.blueMaxSlider.setMinimum(0)
-    # self.blueMaxSlider.setMaximum(255)
-    # self.blueMaxSlider.setValue(255)
-    # self.blueMaxSlider.sliderReleased.connect(self.singleColorSlider_released)
-    # self.blueMaxSlider.valueChanged.connect(self.singleColorSlider_released)
-
-    # filterParticleTxt = QLabel('Filter particle:', self.colorTrackingBox)
-    # filterParticleTxt.setGeometry(x_cln1, 250, 150, h_txt)
-    # self.particleSldrMax = QLineEdit('1000', self.colorTrackingBox)
-    # self.particleSldrMax.setGeometry(140, 253, 35, h_lbl)
-    # self.filterParticleSldr_CT = QSlider(Qt.Horizontal, self.colorTrackingBox)
-    # self.filterParticleSldr_CT.setGeometry(x_cln1, 275, 170, h_btn2)
-    # self.filterParticleSldr_CT.setMinimum(1)
-    # self.filterParticleSldr_CT.setMaximum(1000)
-    # self.filterParticleSldr_CT.setValue(10)
-    # self.filterParticleSldr_CT.sliderReleased.connect(self.filterParticleSldr_CT_released)
-    #
-    # avgLE_txt = QLabel('#px to locate edges:', self.colorTrackingBox)
-    # avgLE_txt.setGeometry(x_cln1, 295, 100, h_txt)
-    # self.avgLEIn_CT = QLineEdit('1', self.colorTrackingBox)
-    # self.avgLEIn_CT.setGeometry(x_cln2, 300, 30, h_lbl)
-    # connectivityTxt = QLabel('Connectivity (px):', self.colorTrackingBox)
-    # connectivityTxt.setGeometry(x_cln1, 325, 100, h_txt)
-    # self.connectivityBox = QComboBox(self.colorTrackingBox)
-    # self.connectivityBox.setGeometry(x_cln2, 330, 35, h_btn-2)
-    # self.connectivityBox.addItem('4')
-    # self.connectivityBox.addItem('8')
-    # self.connectivityBox.activated.connect(self.connectivityBoxCT_clicked)
-
-    #second column
-    # x_cln1 = 220
-    # x_cln2 = 330
-    # self.saveChannelsBtn_CT = QPushButton('Save filter values', self.colorTrackingBox)
-    # self.saveChannelsBtn_CT.setGeometry(x_cln1, 15, 140, h_btn)
-    # self.saveChannelsBtn_CT.clicked.connect(self.saveChannelsBtn_CT_clicked)
-    # self.loadChannelsBtn_CT = QPushButton('Load filter values', self.colorTrackingBox)
-    # self.loadChannelsBtn_CT.setGeometry(x_cln1, 45, 140, h_btn)
-    # self.loadChannelsBtn_CT.clicked.connect(self.loadChannelsBtn_CT_clicked)
-    # self.helpBtn_CT = QPushButton('Help', self.colorTrackingBox)
-    # self.helpBtn_CT.setGeometry(x_cln1, 75, 140, h_btn)
-    # self.helpBtn_CT.clicked.connect(self.helpBtn_CT_clicked)
-    # trackingTxt = QLabel('Flame tracking:', self.colorTrackingBox)
-    # trackingTxt.setGeometry(x_cln1, 100, 120, h_txt)
-    # self.lightROIBtn_CT = QPushButton('Pick bright region', self.colorTrackingBox)
-    # self.lightROIBtn_CT.setGeometry(x_cln1, 130, 140, h_btn)
-    # self.lightROIBtn_CT.clicked.connect(self.lightROIBtn_CT_clicked)
-    # self.filterLight_CT = QCheckBox('Ignore flashing light', self.colorTrackingBox)
-    # self.filterLight_CT.setGeometry(x_cln1, 155, 140, h_btn)
-    # movAvgTxt = QLabel('Moving avg points:', self.colorTrackingBox)
-    # movAvgTxt.setGeometry(x_cln1, 185, 100, h_txt)
-    # self.movAvgIn_CT = QLineEdit('2', self.colorTrackingBox)
-    # self.movAvgIn_CT.setGeometry(x_cln2, 190, 30, h_lbl)
-    # self.colorTrackingBtn = QPushButton('Start tracking', self.colorTrackingBox)
-    # self.colorTrackingBtn.setGeometry(x_cln1, 220, 140, h_btn)
-    # self.colorTrackingBtn.clicked.connect(self.colorTrackingBtn_clicked)
-    # self.absValBtn_CT = QPushButton('Absolute values', self.colorTrackingBox)
-    # self.absValBtn_CT.setGeometry(x_cln1, 250, 140, h_btn)
-    # self.absValBtn_CT.clicked.connect(self.absValBtn_CT_clicked)
-    # self.saveBtn_CT = QPushButton('Save data', self.colorTrackingBox)
-    # self.saveBtn_CT.setGeometry(x_cln1, 280, 140, h_btn)
-    # self.saveBtn_CT.clicked.connect(self.saveBtn_CT_clicked)
-
-    # # first label
-    # self.lbl1_CT = QLabel(self.colorTrackingBox)
-    # self.lbl1_CT.setGeometry(370, 15, 330, 250)
-    # self.lbl1_CT.setStyleSheet('background-color: white')
-    # self.showEdges = QCheckBox('Show edges location', self.colorTrackingBox)
-    # self.showEdges.setGeometry(780, 270, 120, h_btn)
-    # self.showEdges.setChecked(True)
-    # self.exportEdges_CT = QCheckBox('Output video analysis', self.colorTrackingBox)
-    # self.exportEdges_CT.setGeometry(780, 290, 120, h_btn)
-    #
-    # # second label
-    # self.lbl2_CT = QLabel(self.colorTrackingBox)
-    # self.lbl2_CT.setGeometry(710, 15, 330, 250)
-    # self.lbl2_CT.setStyleSheet('background-color: white')
-    # self.showFrameLargeBtn_CT = QPushButton('Show frames', self.colorTrackingBox)
-    # self.showFrameLargeBtn_CT.setGeometry(920, 270, 120, h_btn)
-    # self.showFrameLargeBtn_CT.clicked.connect(self.showFrameLargeBtn_CT_clicked)
-
 def HSVTrackingBox(self):
     if sys.platform == 'darwin':
         self.HSVTrackingBox = QGroupBox(' ', self.analysisGroupBox)
@@ -1583,6 +943,7 @@ def HSVTrackingBox(self):
         h_lbl = 22
         h_txt = 30
         h_btn = 30
+        h_btn_arrows = 30
         h_slider = 25
 
         # first column without hsv channels objects
@@ -1613,27 +974,28 @@ def HSVTrackingBox(self):
         lbl2 = [370, 150, 670, 125]
 
     elif sys.platform == 'win32':
-        self.HSVTrackingBox = QGroupBox(' ', self.analysisGroupBox)
+        self.HSVTrackingBox = QGroupBox('Analysis box', self.analysisGroupBox)
         self.HSVTrackingBox.setGeometry(0, 0, 1050, 390)
 
         # size of GUI labels:
         h_lbl = 22
         h_txt = 30
         h_btn = 25
+        h_btn_arrows = 20
         h_slider = 15
 
         # first column without hsv channels objects
-        x1 = [ 10,   5,  10, 140,  10,  10, 145,  10, 120]
-        y1 = [ 20,  45, 280, 283, 305, 330, 334, 360, 360]
+        x1 = [ 10,  10,  10, 140,  10,  10, 145,  10, 120]
+        y1 = [ 10,  35, 255, 260, 280, 295, 300, 325, 330]
         w1 = [100, 150, 150,  35, 170, 140,  30, 100,  60]
 
         # first column - 'hsv' objects
         x_hsv = [ 10,  10,  35, 175,  60,  10,  35, 175,  60]
-        w_hsv = [100, 100,  20,  20, 120, 100,  20,  20, 120]
+        w_hsv = [100, 100,  20,  20, 110, 100,  20,  20, 110]
 
-        y_h   = [ 70,  92,  90,  90,  95, 114, 112, 112, 117]
-        y_s   = [140, 162, 160, 160, 165, 184, 182, 182, 187]
-        y_v   = [210, 232, 230, 230, 235, 254, 252, 252, 257]
+        y_h   = [ 60,  80,  85,  85,  88, 100, 105, 105, 108]
+        y_s   = [125, 145, 150, 150, 153, 165, 170, 170, 173]
+        y_v   = [190, 210, 215, 215, 218, 230, 235, 235, 238]
 
         # second column
         x2 = [210, 210, 210, 220, 210, 220, 220, 325, 210, 210, 210]
@@ -1657,6 +1019,7 @@ def HSVTrackingBox(self):
         h_lbl = 22
         h_txt = 30
         h_btn = 30
+        h_btn_arrows = 30
         h_slider = 25
 
         # first column without hsv channels objects
@@ -1686,12 +1049,9 @@ def HSVTrackingBox(self):
         lbl1 = [370,  25, 670, 125]
         lbl2 = [370, 150, 670, 125]
 
-
     self.HSVTrackingBox.setStyleSheet('background-color: None')
 
-    # w_btn2 = 30
-    # #first column
-    # x_cln1 = 10
+    # first column
     directionBoxTxt = QLabel('Flame direction:', self.HSVTrackingBox)
     directionBoxTxt.setGeometry(x1[0], y1[0], w1[0], h_txt)
     self.directionBox = QComboBox(self.HSVTrackingBox)
@@ -1727,10 +1087,10 @@ def HSVTrackingBox(self):
     hueMinTxt = QLabel('Min:', self.HSVTrackingBox)
     hueMinTxt.setGeometry(x_hsv[1], y_h[1], w_hsv[1], h_txt)
     self.hueMinLeftBtn_HT = QPushButton('<', self.HSVTrackingBox)
-    self.hueMinLeftBtn_HT.setGeometry(x_hsv[2], y_h[2], w_hsv[2], h_btn)
+    self.hueMinLeftBtn_HT.setGeometry(x_hsv[2], y_h[2], w_hsv[2], h_btn_arrows)
     self.hueMinLeftBtn_HT.clicked.connect(self.hueMinLeftBtn_HT_clicked)
     self.hueMinRightBtn_HT = QPushButton('>', self.HSVTrackingBox)
-    self.hueMinRightBtn_HT.setGeometry(x_hsv[3], y_h[3], w_hsv[3], h_btn)
+    self.hueMinRightBtn_HT.setGeometry(x_hsv[3], y_h[3], w_hsv[3], h_btn_arrows)
     self.hueMinRightBtn_HT.clicked.connect(self.hueMinRightBtn_HT_clicked)
     # CAS slider setting:
     self.hueMinSlider = QSlider(Qt.Horizontal, self.HSVTrackingBox)
@@ -1743,10 +1103,10 @@ def HSVTrackingBox(self):
     hueMaxTxt = QLabel('Max:', self.HSVTrackingBox)
     hueMaxTxt.setGeometry(x_hsv[5], y_h[5], w_hsv[5], h_txt)
     self.hueMaxLeftBtn_HT = QPushButton('<', self.HSVTrackingBox)
-    self.hueMaxLeftBtn_HT.setGeometry(x_hsv[6], y_h[6], w_hsv[6], h_btn)
+    self.hueMaxLeftBtn_HT.setGeometry(x_hsv[6], y_h[6], w_hsv[6], h_btn_arrows)
     self.hueMaxLeftBtn_HT.clicked.connect(self.hueMaxLeftBtn_HT_clicked)
     self.hueMaxRightBtn_HT = QPushButton('>', self.HSVTrackingBox)
-    self.hueMaxRightBtn_HT.setGeometry(x_hsv[7], y_h[7], w_hsv[7], h_btn)
+    self.hueMaxRightBtn_HT.setGeometry(x_hsv[7], y_h[7], w_hsv[7], h_btn_arrows)
     self.hueMaxRightBtn_HT.clicked.connect(self.hueMaxRightBtn_HT_clicked)
     # CAS slider setting:
     self.hueMaxSlider = QSlider(Qt.Horizontal, self.HSVTrackingBox)
@@ -1762,10 +1122,10 @@ def HSVTrackingBox(self):
     satMinTxt = QLabel('Min:', self.HSVTrackingBox)
     satMinTxt.setGeometry(x_hsv[1], y_s[1], w_hsv[1], h_txt)
     self.satMinLeftBtn_HT = QPushButton('<', self.HSVTrackingBox)
-    self.satMinLeftBtn_HT.setGeometry(x_hsv[2], y_s[2], w_hsv[2], h_btn)
+    self.satMinLeftBtn_HT.setGeometry(x_hsv[2], y_s[2], w_hsv[2], h_btn_arrows)
     self.satMinLeftBtn_HT.clicked.connect(self.satMinLeftBtn_HT_clicked)
     self.satMinRightBtn_HT = QPushButton('>', self.HSVTrackingBox)
-    self.satMinRightBtn_HT.setGeometry(x_hsv[3], y_s[3], w_hsv[3], h_btn)
+    self.satMinRightBtn_HT.setGeometry(x_hsv[3], y_s[3], w_hsv[3], h_btn_arrows)
     self.satMinRightBtn_HT.clicked.connect(self.satMinRightBtn_HT_clicked)
     # CAS slider setting:
     self.satMinSlider = QSlider(Qt.Horizontal, self.HSVTrackingBox)
@@ -1778,10 +1138,10 @@ def HSVTrackingBox(self):
     satMaxTxt = QLabel('Max:', self.HSVTrackingBox)
     satMaxTxt.setGeometry(x_hsv[5], y_s[5], w_hsv[5], h_txt)
     self.satMaxLeftBtn_HT = QPushButton('<', self.HSVTrackingBox)
-    self.satMaxLeftBtn_HT.setGeometry(x_hsv[6], y_s[6], w_hsv[6], h_btn)
+    self.satMaxLeftBtn_HT.setGeometry(x_hsv[6], y_s[6], w_hsv[6], h_btn_arrows)
     self.satMaxLeftBtn_HT.clicked.connect(self.satMaxLeftBtn_HT_clicked)
     self.satMaxRightBtn_HT = QPushButton('>', self.HSVTrackingBox)
-    self.satMaxRightBtn_HT.setGeometry(x_hsv[7], y_s[7], w_hsv[7], h_btn)
+    self.satMaxRightBtn_HT.setGeometry(x_hsv[7], y_s[7], w_hsv[7], h_btn_arrows)
     self.satMaxRightBtn_HT.clicked.connect(self.satMaxRightBtn_HT_clicked)
     # CAS slider setting:
     self.satMaxSlider = QSlider(Qt.Horizontal, self.HSVTrackingBox)
@@ -1797,10 +1157,10 @@ def HSVTrackingBox(self):
     valMinTxt = QLabel('Min:', self.HSVTrackingBox)
     valMinTxt.setGeometry(x_hsv[1], y_v[1], w_hsv[1], h_txt)
     self.valMinLeftBtn_HT = QPushButton('<', self.HSVTrackingBox)
-    self.valMinLeftBtn_HT.setGeometry(x_hsv[2], y_v[2], w_hsv[2], h_btn)
+    self.valMinLeftBtn_HT.setGeometry(x_hsv[2], y_v[2], w_hsv[2], h_btn_arrows)
     self.valMinLeftBtn_HT.clicked.connect(self.valMinLeftBtn_HT_clicked)
     self.valMinRightBtn_HT = QPushButton('>', self.HSVTrackingBox)
-    self.valMinRightBtn_HT.setGeometry(x_hsv[3], y_v[3], w_hsv[3], h_btn)
+    self.valMinRightBtn_HT.setGeometry(x_hsv[3], y_v[3], w_hsv[3], h_btn_arrows)
     self.valMinRightBtn_HT.clicked.connect(self.valMinRightBtn_HT_clicked)
     # CAS slider setting:
     self.valMinSlider = QSlider(Qt.Horizontal, self.HSVTrackingBox)
@@ -1813,10 +1173,10 @@ def HSVTrackingBox(self):
     valMaxTxt = QLabel('Max:', self.HSVTrackingBox)
     valMaxTxt.setGeometry(x_hsv[5], y_v[5], w_hsv[5], h_txt)
     self.valMaxLeftBtn_HT = QPushButton('<', self.HSVTrackingBox)
-    self.valMaxLeftBtn_HT.setGeometry(x_hsv[6], y_v[6], w_hsv[6], h_btn)
+    self.valMaxLeftBtn_HT.setGeometry(x_hsv[6], y_v[6], w_hsv[6], h_btn_arrows)
     self.valMaxLeftBtn_HT.clicked.connect(self.valMaxLeftBtn_HT_clicked)
     self.valMaxRightBtn_HT = QPushButton('>', self.HSVTrackingBox)
-    self.valMaxRightBtn_HT.setGeometry(x_hsv[7], y_v[7], w_hsv[7], h_btn)
+    self.valMaxRightBtn_HT.setGeometry(x_hsv[7], y_v[7], w_hsv[7], h_btn_arrows)
     self.valMaxRightBtn_HT.clicked.connect(self.valMaxRightBtn_HT_clicked)
     # CAS slider setting:
     self.valMaxSlider = QSlider(Qt.Horizontal, self.HSVTrackingBox)
@@ -1828,7 +1188,6 @@ def HSVTrackingBox(self):
     self.valMaxSlider.valueChanged.connect(self.singleHSVSlider_released)
 
     #second column
-    # x_cln1 = 220
     self.saveChannelsBtn_HT = QPushButton('Save filter values', self.HSVTrackingBox)
     self.saveChannelsBtn_HT.setGeometry(x2[0], y2[0], w2[0], h_btn)
     self.saveChannelsBtn_HT.clicked.connect(self.saveChannelsBtn_HT_clicked)

@@ -21,8 +21,6 @@ Author: Luca Carmignani, PhD
 Contact: flameTrackerContact@gmail.com
 """
 
-#from flameTracker import *
-#from boxesGUI_OS import *
 from PyQt5 import QtGui
 from PyQt5.QtGui import *
 from PyQt5.QtWidgets import *
@@ -37,58 +35,11 @@ import pyqtgraph as pg
 import numpy as np
 import sys
 
-def initVars(self):
+def initVars(self): # define initial variables
     global flameDir, connectivity_CT
     flameDir = 'toRight'
     connectivity_CT = 4
     self.lightROI_CT_recorded = False
-
-# def createTrackingBox(self):
-#     #self.colorTrackingValue = True
-#
-#     gui.colorTrackingBox(self)
-#
-#     # if self.OStype == 'mac' or self.OStype == 'lin':
-#     #     gui.colorTrackingBox_Mac(self)
-#     # elif self.OStype == 'win':
-#     #     gui.colorTrackingBox_Win(self)
-#
-#     initiateVariables(self)
-#     # default variables
-#     #self.flameDir = 'toRight'
-#     #self.connectivity_CT = 4
-#     #self.lightROI_CT_recorded = False
-#
-#     self.colorTrackingBox.show()
-
-# def checkEditing(self, frameNumber):
-#     if self.openSelection == 'video':
-#         self.fVideo.set(1, frameNumber)
-#         ret, frame = self.fVideo.read()
-#     elif self.openSelection == 'image(s)':
-#         imageNumber = self.imagesList[int(frameNumber)]
-#         frame = cv2.imread(imageNumber)
-#     # check for previous corrections
-#     if self.perspectiveValue == True:
-#         if self.rotationValue == True:
-#             frame = rotationCorrection(self, frame, self.anglePerspective)
-#         frame = perspectiveCorrection(self, frame)
-#         #the rotation has already been included in the perspective correction, but it could happen that a further rotation is needed after the correction (e.g. for the analysis)
-#         if self.anglePerspective != float(self.rotationAngleIn.text()):
-#             angle = float(self.rotationAngleIn.text()) - self.anglePerspective
-#             frame = rotationCorrection(self, frame, angle)
-#     elif float(self.rotationAngleIn.text()) != 0: #in case there is no perspective correction
-#             angle = float(self.rotationAngleIn.text())
-#             frame = rotationCorrection(self, frame, angle)
-#     if int(self.brightnessSlider.value()) != 0 or int(self.contrastSlider.value()) != 0:
-#         frameContainer = np.zeros(frame.shape, frame.dtype)
-#         alpha = (int(self.contrastSlider.value()) + 100) * 2 / 200
-#         beta = int(self.brightnessSlider.value())    # Simple brightness control [0-100]. Instead, we have [-50-50]
-#         frame = cv2.convertScaleAbs(frame, alpha=alpha, beta=beta)
-#
-#     # crop frame
-#     frameCrop = frame[int(self.roiTwoIn.text()) : (int(self.roiTwoIn.text()) + int(self.roiFourIn.text())), int(self.roiOneIn.text()) : (int(self.roiOneIn.text()) + int(self.roiThreeIn.text()))]
-#     return(frame, frameCrop)
 
 def getFilteredFrame(self, frame):
     blueLow = self.blueMinSlider.value()
@@ -312,13 +263,9 @@ def colorTracking(self):
         elif sys.platform == 'linux':
             lbl1 = [370, 25, 330, 250]
             lbl2 = [710, 25, 330, 250]
-        # if self.OStype == 'mac' or self.OStype == 'lin':
-        #     self.lbl1_CT.setGeometry()
-        #     self.lbl2_CT.setGeometry()
-        # elif self.OStype == 'win':
+
         self.lbl1_CT.setGeometry(lbl1[0], lbl1[1], lbl1[2], lbl1[3])
         self.lbl2_CT.setGeometry(lbl2[0], lbl2[1], lbl2[2], lbl2[3])
-        #self.lbl1_CT.setGeometry(370, 25, 330, 250)
         self.lbl1_CT.setBackground('w')
         self.lbl1_CT.setLabel('left', 'Position [mm]', color='black', size=14)
         self.lbl1_CT.setLabel('bottom', 'Time [s]', color='black', size=14)
@@ -356,40 +303,6 @@ def filterParticleSldr(self):
     self.lbl1_CT.setPixmap(QPixmap.fromImage(self.frame))
     self.lbl2_CT.setPixmap(QPixmap.fromImage(self.frameBW))
     self.filterParticleSldr_CT.setMaximum(int(self.particleSldrMax.text()))
-
-# def perspectiveCorrection(self, frame):
-#     # M is the matrix transformation calculated with the size of the sample (calculated from user input), and the sampleMod from the user clicks
-#     M = cv2.getPerspectiveTransform(self.sample, self.sampleMod)
-#     # If the perspective is done on a rotated video, the corrected image might have a much larger size than the original one, here we check this
-#     originalFrame = np.float32([[0,0], [self.vWidth, 0], [self.vWidth, self.vHeight], [0, self.vHeight]])
-#     width = int(frame.shape[1])
-#     height = int(frame.shape[0])
-#     for point in self.sampleMod:
-#         if point[0] > width:
-#             width = int(point[0])
-#         if point[1] > height:
-#             height = int(point[1])
-#
-#     frame = cv2.warpPerspective(frame, M, (width, height))
-#     return(frame)
-
-# def rotationCorrection(self, frame, angle):
-#     # rotation matrix:
-#     width = int(self.vWidth)
-#     height = int(self.vHeight)
-#     center = (width/2, height/2)
-#     matrix = cv2.getRotationMatrix2D(center, angle, 1) #center of rotation, angle, zoom In/zoom Out
-#     # rotation calculates the cos and sin, taking absolutes of those (these extra steps are used to avoid cropping )
-#     abs_cos = abs(matrix[0,0])
-#     abs_sin = abs(matrix[0,1])
-#     # find the new width and height bounds
-#     region_w = int(height * abs_sin + width * abs_cos)
-#     region_h = int(height * abs_cos + width * abs_sin)
-#     # subtract old image center (bringing image back to origo) and adding the new image center coordinates
-#     matrix[0, 2] += region_w/2 - center[0]
-#     matrix[1, 2] += region_h/2 - center[1]
-#     frame = cv2. warpAffine(frame, matrix, (region_w, region_h)) #resolution is specified
-#     return(frame)
 
 def chooseFlameDirection(self, text):
     global flameDir
@@ -497,7 +410,7 @@ def saveBtn(self):
     if not fileName[-4:] == '.csv':
         fileName = fileName + '.csv'
 
-    fileInfo = ['Name', self.fNameLbl.text(), 'Scale [px/mm]', self.scaleIn.text(), 'Moving avg', self.movAvgIn_CT.text(), 'Points LE', self.avgLEIn_CT.text(), 'Flame dir.:', flameDir]
+    fileInfo = ['Name', self.fNameLbl.text(), 'Scale [px/mm]', self.scaleIn.text(), 'Color Tracking', 'Flame dir.:', flameDir, 'Moving avg', self.movAvgIn_CT.text(), 'Points LE', self.avgLEIn_CT.text(), 'code version', str(self.FTversion)]
     lbl = ['File info', 'Frame', 'Time [s]', 'Right Edge [mm]', 'Left Edge [mm]', 'Length [mm]', 'Spread Rate RE [mm/s]', 'Spread Rate LE [mm/s]', 'Area [mm^2]']
     clms = [fileInfo, self.frameCount, self.timeCount, self.xRight_mm, self.xLeft_mm, self.flameLength_mm, self.spreadRateRight, self.spreadRateLeft, self.flameArea]
     clms_zip = zip_longest(*clms)

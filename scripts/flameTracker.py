@@ -36,7 +36,6 @@ from PyQt5.QtGui import *
 from PyQt5.QtWidgets import *
 from PyQt5.QtCore import *
 from itertools import zip_longest
-#from pyqtgraph import PlotWidget, plot
 
 import manualTracking as mt
 import lumaTracking as lt
@@ -51,6 +50,19 @@ if hasattr(Qt, 'AA_EnableHighDpiScaling'):
 if hasattr(Qt, 'AA_UseHighDpiPixmaps'):
     QApplication.setAttribute(Qt.AA_UseHighDpiPixmaps, True)
 
+def initVars(self): # define initial variables
+    global manualTrackingValue, lumaTrackingValue, colorTrackingValue, HSVTrackingValue, editFrame
+    self.openSelection = 'video'
+    self.perspectiveValue = False
+    self.rotationValue = False
+    self.refPoint = []
+    self.refPoint_ROI = []
+    manualTrackingValue = False
+    lumaTrackingValue = False
+    colorTrackingValue = False
+    HSVTrackingValue = False
+    editFrame = False
+
 class Window(QWidget):
     def __init__(self, parent=None):
         super(Window, self).__init__(parent)
@@ -63,22 +75,10 @@ class Window(QWidget):
         the Free Software Foundation, either version 3 of the License, or
         (at your option) any later version.''')
 
+        # Flame Tracker version
+        self.FTversion = 'v1.1.2'
+        # initialize GUI
         gui.previewBox(self)
-
-        # if sys.platform == 'darwin':
-        #     gui.previewBox_Mac(self)
-        #     self.OStype = 'mac'
-        # elif sys.platform == 'win32':
-        #     gui.previewBox_Win(self)
-        #     self.OStype = 'win'
-        # elif sys.platform == 'linux':
-        #     gui.previewBox_Linux(self)
-        #     self.OStype = 'lin'
-        # else:
-        #     print('\n!!! Warning: Unable to detect OS!!!')
-
-        #default variables
-        self.openSelection = 'video'
 
 ### methods
     def openSelection_click(self, text):
@@ -93,55 +93,45 @@ class Window(QWidget):
         initVars(self)
 
         if self.openSelection == 'video':
-            # try:
-            self.fPath, fFilter = QFileDialog.getOpenFileName(self, 'Open File')
-            # look for the name: look for '/' after any character (.), repeated any times (*), and extract everything that comes after in a non-greedy way
-            self.fName = re.findall('.*[/](.*)?', self.fPath)
-            self.fNameLbl.setText(str(self.fName[0]))
-            self.fVideo = cv2.VideoCapture(self.fPath)
-            self.vFrames = int(self.fVideo.get(cv2.CAP_PROP_FRAME_COUNT)) #get(7)
-            self.vHeight = int(self.fVideo.get(cv2.CAP_PROP_FRAME_HEIGHT))
-            self.vWidth = int(self.fVideo.get(cv2.CAP_PROP_FRAME_WIDTH))
-            self.vFps = round(self.fVideo.get(cv2.CAP_PROP_FPS) * 100) / 100 #(get(5))
-            self.vFramesLbl.setText(str(self.vFrames))
-            self.vWidthLbl.setText(str(self.vWidth))
-            self.vHeightLbl.setText(str(self.vHeight))
-            self.vFpsLbl.setText(str(self.vFps))
-            self.vDuration = self.vFrames / self.vFps
-            self.vDuration = round(self.vDuration * 100) / 100 #only 2 decimals for duration
-            self.vDurationLbl.setText(str(self.vDuration))
+            try:
+                self.fPath, fFilter = QFileDialog.getOpenFileName(self, 'Open File')
+                # look for the name: look for '/' after any character (.), repeated any times (*), and extract everything that comes after in a non-greedy way
+                self.fName = re.findall('.*[/](.*)?', self.fPath)
+                self.fNameLbl.setText(str(self.fName[0]))
+                self.fVideo = cv2.VideoCapture(self.fPath)
+                self.vFrames = int(self.fVideo.get(cv2.CAP_PROP_FRAME_COUNT)) #get(7)
+                self.vHeight = int(self.fVideo.get(cv2.CAP_PROP_FRAME_HEIGHT))
+                self.vWidth = int(self.fVideo.get(cv2.CAP_PROP_FRAME_WIDTH))
+                self.vFps = round(self.fVideo.get(cv2.CAP_PROP_FPS) * 100) / 100 #(get(5))
+                self.vFramesLbl.setText(str(self.vFrames))
+                self.vWidthLbl.setText(str(self.vWidth))
+                self.vHeightLbl.setText(str(self.vHeight))
+                self.vFpsLbl.setText(str(self.vFps))
+                self.vDuration = self.vFrames / self.vFps
+                self.vDuration = round(self.vDuration * 100) / 100 #only 2 decimals for duration
+                self.vDurationLbl.setText(str(self.vDuration))
 
-            #Set parameter defaults upon opening a new video
-            self.roiOneIn.setText('0')
-            self.roiTwoIn.setText('0')
-            self.roiThreeIn.setText(str(self.vWidth - 1))
-            self.roiFourIn.setText(str(self.vHeight - 1))
-            self.firstFrameIn.setText('0')
-            self.lastFrameIn.setText(str(self.vFrames - 1))
-            self.skipFrameIn.setText('5') # with 5 you would obtain an even number of points with 24, 30, and 60 fps (not too relevant)
-            self.frameIn.setText('0')
-            self.frameNumber = 0
-            self.previewSlider.setMinimum(int(self.firstFrameIn.text()))
-            self.previewSlider.setMaximum(int(self.lastFrameIn.text()))
-            self.previewSlider.setValue(int(self.frameIn.text()))
-            #self.xref.setText('')
-            self.rotationAngleIn.setText('0')
-            #self.perspectiveValue = False
-            #self.rotationValue = False
-            #self.manualTrackingValue = False
-            #self.lumaTrackingValue = False
-            #self.colorTrackingValue = False
-            #self.HSVTrackingValue = False
-            #self.editFrame = False
-            #self.rotationValue = False
-            #self.fVideo.set(1, 0)
-            #ret, frame = self.fVideo.read()
-            showFrame(self, self.frameNumber)
-            self.msgLabel.setText('Video read succesfully')
-            for children in self.analysisGroupBox.findChildren(QGroupBox):
-                children.setParent(None)
-            # except:
-            #     self.msgLabel.setText('Error: the video could not be opened')
+                #Set parameter defaults upon opening a new video
+                self.roiOneIn.setText('0')
+                self.roiTwoIn.setText('0')
+                self.roiThreeIn.setText(str(self.vWidth - 1))
+                self.roiFourIn.setText(str(self.vHeight - 1))
+                self.firstFrameIn.setText('0')
+                self.lastFrameIn.setText(str(self.vFrames - 1))
+                self.skipFrameIn.setText('5') # with 5 you would obtain an even number of points with 24, 30, and 60 fps (not too relevant)
+                self.frameIn.setText('0')
+                self.frameNumber = 0
+                self.previewSlider.setMinimum(int(self.firstFrameIn.text()))
+                self.previewSlider.setMaximum(int(self.lastFrameIn.text()))
+                self.previewSlider.setValue(int(self.frameIn.text()))
+                self.rotationAngleIn.setText('0')
+
+                showFrame(self, self.frameNumber)
+                self.msgLabel.setText('Video read succesfully')
+                for children in self.analysisGroupBox.findChildren(QGroupBox):
+                    children.setParent(None)
+            except:
+                self.msgLabel.setText('Error: the video could not be opened')
         elif self.openSelection == 'image(s)':
             try:
                 self.fPath, fFilter = QFileDialog.getOpenFileNames(self, 'Open Images')
@@ -186,16 +176,7 @@ class Window(QWidget):
                 self.previewSlider.setMaximum(int(self.lastFrameIn.text()))
                 self.previewSlider.setValue(int(self.frameIn.text()))
                 self.rotationAngleIn.setText('0')
-                # self.perspectiveValue = False
-                # self.rotationValue = False
-                # self.manualTrackingValue = False
-                # self.lumaTrackingValue = False
-                # self.colorTrackingValue = False
-                # self.HSVTrackingValue = False
-                # self.editFrame = False
-                # self.rotationValue = False
-            #    frameNumber = self.imagesList[0]
-            #    frame = cv2.imread(frameNumber)
+
                 showFrame(self, self.frameNumber)
                 self.msgLabel.setText('Image(s)read succesfully')
                 for children in self.analysisGroupBox.findChildren(QGroupBox):
@@ -209,14 +190,8 @@ class Window(QWidget):
             self.firstFrameIn.setText(str(self.frameNumber))
         elif self.frameNumber > int(self.lastFrameIn.text()):
             self.lastFrameIn.setText(str(self.frameNumber))
-        # if self.openSelection == 'video':
-        #     self.fVideo.set(1, self.frameNumber)
-        #     ret, frame = self.fVideo.read()
-        # elif self.openSelection == 'image(s)':
-        #     imageNumber = self.imagesList[self.frameNumber]
-        #     frame = cv2.imread(imageNumber)
 
-        self.previewSlider.setValue(int(self.frameNumber)) #CAS - update slider to reflect new goto frame value
+        self.previewSlider.setValue(int(self.frameNumber))
         showFrame(self, self.frameNumber)
         checkAnalysisBox(self, self.frameNumber)
 
@@ -225,28 +200,23 @@ class Window(QWidget):
         self.previewSlider.setMaximum(int(self.lastFrameIn.text()))
         self.frameNumber = self.previewSlider.value()
         self.frameIn.setText(str(self.frameNumber))
-        # if self.openSelection == 'video':
-        #     self.fVideo.set(1, self.frameNumber)
-        #     ret, frame = self.fVideo.read()
-        # elif self.openSelection == 'image(s)':
-        #     imageNumber = self.imagesList[self.frameNumber]
-        #     frame = cv2.imread(imageNumber)
 
         showFrame(self, self.frameNumber)
         checkAnalysisBox(self, self.frameNumber)
 
+    def sliderValue_scrolled(self):
+        self.previewSlider.setMinimum(int(self.firstFrameIn.text()))
+        self.previewSlider.setMaximum(int(self.lastFrameIn.text()))
+        self.frameNumber = self.previewSlider.value()
+        self.frameIn.setText(str(self.frameNumber))
+
+        showFrame(self, self.frameNumber)
+
     def roiBtn_clicked(self):
         try:
-            # if self.openSelection == 'video':
-            #     self.fVideo.set(1, int(self.frameNumber))
-            #     ret, frame = self.fVideo.read()
-            # elif self.openSelection == 'image(s)':
-            #     imageNumber = self.imagesList[int(self.frameNumber)]
-            #     frame = cv2.imread(imageNumber)
-
             frame, frameCrop = checkEditing(self, self.frameNumber)
 
-            # Select ROI
+            # Select Region Of Interest
             self.roi = cv2.selectROI(frame)
             self.roiOneIn.setText(str(self.roi[0]))
             self.roiTwoIn.setText(str(self.roi[1]))
@@ -382,12 +352,6 @@ class Window(QWidget):
         self.contrastSlider.setValue(0)
         self.brightnessLbl.setText(str(self.brightnessSlider.value()))
         self.contrastLbl.setText(str(self.contrastSlider.value()))
-        # if self.openSelection == 'video':
-        #     self.fVideo.set(1, self.frameNumber)
-        #     ret, frame = self.fVideo.read()
-        # elif self.openSelection == 'image(s)':
-        #     imageNumber = self.imagesList[int(self.frameNumber)]
-        #     frame = cv2.imread(imageNumber)
         showFrame(self, self.frameNumber)
 
     def saveParBtn_clicked(self):
@@ -398,126 +362,117 @@ class Window(QWidget):
         if name == '.csv': #this avoids name issues when the user closes the dialog without saving
             self.msgLabel.setText('Ops! Something was wrong with the file name.')
         else:
-            #try:
-            with open(name, 'w', newline = '') as csvfile:
-                writer = csv.writer(csvfile, delimiter = ',')
-                writer.writerow(['File', self.fNameLbl.text()])
-                writer.writerow(['ROI', 'Value'])
-                writer.writerow([self.roiOneTxt.text(), str(self.roiOneIn.text())])
-                writer.writerow([self.roiTwoTxt.text(), str(self.roiTwoIn.text())])
-                writer.writerow([self.roiThreeTxt.text(), str(self.roiThreeIn.text())])
-                writer.writerow([self.roiFourTxt.text(), str(self.roiFourIn.text())])
-                writer.writerow([self.firstFrameTxt.text(), str(self.firstFrameIn.text())])
-                writer.writerow([self.lastFrameTxt.text(), str(self.lastFrameIn.text())])
-                writer.writerow([self.skipFrameTxt.text(), str(self.skipFrameIn.text())])
-                writer.writerow([self.scaleTxt.text(), str(self.scaleIn.text())])
-                writer.writerow([self.sLengthTxt.text(), str(self.sLengthIn.text())])
-                writer.writerow([self.sWidthTxt.text(), str(self.sWidthIn.text())])
-                writer.writerow([self.frameTxt.text(), str(self.frameIn.text())])
-                writer.writerow([self.rotationAngleInTxt.text(), str(self.rotationAngleIn.text())])
-                writer.writerow([self.brightnessTxt.text(), str(self.brightnessLbl.text())])
-                writer.writerow([self.contrastTxt.text(), str(self.contrastLbl.text())])
-                if self.rotationValue == True:
-                    writer.writerow(['Pre-rotation', 'Yes'])
-                    writer.writerow(['anglePerspective', str(self.anglePerspective)])
-                if self.perspectiveValue == True:
-                    writer.writerow(['Perspective', 'Yes'])
-                    writer.writerow(['sample', self.sample[0], self.sample[1], self.sample[2], self.sample[3]])
-                    writer.writerow(['sampleMod', self.sampleMod[0], self.sampleMod[1], self.sampleMod[2], self.sampleMod[3]])
+            try:
+                with open(name, 'w', newline = '') as csvfile:
+                    writer = csv.writer(csvfile, delimiter = ',')
+                    writer.writerow(['File', self.fNameLbl.text()])
+                    writer.writerow(['ROI', 'Value'])
+                    writer.writerow([self.roiOneTxt.text(), str(self.roiOneIn.text())])
+                    writer.writerow([self.roiTwoTxt.text(), str(self.roiTwoIn.text())])
+                    writer.writerow([self.roiThreeTxt.text(), str(self.roiThreeIn.text())])
+                    writer.writerow([self.roiFourTxt.text(), str(self.roiFourIn.text())])
+                    writer.writerow([self.firstFrameTxt.text(), str(self.firstFrameIn.text())])
+                    writer.writerow([self.lastFrameTxt.text(), str(self.lastFrameIn.text())])
+                    writer.writerow([self.skipFrameTxt.text(), str(self.skipFrameIn.text())])
+                    writer.writerow(['Scale (px/mm):', str(self.scaleIn.text())])
+                    writer.writerow([self.sLengthTxt.text(), str(self.sLengthIn.text())])
+                    writer.writerow([self.sWidthTxt.text(), str(self.sWidthIn.text())])
+                    writer.writerow([self.frameTxt.text(), str(self.frameIn.text())])
+                    writer.writerow([self.rotationAngleInTxt.text(), str(self.rotationAngleIn.text())])
+                    writer.writerow([self.brightnessTxt.text(), str(self.brightnessLbl.text())])
+                    writer.writerow([self.contrastTxt.text(), str(self.contrastLbl.text())])
+                    if self.rotationValue == True:
+                        writer.writerow(['Pre-rotation', 'Yes'])
+                        writer.writerow(['anglePerspective', str(self.anglePerspective)])
+                    if self.perspectiveValue == True:
+                        writer.writerow(['Perspective', 'Yes'])
+                        writer.writerow(['sample', self.sample[0], self.sample[1], self.sample[2], self.sample[3]])
+                        writer.writerow(['sampleMod', self.sampleMod[0], self.sampleMod[1], self.sampleMod[2], self.sampleMod[3]])
 
-                if self.refPoint != []:
-                    writer.writerow(['Ref. point (abs)', [self.refPoint[0], self.refPoint[1]]])
-                    writer.writerow(['Ref. point (ROI)', [self.refPoint_ROI[0], self.refPoint_ROI[1]]])
-                    #CAS Add to save reference txt
-                    # LC we will include a button for this in the next version
-                    #writer.writerow([self.xrefTxt.text(), str(self.xref.text())]) #CAS Add to save reference txt
-                #    writer.writerow(['xref', str(self.xref.text())]) #CAS Add to save reference txt
-                self.msgLabel.setText('Parameters saved.')
-        #    except:
-        #        self.msgLabel.setText('Ops! Parameters were not saved.')
+                    if self.refPoint != []:
+                        writer.writerow(['Ref. point (abs):', [self.refPoint[0], self.refPoint[1]]])
+                        writer.writerow(['Ref. point (ROI):', [self.refPoint_ROI[0], self.refPoint_ROI[1]]])
+
+                    writer.writerow(['code version', str(self.FTversion)])
+                    self.msgLabel.setText('Parameters saved.')
+            except:
+                self.msgLabel.setText('Ops! Parameters were not saved.')
 
     def loadParBtn_clicked(self):
         name = QFileDialog.getOpenFileName(self, 'Open parameters')
-        #try:
-        with open(name[0], 'r') as csvfile:
-            reader = csv.reader(csvfile, delimiter = ',')
-            for row in reader:
-                if self.roiOneTxt.text() in row:
-                    self.roiOneIn.setText(row[1])
-                if self.roiTwoTxt.text() in row:
-                    self.roiTwoIn.setText(row[1])
-                if self.roiThreeTxt.text() in row:
-                    self.roiThreeIn.setText(row[1])
-                if self.roiFourTxt.text() in row:
-                    self.roiFourIn.setText(row[1])
-                if self.firstFrameTxt.text() in row:
-                    self.firstFrameIn.setText(row[1])
-                if self.lastFrameTxt.text() in row:
-                    self.lastFrameIn.setText(row[1])
-                if self.firstFrameTxt.text() in row:
-                    self.firstFrameIn.setText(row[1])
-                if self.skipFrameTxt.text() in row:
-                    self.skipFrameIn.setText(row[1])
-                if self.scaleTxt.text() in row:
-                    self.scaleIn.setText(row[1])
-                if self.sLengthTxt.text() in row:
-                    self.sLengthIn.setText(row[1])
-                if self.sWidthTxt.text() in row:
-                    self.sWidthIn.setText(row[1])
-                if self.frameTxt.text() in row:
-                    self.frameIn.setText(row[1])
-                if self.rotationAngleInTxt.text() in row:
-                    self.rotationAngleIn.setText(row[1])
-                if self.brightnessTxt.text() in row:
-                    self.brightnessLbl.setText(row[1])
-                if self.contrastTxt.text() in row:
-                    self.contrastLbl.setText(row[1])
-                if 'anglePerspective' in row:
-                    self.rotationValue = True
-                    self.anglePerspective = float(row[1])
-                if 'sample' in row:
-                    self.perspectiveValue = True
-                    self.sample = []
-                    for i in range(1,5): #x,y are the pixel values for each corner
-                        points = re.findall('^\[(.+)\]$', row[i]) #this creates a list without '[]'
-                        points = points[0].strip() #gets rid of white spaces
-                        x = re.findall('(^[0-9]+.[0-9]*\s)', points)
-                        y = re.findall('\s([0-9]+.[0-9]*$)', points)
-                        self.sample.append([np.float32(x[0]), np.float32(y[0])])
-                    self.sample = np.array(self.sample)
-                if 'sampleMod' in row:
-                    self.sampleMod = []
-                    for i in range(1,5):
-                        points = re.findall('^\[(.+)\]$', row[i]) #this creates a list without '[]'
-                        points = points[0].strip() #gets rid of white spaces
-                        x = re.findall('(^[0-9]+.[0-9]*\s)', points)
-                        y = re.findall('\s([0-9]+.[0-9]*$)', points)
-                        self.sampleMod.append([np.float32(x[0]), np.float32(y[0])])
-                    self.sampleMod = np.array(self.sampleMod)
-                if 'Ref. point (abs)' in row:
-                    x = re.findall('^\[(.+),', row[1])
-                    y = re.findall('^\[.+,\s(.+)\]$', row[1])
-                    #print('x', x[0])
-                    #print('y', y[0])
-                    self.refPointTxt.setText(str([x[0],y[0]]))
-                #CAS Add to save reference txt
-                #if self.xrefTxt.text() in row:
-#                if 'xref' in row:
-#                    self.xref.setText(row[1]) #CAS Add to save reference txt.
-                    #print('xRef loaded:', self.xrefTxt.text(), '=', self.xref.text())
+        try:
+            with open(name[0], 'r') as csvfile:
+                reader = csv.reader(csvfile, delimiter = ',')
+                for row in reader:
+                    if self.roiOneTxt.text() in row:
+                        self.roiOneIn.setText(row[1])
+                    if self.roiTwoTxt.text() in row:
+                        self.roiTwoIn.setText(row[1])
+                    if self.roiThreeTxt.text() in row:
+                        self.roiThreeIn.setText(row[1])
+                    if self.roiFourTxt.text() in row:
+                        self.roiFourIn.setText(row[1])
+                    if self.firstFrameTxt.text() in row:
+                        self.firstFrameIn.setText(row[1])
+                    if self.lastFrameTxt.text() in row:
+                        self.lastFrameIn.setText(row[1])
+                    if self.firstFrameTxt.text() in row:
+                        self.firstFrameIn.setText(row[1])
+                    if self.skipFrameTxt.text() in row:
+                        self.skipFrameIn.setText(row[1])
+                    if 'Scale (px/mm):' in row:
+                        self.scaleIn.setText(row[1])
+                    if self.sLengthTxt.text() in row:
+                        self.sLengthIn.setText(row[1])
+                    if self.sWidthTxt.text() in row:
+                        self.sWidthIn.setText(row[1])
+                    if self.frameTxt.text() in row:
+                        self.frameIn.setText(row[1])
+                    if self.rotationAngleInTxt.text() in row:
+                        self.rotationAngleIn.setText(row[1])
+                    if self.brightnessTxt.text() in row:
+                        self.brightnessLbl.setText(row[1])
+                    if self.contrastTxt.text() in row:
+                        self.contrastLbl.setText(row[1])
+                    if 'anglePerspective' in row:
+                        self.rotationValue = True
+                        self.anglePerspective = float(row[1])
+                    if 'sample' in row:
+                        self.perspectiveValue = True
+                        self.sample = []
+                        for i in range(1,5): #x,y are the pixel values for each corner
+                            points = re.findall('^\[(.+)\]$', row[i]) #this creates a list without '[]'
+                            points = points[0].strip() #gets rid of white spaces
+                            x = re.findall('(^[0-9]+.[0-9]*\s)', points)
+                            y = re.findall('\s([0-9]+.[0-9]*$)', points)
+                            self.sample.append([np.float32(x[0]), np.float32(y[0])])
+                        self.sample = np.array(self.sample)
+                    if 'sampleMod' in row:
+                        self.sampleMod = []
+                        for i in range(1,5):
+                            points = re.findall('^\[(.+)\]$', row[i]) #this creates a list without '[]'
+                            points = points[0].strip() #gets rid of white spaces
+                            x = re.findall('(^[0-9]+.[0-9]*\s)', points)
+                            y = re.findall('\s([0-9]+.[0-9]*$)', points)
+                            self.sampleMod.append([np.float32(x[0]), np.float32(y[0])])
+                        self.sampleMod = np.array(self.sampleMod)
+                    if 'Ref. point (abs):' in row:
+                        x = re.findall('^\[(.+),', row[1])
+                        y = re.findall('^\[.+,\s(.+)\]$', row[1])
+                        self.refPointIn.setText(f'{x[0]}, {y[0]}')
 
-        self.previewSlider.setMinimum(int(self.firstFrameIn.text()))
-        self.previewSlider.setMaximum(int(self.lastFrameIn.text()))
-        self.previewSlider.setValue(int(self.frameIn.text()))
+            self.previewSlider.setMinimum(int(self.firstFrameIn.text()))
+            self.previewSlider.setMaximum(int(self.lastFrameIn.text()))
+            self.previewSlider.setValue(int(self.frameIn.text()))
 
-        if self.perspectiveValue == True:
-            self.msgLabel.setText('Parameters loaded. Perspective correction detected and applied')
-        else:
-            self.msgLabel.setText('Parameters loaded.')
-        # except:
-        #     notParameters_dlg = QErrorMessage(self)
-        #     notParameters_dlg.showMessage('Ops! There was a problem loading the parameters.')
-        #     self.msgLabel.setText('Parameters not loaded correctly.')
+            if self.perspectiveValue == True:
+                self.msgLabel.setText('Parameters loaded. Perspective correction detected and applied')
+            else:
+                self.msgLabel.setText('Parameters loaded.')
+        except:
+            notParameters_dlg = QErrorMessage(self)
+            notParameters_dlg.showMessage('Ops! There was a problem loading the parameters.')
+            self.msgLabel.setText('Parameters not loaded correctly.')
 
     # selection connected to the specific file, getting rid of what was showing before
     def analysis_click(self, text):
@@ -536,7 +491,6 @@ class Window(QWidget):
             gui.manualTrackingBox(self)
             mt.initVars(self)
             self.manualTrackingBox.show()
-#            mt.createTrackingBox(self)
             manualTrackingValue = True
             lumaTrackingValue = False
             colorTrackingValue = False
@@ -547,7 +501,6 @@ class Window(QWidget):
             gui.lumaTrackingBox(self)
             lt.initVars(self)
             self.lumaTrackingBox.show()
-#            lt.createTrackingBox(self)
             manualTrackingValue = False
             lumaTrackingValue = True
             colorTrackingValue = False
@@ -555,7 +508,6 @@ class Window(QWidget):
         elif selection == 'Color tracking':
             for children in self.analysisGroupBox.findChildren(QGroupBox):
                 children.setParent(None)
-            #ct.createTrackingBox(self)
             gui.colorTrackingBox(self)
             ct.initVars(self)
             self.colorTrackingBox.show()
@@ -569,7 +521,6 @@ class Window(QWidget):
             gui.HSVTrackingBox(self)
             ht.initVars(self) # include default variables in this function
             self.HSVTrackingBox.show()
-        #    ht.createTrackingBox(self)
             lumaTrackingValue = False
             manualTrackingValue = False
             colorTrackingValue = False
@@ -578,133 +529,107 @@ class Window(QWidget):
     def measureScaleBtn_clicked(self, text):
         global clk
         clk = False # False unless the mouse is clicked
-        #try:
-        roiOne = int(self.roiOneIn.text())
-        roiTwo = int(self.roiTwoIn.text())
-        roiThree = int(self.roiThreeIn.text())
-        roiFour = int(self.roiFourIn.text())
+        try:
+            roiOne = int(self.roiOneIn.text())
+            roiTwo = int(self.roiTwoIn.text())
+            roiThree = int(self.roiThreeIn.text())
+            roiFour = int(self.roiFourIn.text())
 
-        points = list()
+            points = list()
 
-        # if self.openSelection == 'video':
-        #     self.fVideo.set(1, self.frameNumber)
-        #     ret, frame = self.fVideo.read()
-        # elif self.openSelection == 'image(s)':
-        #     imageNumber = self.imagesList[self.frameNumber]
-        #     frame = cv2.imread(imageNumber)
+            frame, frameCrop = checkEditing(self, self.frameNumber)
 
-        frame, frameCrop = checkEditing(self, self.frameNumber)
+            cv2.namedWindow('MeasureScale', cv2.WINDOW_AUTOSIZE)
+            cv2.setMouseCallback('MeasureScale', click)
+            if self.figSize.isChecked() == True:
+                newWidth = int(frameCrop.shape[1] / 2) #original width divided by 2
+                newHeight = int(frameCrop.shape[0] / 2) #original height divided by 2
+                halfFig = cv2.resize(frameCrop, (newWidth, newHeight))
+                cv2.imshow('MeasureScale', halfFig)
+            else:
+                cv2.imshow('MeasureScale', frameCrop)
 
-        # crop image
-#        frameCrop = frame[roiTwo : (roiTwo + roiFour), roiOne : (roiOne + roiThree)]
+            for n in range(2):
+                # wait for the mouse event or 'escape' key to quit
+                while (True):
+                    if clk == True:
+                        clk = False
+                        break
 
-        cv2.namedWindow('MeasureScale', cv2.WINDOW_AUTOSIZE)
-        cv2.setMouseCallback('MeasureScale', click)
-        if self.figSize.isChecked() == True:
-            newWidth = int(frameCrop.shape[1] / 2) #original width divided by 2
-            newHeight = int(frameCrop.shape[0] / 2) #original height divided by 2
-            halfFig = cv2.resize(frameCrop, (newWidth, newHeight))
-            cv2.imshow('MeasureScale', halfFig)
-        else:
-            cv2.imshow('MeasureScale', frameCrop)
+                    if cv2.waitKey(1) == 27: #ord('q')
+                        cv2.destroyAllWindows()
+                        return
 
-        for n in range(2):
+                # update each position and frame list for the current click
+                if self.figSize.isChecked() == True:
+                    points.append(xPos * 2)
+                    points.append(yPos * 2)
+                else:
+                    points.append(xPos)
+                    points.append(yPos)
+
+            length_mm, done1 = QInputDialog.getText(self, 'Measure scale', 'Measured length in mm:')
+            length_px = ((points[3]-points[1])**2 + (points[2]-points[0])**2)**0.5
+            scale = length_px / float(length_mm)
+            scale = np.round(scale, 3)
+
+            self.scaleIn.setText(str(scale))
+            self.msgLabel.setText('Scale succesfully measured')
+            cv2.destroyAllWindows()
+        except:
+            print('Unexpected error:', sys.exc_info())
+            self.msgLabel.setText('Something went wrong and the scale was not measured.')
+
+    def refPointBtn_clicked(self):
+        global clk
+        clk = False # False unless the mouse is clicked
+
+        try:
+            roiOne = int(self.roiOneIn.text())
+            roiTwo = int(self.roiTwoIn.text())
+            roiThree = int(self.roiThreeIn.text())
+            roiFour = int(self.roiFourIn.text())
+
+            frame, frameCrop = checkEditing(self, self.frameNumber)
+
+            cv2.namedWindow('referencePoint', cv2.WINDOW_AUTOSIZE)
+            cv2.setMouseCallback('referencePoint', click)
+            if self.figSize.isChecked() == True:
+                newWidth = int(frameCrop.shape[1] / 2) #original width divided by 2
+                newHeight = int(frameCrop.shape[0] / 2) #original height divided by 2
+                halfFig = cv2.resize(frameCrop, (newWidth, newHeight))
+                cv2.imshow('referencePoint', halfFig)
+            else:
+                cv2.imshow('referencePoint', frame)
+
             # wait for the mouse event or 'escape' key to quit
             while (True):
                 if clk == True:
-                    clk = False
+                    xPos_abs = xPos + roiOne
+                    yPos_abs = yPos + roiTwo
                     break
 
                 if cv2.waitKey(1) == 27: #ord('q')
                     cv2.destroyAllWindows()
+                    break
 
-                    #CAS soft add to save reference txt, relative to frameCrop...
-        #             if ('xPos' in globals()): # or 'xPos' in locals()): # and xPos:
-        #                 # If selected a point, interpreted as a reference point usually stored in globals, (but could also check locals just in case?)
-        #                 refLoc_x = xPos + roiOne
-        #                 refLoc_y = yPos + roiTwo
-        # #                self.xref.setText(str([refLoc_x, refLoc_y])) #CAS Use absolute and convert on own...to prevent issues with different cropping
-        #                 self.msgLabel.setText('xRef measured.')
-
-                    return
-
-            # update each position and frame list for the current click
             if self.figSize.isChecked() == True:
-                points.append(xPos * 2)
-                points.append(yPos * 2)
+                self.refPoint = [(xPos_abs * 2), (yPos_abs * 2)] #absolute point
+                self.refPoint_ROI = [(xPos * 2), (yPos * 2)] #point function of ROI
             else:
-                points.append(xPos)
-                points.append(yPos)
+                self.refPoint = [xPos_abs, yPos_abs] #absolute point
+                self.refPoint_ROI = [xPos, yPos] #point function of ROI
 
-        length_mm, done1 = QInputDialog.getText(self, 'Measure scale', 'Measured length in mm:')
-        length_px = ((points[3]-points[1])**2 + (points[2]-points[0])**2)**0.5
-        scale = length_px / float(length_mm)
-        scale = np.round(scale, 3)
-
-        self.scaleIn.setText(str(scale))
-        self.msgLabel.setText('Scale succesfully measured')
-        cv2.destroyAllWindows()
-        # except:
-        #     print('Unexpected error:', sys.exc_info())
-        #     self.msgLabel.setText('Something went wrong and the scale was not measured.')
-
-    def refPointBtn_clicked(self): #work in progress
-        global clk
-        clk = False # False unless the mouse is clicked
-
-        #try:
-        roiOne = int(self.roiOneIn.text())
-        roiTwo = int(self.roiTwoIn.text())
-        roiThree = int(self.roiThreeIn.text())
-        roiFour = int(self.roiFourIn.text())
-
-        frame, frameCrop = checkEditing(self, self.frameNumber)
-
-        cv2.namedWindow('referencePoint', cv2.WINDOW_AUTOSIZE)
-        cv2.setMouseCallback('referencePoint', click)
-        if self.figSize.isChecked() == True:
-            newWidth = int(frameCrop.shape[1] / 2) #original width divided by 2
-            newHeight = int(frameCrop.shape[0] / 2) #original height divided by 2
-            halfFig = cv2.resize(frameCrop, (newWidth, newHeight))
-            cv2.imshow('referencePoint', halfFig)
-        else:
-            cv2.imshow('referencePoint', frameCrop)
-
-        # wait for the mouse event or 'escape' key to quit
-        while (True):
-            if clk == True:
-                xPos_abs = xPos + roiOne
-                yPos_abs = yPos + roiTwo
-
-                break
-
-            if cv2.waitKey(1) == 27: #ord('q')
-                 cv2.destroyAllWindows()
-                 break
-
-        if self.figSize.isChecked() == True:
-            self.refPoint = [(xPos_abs * 2), (yPos_abs * 2)] #absolute point
-            self.refPoint_ROI = [(xPos * 2), (yPos * 2)] #point function of ROI
-        else:
-            self.refPoint = [xPos_abs, yPos_abs] #absolute point
-            self.refPoint_ROI = [xPos, yPos] #point function of ROI
-
-        # print(f'Reference point (absolute): ({self.refPoint[0]}, {self.refPoint[1]})')
-        # print(f'Reference point (ROI dependent): ({self.refPoint_ROI[0]}, {self.refPoint_ROI[1]})')
-        self.msgLabel.setText(f'Reference point (absolute): ({self.refPoint[0]}, {self.refPoint[1]}); (ROI dependent): ({self.refPoint_ROI[0]}, {self.refPoint_ROI[1]})')
-        self.refPointTxt.setText(str(self.refPoint) )
-        cv2.destroyAllWindows()
-        # except:
-        #     print('Unexpected error:', sys.exc_info())
-        #     self.msgLabel.setText('Something went wrong and the scale was not measured.')
+            # print(f'Reference point (absolute): ({self.refPoint[0]}, {self.refPoint[1]})')
+            # print(f'Reference point (ROI dependent): ({self.refPoint_ROI[0]}, {self.refPoint_ROI[1]})')
+            self.msgLabel.setText(f'Reference point (absolute): ({self.refPoint[0]}, {self.refPoint[1]}); (ROI dependent): ({self.refPoint_ROI[0]}, {self.refPoint_ROI[1]})')
+            self.refPointIn.setText(f'{self.refPoint[0]}, {self.refPoint[1]}')#str(self.refPoint) )
+            cv2.destroyAllWindows()
+        except:
+            print('Unexpected error:', sys.exc_info())
+            self.msgLabel.setText('Something went wrong and the reference point was not measured.')
 
     def editFramesSlider_released(self):
-        # if self.openSelection == 'video':
-        #     self.fVideo.set(1, self.frameNumber)
-        #     ret, frame = self.fVideo.read()
-        # elif self.openSelection == 'image(s)':
-        #     imageNumber = self.imagesList[self.frameNumber]
-        #     frame = cv2.imread(imageNumber)
         self.brightnessLbl.setText(str(self.brightnessSlider.value()))
         self.contrastLbl.setText(str(self.contrastSlider.value()))
         showFrame(self, self.frameNumber)
@@ -734,15 +659,7 @@ class Window(QWidget):
             currentFrame = firstFrame
 
             while (currentFrame < lastFrame):
-                # if self.openSelection == 'video':
-                #     self.fVideo.set(1, currentFrame)
-                #     ret, frame = self.fVideo.read()
-                # elif self.openSelection == 'image(s)':
-                #     imageNumber = self.imagesList[currentFrame]
-                #     frame = cv2.imread(imageNumber)
-
                 frame, frameCrop = checkEditing(self, currentFrame)
-        #        frameCrop = frame[int(self.roiTwoIn.text()) : (int(self.roiTwoIn.text()) + int(self.roiFourIn.text())), int(self.roiOneIn.text()) : (int(self.roiOneIn.text()) + int(self.roiThreeIn.text()))]
                 vout.write(frameCrop)
                 print('Progress: ', round((currentFrame - firstFrame)/(lastFrame - firstFrame) * 10000)/100, '%')
                 currentFrame = currentFrame + 1 + int(self.skipFrameIn.text())
@@ -908,10 +825,9 @@ class Window(QWidget):
     def saveBtn_HT_clicked(self):
         ht.saveBtn(self)
     def showFrameLargeBtn_HT_clicked(self):
-        ht.showFrameLarge_HT(self)
+        ht.showFrameLarge(self)
     def helpBtn_HT_clicked(self):
         ht.helpBtn(self)
-
 
     def helpBtn_clicked(self):
         msg = QMessageBox(self)
@@ -926,19 +842,6 @@ class Window(QWidget):
         Fourth column - choose the type of analysis (specific instructions are available for each selection), save/load parameters. Furthermore, it is possible to specify frame rate, codec and format (according to the operative system), and create a new video with all the desired modifications (only the ROI will be exported). The button '?' offers suggestions related to the frame rate to choose for the new video.
         ''')
         msg.exec_()
-
-# initial variables
-def initVars(self):
-    global manualTrackingValue, lumaTrackingValue, colorTrackingValue, HSVTrackingValue, editFrame
-    self.perspectiveValue = False
-    self.rotationValue = False
-    self.refPoint = []
-    self.refPoint_ROI = []
-    manualTrackingValue = False
-    lumaTrackingValue = False
-    colorTrackingValue = False
-    HSVTrackingValue = False
-    editFrame = False
 
 # this function waits for the next mouse click
 def click(event, x, y, flags, param):
@@ -1080,16 +983,8 @@ def checkAnalysisBox(self, frameNumber):
         # the labels might have become plot widgets, so we need to update them again
         self.lbl1_LT = QLabel(self.lumaTrackingBox)
         self.lbl2_LT = QLabel(self.lumaTrackingBox)
-        # if self.OStype == 'mac':
-        #     self.lbl1_LT.setGeometry(190, 25, 420, 300)
-        #     self.lbl2_LT.setGeometry(620, 25, 420, 300)
-        # elif self.OStype == 'win':
-        #     self.lbl1_LT.setGeometry(190, 15, 420, 300)
-        #     self.lbl2_LT.setGeometry(620, 15, 420, 300)
-        # elif self.OStype == 'lin':
         self.lbl1_LT.setGeometry(lbl1[0], lbl1[1], lbl1[2], lbl1[3])
         self.lbl2_LT.setGeometry(lbl2[0], lbl2[1], lbl2[2], lbl2[3])
-
         self.lbl1_LT.setStyleSheet('background-color: white')
         self.lbl2_LT.setStyleSheet('background-color: white')
 
@@ -1116,13 +1011,6 @@ def checkAnalysisBox(self, frameNumber):
         self.lbl1_CT = QLabel(self.colorTrackingBox)
         self.lbl2_CT = QLabel(self.colorTrackingBox)
 
-        # if self.OStype == 'mac':
-        #     self.lbl1_CT.setGeometry(370, 25, 330, 250)
-        #     self.lbl2_CT.setGeometry(710, 25, 330, 250)
-        # elif self.OStype == 'win':
-        #     self.lbl1_CT.setGeometry(370, 15, 330, 250)
-        #     self.lbl2_CT.setGeometry(710, 15, 330, 250)
-        # elif self.OStype == 'lin':
         self.lbl1_CT.setGeometry(lbl1[0], lbl1[1], lbl1[2], lbl1[3])
         self.lbl2_CT.setGeometry(lbl2[0], lbl2[1], lbl2[2], lbl2[3])
 
@@ -1150,16 +1038,6 @@ def checkAnalysisBox(self, frameNumber):
 
         self.lbl1_HT = QLabel(self.HSVTrackingBox)
         self.lbl2_HT = QLabel(self.HSVTrackingBox)
-
-        # if self.OStype == 'mac':
-        #     #self.lbl1_HT.setGeometry(370, 25, 330, 250)
-        #     self.lbl1_HT.setGeometry(370, 25, 670, 125) #CAS Changed geometry for fitting lengthwise
-        #     #self.lbl2_HT.setGeometry(710, 25, 330, 250)
-        #     self.lbl2_HT.setGeometry(370, 150, 670, 125) #CAS Changed geometry for fitting lengthwise
-        # elif self.OStype == 'win':
-        #     self.lbl1_HT.setGeometry(370, 15, 330, 250)
-        #     self.lbl2_HT.setGeometry(710, 15, 330, 250)
-        # elif self.OStype == 'lin':
 
         self.lbl1_HT.setGeometry(lbl1[0], lbl1[1], lbl1[2], lbl1[3])
         self.lbl2_HT.setGeometry(lbl2[0], lbl2[1], lbl2[2], lbl2[3])
