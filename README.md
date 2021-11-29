@@ -76,10 +76,9 @@ give the maximum or minimum location of the flame). The flame characteristics (l
 
 # Add methods to the Flame Tracker:
 To add an analysis (I recommend to start from templateAddition.py):
-1) create a new selection in self.analysisSelectionBox in flameTracker.py and add the import line at the beginning of the file
-2) in the self.analysisSelectionBox function, add the connection to your new file and create the new analysis box (check size with other recent files such as colorTracking.py)
-3) the buttons in the new file will need their methods declared in flameTracker.py. There is an assigned method block for each analysis at the end of the class "Window".
-4) The perspective correction function needs to be copied in each file (changing name accordingly)
+1) create a new 'Analysis box' in boxesGUI_OS.py (check size with other recent files such as colorTracking.py), and a new file with your new functions 
+2) in the self.analysisSelectionBox function in flameTracker.py, add the connection to your new file
+3) the buttons in the new file will need their methods declared in flameTracker.py. There is an assigned method block for each analysis at the end of the class 'Window'.
 
 # License
 Flame Tracker is free software: you can redistribute it and/or modify
