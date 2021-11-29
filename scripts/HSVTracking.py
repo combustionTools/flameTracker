@@ -37,251 +37,29 @@ The values are then converted to the destination data type:
     32-bit images: H, S, and V are left as is
 """
 
-from flameTracker import *
+from PyQt5 import QtGui
+from PyQt5.QtGui import *
+from PyQt5.QtWidgets import *
+from PyQt5.QtCore import *
+from itertools import zip_longest
 
-def createHSVTrackingBox(self):
-    self.HSVTrackingValue = True
-    self.HSVTrackingBox = QGroupBox(' ', self.analysisGroupBox)
-    self.HSVTrackingBox.setGeometry(0, 0, 1050, 390)
-    self.HSVTrackingBox.setStyleSheet('background-color: None')
+import flameTracker as ft
+import boxesGUI_OS as gui
+import csv
+import cv2
+import pyqtgraph as pg
+import numpy as np
+import sys
 
-    h_btn = 30
-    h_txt = 30
-    h_lbl = 22
-    w_btn2 = 30
-    #first column
-    x_cln1 = 10
-    directionBoxTxt = QLabel('Flame direction:', self.HSVTrackingBox)
-    directionBoxTxt.setGeometry(x_cln1, 20, 100, h_txt)
-    self.directionBox = QComboBox(self.HSVTrackingBox)
-    self.directionBox.setGeometry(x_cln1 - 5, 45, 150, h_btn)
-    self.directionBox.addItem('Left to right')
-    self.directionBox.addItem('Right to left')
-    self.directionBox.activated.connect(self.directionHT_clicked)
-    hueChannelTxt = QLabel('Hue:', self.HSVTrackingBox)
-    hueChannelTxt.setGeometry(x_cln1, 70, 100, h_txt)
-    hueMinTxt = QLabel('Min:', self.HSVTrackingBox)
-    hueMinTxt.setGeometry(x_cln1, 92, 80, h_txt)
-    self.hueMinLeftBtn_HT = QPushButton('<', self.HSVTrackingBox)
-    self.hueMinLeftBtn_HT.setGeometry(35, 90, w_btn2, h_btn)
-    self.hueMinLeftBtn_HT.clicked.connect(self.hueMinLeftBtn_HT_clicked)
-    self.hueMinRightBtn_HT = QPushButton('>', self.HSVTrackingBox)
-    self.hueMinRightBtn_HT.setGeometry(175, 90, w_btn2, h_btn)
-    self.hueMinRightBtn_HT.clicked.connect(self.hueMinRightBtn_HT_clicked)
-    # CAS slider setting:
-    self.hueMinSlider = QSlider(Qt.Horizontal, self.HSVTrackingBox)
-    self.hueMinSlider.setGeometry(60, 95, 120, 25)
-    self.hueMinSlider.setMinimum(0)
-    #self.hueMinSlider.setMaximum(255)
-    self.hueMinSlider.setMaximum(180) # since stored as H/2 for 8-bit (normally 0-360)
-    #self.hueMinSlider.setValue(10)
-    self.hueMinSlider.setValue(80) # Default to include blue values - 92=~185 deg Min Hue
-    self.hueMinSlider.sliderReleased.connect(self.singleHSVSlider_released)
-    self.hueMinSlider.valueChanged.connect(self.singleHSVSlider_released) #LC We need to check this. I had to remove one from the other files (changed or released) because on Mac it counts twice
-    hueMaxTxt = QLabel('Max:', self.HSVTrackingBox)
-    hueMaxTxt.setGeometry(x_cln1, 114, 100, h_txt)
-    self.hueMaxLeftBtn_HT = QPushButton('<', self.HSVTrackingBox)
-    self.hueMaxLeftBtn_HT.setGeometry(35, 112, w_btn2, h_btn)
-    self.hueMaxLeftBtn_HT.clicked.connect(self.hueMaxLeftBtn_HT_clicked)
-    self.hueMaxRightBtn_HT = QPushButton('>', self.HSVTrackingBox)
-    self.hueMaxRightBtn_HT.setGeometry(175, 112, w_btn2, h_btn)
-    self.hueMaxRightBtn_HT.clicked.connect(self.hueMaxRightBtn_HT_clicked)
-    # CAS slider setting:
-    self.hueMaxSlider = QSlider(Qt.Horizontal, self.HSVTrackingBox)
-    self.hueMaxSlider.setGeometry(60, 117, 120, 25)
-    self.hueMaxSlider.setMinimum(0)
-    #self.hueMaxSlider.setMaximum(255)
-    self.hueMaxSlider.setMaximum(180) # since stored as H/2 for 8-bit (normally 0-360)
-    #self.hueMaxSlider.setValue(255)
-    self.hueMaxSlider.setValue(163) # Default to include blue values - 130=~260 deg Max Hue
-    self.hueMaxSlider.sliderReleased.connect(self.singleHSVSlider_released)
-    self.hueMaxSlider.valueChanged.connect(self.singleHSVSlider_released)
-    satChannelTxt = QLabel('Saturation:', self.HSVTrackingBox)
-    satChannelTxt.setGeometry(x_cln1, 140, 100, h_txt)
-    satMinTxt = QLabel('Min:', self.HSVTrackingBox)
-    satMinTxt.setGeometry(x_cln1, 162, 100, h_txt)
-    self.satMinLeftBtn_HT = QPushButton('<', self.HSVTrackingBox)
-    self.satMinLeftBtn_HT.setGeometry(35, 160, w_btn2, h_btn)
-    self.satMinLeftBtn_HT.clicked.connect(self.satMinLeftBtn_HT_clicked)
-    self.satMinRightBtn_HT = QPushButton('>', self.HSVTrackingBox)
-    self.satMinRightBtn_HT.setGeometry(175, 160, w_btn2, h_btn)
-    self.satMinRightBtn_HT.clicked.connect(self.satMinRightBtn_HT_clicked)
-    # CAS slider setting:
-    self.satMinSlider = QSlider(Qt.Horizontal, self.HSVTrackingBox)
-    self.satMinSlider.setGeometry(60, 165, 120, 25)
-    self.satMinSlider.setMinimum(0)
-    self.satMinSlider.setMaximum(255)
-    #self.satMinSlider.setValue(10)
-    self.satMinSlider.setValue(30) # Default to include blue values - 100=~40% min Saturation
-    self.satMinSlider.sliderReleased.connect(self.singleHSVSlider_released)
-    self.satMinSlider.valueChanged.connect(self.singleHSVSlider_released)
-    satMaxTxt = QLabel('Max:', self.HSVTrackingBox)
-    satMaxTxt.setGeometry(x_cln1, 184, 100, h_txt)
-    self.satMaxLeftBtn_HT = QPushButton('<', self.HSVTrackingBox)
-    self.satMaxLeftBtn_HT.setGeometry(35, 182, w_btn2, h_btn)
-    self.satMaxLeftBtn_HT.clicked.connect(self.satMaxLeftBtn_HT_clicked)
-    self.satMaxRightBtn_HT = QPushButton('>', self.HSVTrackingBox)
-    self.satMaxRightBtn_HT.setGeometry(175, 182, w_btn2, h_btn)
-    self.satMaxRightBtn_HT.clicked.connect(self.satMaxRightBtn_HT_clicked)
-    # CAS slider setting:
-    self.satMaxSlider = QSlider(Qt.Horizontal, self.HSVTrackingBox)
-    self.satMaxSlider.setGeometry(60, 187, 120, 25)
-    self.satMaxSlider.setMinimum(0)
-    self.satMaxSlider.setMaximum(255)
-    #self.satMaxSlider.setValue(255)
-    self.satMaxSlider.setValue(255) # Default to some blue value - 255=~100% max Saturation
-    self.satMaxSlider.sliderReleased.connect(self.singleHSVSlider_released)
-    self.satMaxSlider.valueChanged.connect(self.singleHSVSlider_released)
-    valChannelTxt = QLabel('Value:', self.HSVTrackingBox)
-    valChannelTxt.setGeometry(x_cln1, 210, 100, h_txt)
-    valMinTxt = QLabel('Min:', self.HSVTrackingBox)
-    valMinTxt.setGeometry(x_cln1, 232, 100, h_txt)
-    self.valMinLeftBtn_HT = QPushButton('<', self.HSVTrackingBox)
-    self.valMinLeftBtn_HT.setGeometry(35, 230, w_btn2, h_btn)
-    self.valMinLeftBtn_HT.clicked.connect(self.valMinLeftBtn_HT_clicked)
-    self.valMinRightBtn_HT = QPushButton('>', self.HSVTrackingBox)
-    self.valMinRightBtn_HT.setGeometry(175, 230, w_btn2, h_btn)
-    self.valMinRightBtn_HT.clicked.connect(self.valMinRightBtn_HT_clicked)
-    # CAS slider setting:
-    self.valMinSlider = QSlider(Qt.Horizontal, self.HSVTrackingBox)
-    self.valMinSlider.setGeometry(60, 235, 120, 25)
-    self.valMinSlider.setMinimum(0)
-    self.valMinSlider.setMaximum(255)
-    self.valMinSlider.setValue(20) # Default to some blue value - 63=~25% min Value
-    self.valMinSlider.sliderReleased.connect(self.singleHSVSlider_released)
-    self.valMinSlider.valueChanged.connect(self.singleHSVSlider_released)
-    valMaxTxt = QLabel('Max:', self.HSVTrackingBox)
-    valMaxTxt.setGeometry(x_cln1, 254, 100, h_txt)
-    self.valMaxLeftBtn_HT = QPushButton('<', self.HSVTrackingBox)
-    self.valMaxLeftBtn_HT.setGeometry(35, 252, w_btn2, h_btn)
-    self.valMaxLeftBtn_HT.clicked.connect(self.valMaxLeftBtn_HT_clicked)
-    self.valMaxRightBtn_HT = QPushButton('>', self.HSVTrackingBox)
-    self.valMaxRightBtn_HT.setGeometry(175, 252, w_btn2, h_btn)
-    self.valMaxRightBtn_HT.clicked.connect(self.valMaxRightBtn_HT_clicked)
-    # CAS slider setting:
-    self.valMaxSlider = QSlider(Qt.Horizontal, self.HSVTrackingBox)
-    self.valMaxSlider.setGeometry(60, 257, 120, 25)
-    self.valMaxSlider.setMinimum(0)
-    self.valMaxSlider.setMaximum(255)
-    #self.valMaxSlider.setValue(255)
-    self.valMaxSlider.setValue(255) # Default to some blue value - 255=~100% max Value
-    self.valMaxSlider.sliderReleased.connect(self.singleHSVSlider_released)
-    self.valMaxSlider.valueChanged.connect(self.singleHSVSlider_released)
-
-    # May Move to xxxTrackingBox_OS
-    filterParticleTxt = QLabel('Filter particles size:', self.HSVTrackingBox)
-    filterParticleTxt.setGeometry(x_cln1, 280, 150, h_txt)
-    self.filterParticleSldr_HT = QSlider(Qt.Horizontal, self.HSVTrackingBox)
-    self.filterParticleSldr_HT.setGeometry(10, 305, 170, 25)
-    self.filterParticleSldr_HT.setMinimum(1)
-    self.filterParticleSldr_HT.setMaximum(1000)
-    self.filterParticleSldr_HT.setValue(20) #	was defulted to 10, but experience says around ~1228 or ~350 to not filter too much
-    self.filterParticleSldr_HT.sliderReleased.connect(self.filterParticleSldr_HT_released)
-
-    avgLE_txt = QLabel('#px to locate edges:', self.HSVTrackingBox)
-    avgLE_txt.setGeometry(x_cln1, 330, 140, h_txt)
-    self.avgLEIn_HT = QLineEdit('10', self.HSVTrackingBox) #was defaulted to 1, but experience says around 5-10
-    self.avgLEIn_HT.setGeometry(x_cln1 + 135, 334, 30, h_lbl)
-    connectivityTxt = QLabel('Connectivity (px):', self.HSVTrackingBox)
-    connectivityTxt.setGeometry(x_cln1, 360, 100, h_txt)
-    self.connectivityBox = QComboBox(self.HSVTrackingBox)
-    self.connectivityBox.setGeometry(x_cln1 + 110, 360, 60, h_btn)
-    self.connectivityBox.addItem('4')
-    self.connectivityBox.addItem('8')
-    self.connectivityBox.activated.connect(self.connectivityBoxHT_clicked)
-
-    #second column
-    x_cln1 = 220
-    self.saveChannelsBtn_HT = QPushButton('Save filter values', self.HSVTrackingBox)
-    self.saveChannelsBtn_HT.setGeometry(x_cln1 - 10, 30, 150, h_btn)
-    self.saveChannelsBtn_HT.clicked.connect(self.saveChannelsBtn_HT_clicked)
-    self.loadChannelsBtn_HT = QPushButton('Load filter values', self.HSVTrackingBox)
-    self.loadChannelsBtn_HT.setGeometry(x_cln1 - 10, 60, 150, h_btn)
-    self.loadChannelsBtn_HT.clicked.connect(self.loadChannelsBtn_HT_clicked)
-    self.helpBtn_HT = QPushButton('Help', self.HSVTrackingBox)
-    self.helpBtn_HT.setGeometry(x_cln1 - 10, 90, 150, h_btn)
-    self.helpBtn_HT.clicked.connect(self.helpBtn_HT_clicked)
-    trackingTxt = QLabel('Flame tracking:', self.HSVTrackingBox)
-    trackingTxt.setGeometry(x_cln1, 120, 120, h_txt)
-    self.filterLight_HT = QCheckBox('Ignore flashing light', self.HSVTrackingBox)
-    self.filterLight_HT.setGeometry(x_cln1, 145, 135, h_btn)
-    movAvgTxt = QLabel('Moving avg points:', self.HSVTrackingBox)
-    movAvgTxt.setGeometry(x_cln1, 170, 130, h_txt)
-    self.movAvgIn_HT = QLineEdit('5', self.HSVTrackingBox) #was defaulted to 2, experience says around 5 better
-    self.movAvgIn_HT.setGeometry(x_cln1 + 105, 174, 30, h_lbl)
-    self.HSVTrackingBtn = QPushButton('Start tracking', self.HSVTrackingBox)
-    self.HSVTrackingBtn.setGeometry(x_cln1 - 10, 200, 150, h_btn)
-    self.HSVTrackingBtn.clicked.connect(self.HSVTrackingBtn_clicked)
-    self.absValBtn_HT = QPushButton('Absolute values', self.HSVTrackingBox)
-    self.absValBtn_HT.setGeometry(x_cln1 - 10, 230, 150, h_btn)
-    self.absValBtn_HT.clicked.connect(self.absValBtn_HT_clicked)
-    self.saveBtn_HT = QPushButton('Save data', self.HSVTrackingBox)
-    self.saveBtn_HT.setGeometry(x_cln1 - 10, 260, 150, h_btn)
-    self.saveBtn_HT.clicked.connect(self.saveBtn_HT_clicked)
-
+def initVars(self): # define initial variables
+    global flameDir
+    flameDir = 'toRight'
     # Add time/frame plotting toggle - CAS
     self.isPlotTimevsFrame = False #True
-
-    # first label
-    self.lbl1_HT = QLabel(self.HSVTrackingBox)
-    #self.lbl1_HT.setGeometry(370, 25, 330, 250)
-    self.lbl1_HT.setGeometry(370, 25, 670, 125) # Changed geometry as removed BW image display
-    self.lbl1_HT.setStyleSheet('background-color: white')
-    self.showEdges = QCheckBox('Show edges location', self.HSVTrackingBox)
-    self.showEdges.setGeometry(780, 275, 135, h_btn)
-    self.showEdges.setChecked(True)
-    self.exportEdges_HT = QCheckBox('Output video analysis', self.HSVTrackingBox)
-    self.exportEdges_HT.setGeometry(780, 300, 135, h_btn)
-    #CAS Export with tracking line
-    self.exportTrackOverlay_HT = QCheckBox('Video Tracking Overlay', self.HSVTrackingBox)
-    self.exportTrackOverlay_HT.setGeometry(780, 325, 200, h_btn)
-
-
-
-    # second label
-    self.lbl2_HT = QLabel(self.HSVTrackingBox)
-    #self.lbl2_HT.setGeometry(710, 25, 330, 250)
-    self.lbl2_HT.setGeometry(370, 150, 670, 125)
-    self.lbl2_HT.setStyleSheet('background-color: white')
-    self.showFrameLargeBtn_HT = QPushButton('Show frames', self.HSVTrackingBox)
-    self.showFrameLargeBtn_HT.setGeometry(930, 275, 115, h_btn)
-    self.showFrameLargeBtn_HT.clicked.connect(self.showFrameLargeBtn_HT_clicked)
-
-    self.flameDir = 'toRight'
     self.connectivity_HT = 4
-    self.HSVTrackingValue = True
+    self.lightROI_HT_recorded = False
 
-    self.HSVTrackingBox.show()
-
-def getHSVFilteredFrame(self, frameNumber):
-    if self.openSelection == 'video':
-        self.fVideo.set(1, frameNumber)
-        ret, frame = self.fVideo.read()
-    elif self.openSelection == 'image(s)':
-        frame = self.imagesList[int(frameNumber)]
-        frame = cv2.imread(frame)
-
-    if self.perspectiveValue == True:
-        if self.rotationValue == True:
-            frame = rotationCorrection_HT(self, frame, self.anglePerspective)
-        frame = perspectiveCorrectionHT(self, frame)
-        #the rotation has already been included in the perspective correction, but it could happen that a further rotation is needed after the correction (e.g. for the analysis)
-        if self.anglePerspective != float(self.rotationAngleIn.text()):
-            angle = float(self.rotationAngleIn.text()) - self.anglePerspective
-            frame = rotationCorrection_HT(self, frame, angle)
-    elif float(self.rotationAngleIn.text()) != 0: #in case there is no perspective correction
-            angle = float(self.rotationAngleIn.text())
-            frame = rotationCorrection_HT(self, frame, angle)
-    if int(self.brightnessSlider.value()) != 0 or int(self.contrastSlider.value()) != 0:
-        frameContainer = np.zeros(frame.shape, frame.dtype)
-        alpha = (int(self.contrastSlider.value()) + 100) * 2 / 200
-        beta = int(self.brightnessSlider.value())    # Simple brightness control [0-100]. Instead, we have [-50-50]
-        frame = cv2.convertScaleAbs(frame, alpha=alpha, beta=beta)
-
-    # crop frame (after rotation)
-    #frameCrop = frame[int(self.roiTwoIn.text()) : (int(self.roiTwoIn.text()) + int(self.roiFourIn.text())), int(self.roiOneIn.text()) : (int(self.roiOneIn.text()) + int(self.roiThreeIn.text()))]
-    self.frameCrop = frame[int(self.roiTwoIn.text()) : (int(self.roiTwoIn.text()) + int(self.roiFourIn.text())), int(self.roiOneIn.text()) : (int(self.roiOneIn.text()) + int(self.roiThreeIn.text()))]
-
+def getFilteredFrame(self, frame):
     # Filter here: #CAS Modified for HSV tracking instead of color tracking
     valLow = self.valMinSlider.value()
     valHigh = self.valMaxSlider.value()
@@ -293,9 +71,8 @@ def getHSVFilteredFrame(self, frameNumber):
     high = ([hueHigh, satHigh, valHigh])
     low = np.array(low, dtype = 'uint8') #this conversion is necessary
     high = np.array(high, dtype = 'uint8')
-    #newMask = cv2.inRange(frameCrop, low, high)
-    newMask = cv2.inRange(cv2.cvtColor(self.frameCrop, cv2.COLOR_BGR2HSV), low, high)
-    frame = cv2.bitwise_and(self.frameCrop, self.frameCrop, mask = newMask)
+    newMask = cv2.inRange(cv2.cvtColor(frame, cv2.COLOR_BGR2HSV), low, high)
+    frame = cv2.bitwise_and(frame, frame, mask = newMask)
     grayFrame = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
     (threshold, frameBW) = cv2.threshold(grayFrame, 0, 255, cv2.THRESH_BINARY)
 
@@ -316,11 +93,7 @@ def getHSVFilteredFrame(self, frameNumber):
 
     flamePx = np.where(frameBW == [255]) # total area in px
 
-    if self.filterLight_HT.isChecked() == True:
-        if len(flamePx[0]) < 0.5 * (int(self.roiThreeIn.text()) * int(self.roiFourIn.text())): #flamePx[0] = x; flamePx[1] = y
-            findFlameEdges_HT(self, frameBW, flamePx)
-    else:
-        findFlameEdges_HT(self, frameBW, flamePx)
+    findFlameEdges(self, frameBW, flamePx)
 
     if self.showEdges.isChecked() == True:
         cv2.line(frame, (self.xMax, 0),(self.xMax, int(self.roiFourIn.text())), (255, 255, 255), 2)
@@ -344,7 +117,8 @@ def getHSVFilteredFrame(self, frameNumber):
     self.frameBW = QImage(frameBW.data, frameBW.shape[1], frameBW.shape[0], bytesPerLineBW, QImage.Format_Grayscale8)#.rgbSwapped() #shape[0] = height, [1] = width QImage.Format_Indexed8 or Grayscale8 BGR888
     self.frameBW = self.frameBW.scaled(self.lbl1_HT.size(), Qt.KeepAspectRatio, Qt.SmoothTransformation)
 
-def findFlameEdges_HT(self, frameBW, flamePx):
+def findFlameEdges(self, frameBW, flamePx):
+    global flameDir
     self.flameArea = len(flamePx[0])
     self.xMax = 0
     self.xMin = 0
@@ -361,10 +135,10 @@ def findFlameEdges_HT(self, frameBW, flamePx):
 
         self.xMax = int(self.xMax/int(self.avgLEIn_HT.text()))
         self.xMin = int(self.xMin/int(self.avgLEIn_HT.text()))
-        if self.flameDir == 'toRight':
+        if flameDir == 'toRight':
             self.xRight = int(self.roiOneIn.text()) + self.xMax
             self.xLeft = int(self.roiOneIn.text()) + self.xMin
-        elif self.flameDir == 'toLeft':
+        elif flameDir == 'toLeft':
             self.xRight = self.vWidth - int(self.roiOneIn.text()) - self.xMax
             self.xLeft = self.vWidth - int(self.roiOneIn.text()) - self.xMin
     except:
@@ -399,9 +173,40 @@ def HSVTracking(self):
         vout.open(vName, fourcc, fps, size, True)
 
     if scale: #this condition prevents crashes in case the scale is not specified
-        import numpy #CAS Added for tracking line
         while (currentFrame < lastFrame):
-            getHSVFilteredFrame(self, currentFrame)
+            print('Frame #:', currentFrame)
+            frame, frameCrop = ft.checkEditing(self, currentFrame)
+
+            if self.filterLight_HT.isChecked() == True:
+                if self.lightROI_HT_recorded == True:
+                    # looking for frames with a light on (which would increase the red and green channel values of the background)
+                    low = ([5, 5, 10]) # blueLow, greenLow, redLow (see color tracking)
+                    high = ([255, 255, 255]) # blueHigh, greenHigh, redHigh
+                    low = np.array(low, dtype = 'uint8') #this conversion is necessary
+                    high = np.array(high, dtype = 'uint8')
+                    currentLightROI = frame[self.lightROI_HT[1] : (self.lightROI_HT[1] + self.lightROI_HT[3]), self.lightROI_HT[0] : (self.lightROI_HT[0] + self.lightROI_HT[2])]
+                    newMask = cv2.inRange(currentLightROI, low, high)
+                    frame_light = cv2.bitwise_and(currentLightROI, currentLightROI, mask = newMask)
+                    grayFrame_light = cv2.cvtColor(frame_light, cv2.COLOR_BGR2GRAY)
+                    (thresh_light, frameBW_light) = cv2.threshold(grayFrame_light, 0, 255, cv2.THRESH_BINARY)
+                    flamePx_light = np.where(frameBW_light == [255]) #beta
+                    area_lightROI = int(self.lightROI_HT[3] * self.lightROI_HT[2])
+                else:
+                    msg = QMessageBox(self)
+                    msg.setText('Before the tracking, please click on "Pick a bright region" to select a region where the light is visible.')
+                    msg.exec_()
+                    break
+
+                if len(flamePx_light[0]) < 0.5 * area_lightROI: #if the bright area is larger than the ROI area
+                    getFilteredFrame(self, frameCrop)
+                    print('frame counted')
+                else:
+                    currentFrame = currentFrame + 1 + int(self.skipFrameIn.text())
+                    print('frame not counted')
+                    continue
+            else:
+                getFilteredFrame(self, frameCrop)
+
             self.xRight_mm.append(self.xRight / float(self.scaleIn.text()))
             self.xLeft_mm.append(self.xLeft / float(self.scaleIn.text()))
             flameArea.append(self.flameArea)
@@ -410,8 +215,8 @@ def HSVTracking(self):
                 vout.write(self.currentFrameRGB_HT)
             elif self.exportTrackOverlay_HT.isChecked():
                 #CAS Add Track lines over cropped video
-                trackframe = numpy.copy(self.frameCrop) # frame is 1080 x 1920
-                trackframe[:, min(self.xRight-1 - int(self.roiOneIn.text()), numpy.size(trackframe,1))] = 255 # white out line to mark where tracked flame, using relative distance
+                trackframe = np.copy(frameCrop) # frame is 1080 x 1920
+                trackframe[:, min(self.xRight-1 - int(self.roiOneIn.text()), np.size(trackframe,1))] = 255 # white out line to mark where tracked flame, using relative distance
                 vout.write(trackframe)
 
             print('Progress: ', round((currentFrame - firstFrame)/(lastFrame - firstFrame) * 10000)/100, '%')
@@ -491,8 +296,14 @@ def HSVTracking(self):
         self.spreadRateLeft = self.spreadRateLeft.tolist()
 
         self.lbl1_HT = pg.PlotWidget(self.HSVTrackingBox)
-        #self.lbl1_HT.setGeometry(370, 25, 330, 250)
-        self.lbl1_HT.setGeometry(370, 25, 670, 125) # Changed geometry as removed BW image display
+        if sys.platform == 'darwin' or sys.platform == 'linux':
+            lbl1 = [370,  25, 670, 125]
+            lbl2 = [370, 150, 670, 125]
+        elif sys.platform == 'win32':
+            lbl1 = [370,  15, 670, 125]
+            lbl2 = [370, 150, 670, 125]
+
+        self.lbl1_HT.setGeometry(lbl1[0], lbl1[1], lbl1[2], lbl1[3]) # Changed geometry as removed BW image display
         self.lbl1_HT.setBackground('w')
         self.lbl1_HT.setLabel('left', 'Position [mm]', color='black', size=14)
         if self.isPlotTimevsFrame:
@@ -506,8 +317,7 @@ def HSVTracking(self):
         self.lbl1_HT.getAxis('left').setPen(color=(0, 0, 0))
         self.lbl1_HT.addLegend(offset = [1, 0.1]) # background color modified in line 122 and 123 of Versions/3.7/lib/python3.7/site-packages/pyqtgraph/graphicsItems
         self.lbl2_HT = pg.PlotWidget(self.HSVTrackingBox)
-        #self.lbl2_HT.setGeometry(710, 25, 330, 250)
-        self.lbl2_HT.setGeometry(370, 150, 670, 125) #(370, 25, 670, 250)
+        self.lbl2_HT.setGeometry(lbl2[0], lbl2[1], lbl2[2], lbl2[3])
         #print('\nView rect=', self.lbl2_HT.viewRect() )
         #print('\nGeometry set to', self.lbl2_HT.viewGeometry())
         self.lbl2_HT.setBackground('w')
@@ -545,66 +355,33 @@ def HSVTrackingPlot(label, x, y, name, symbol, color):
     label.plot(x, y, pen = pen, name = name, symbol = symbol, symbolSize = 7, symbolBrush = (color))
 
 def HSVSlider_released(self):
-    frame = self.previewSlider.value()
-    getHSVFilteredFrame(self, frame)
+    frame, frameCrop = ft.checkEditing(self, self.frameNumber)
+    getFilteredFrame(self, frameCrop)
     self.lbl1_HT.setPixmap(QPixmap.fromImage(self.frame))
     self.lbl2_HT.setPixmap(QPixmap.fromImage(self.frameBW))
 
-def filterParticleSldr_HT(self):
-    frame = self.previewSlider.value()
-    getHSVFilteredFrame(self, frame)
+def filterParticleSldr(self):
+    frame, frameCrop = ft.checkEditing(self, self.frameNumber)
+    getFilteredFrame(self, frameCrop)
     self.lbl1_HT.setPixmap(QPixmap.fromImage(self.frame))
     self.lbl2_HT.setPixmap(QPixmap.fromImage(self.frameBW))
 
-def perspectiveCorrectionHT(self, frame):
-    # M is the matrix transformation calculated with the size of the sample (calculated from user input), and the sampleMod from the user clicks
-    M = cv2.getPerspectiveTransform(self.sample, self.sampleMod)
-    # If the perspective is done on a rotated video, the corrected image might have a much larger size than the original one, here we check this
-    originalFrame = np.float32([[0,0], [self.vWidth, 0], [self.vWidth, self.vHeight], [0, self.vHeight]])
-    width = int(frame.shape[1])
-    height = int(frame.shape[0])
-    for point in self.sampleMod:
-        if point[0] > width:
-            width = int(point[0])
-        if point[1] > height:
-            height = int(point[1])
-
-    frame = cv2.warpPerspective(frame, M, (width, height))
-    return(frame)
-
-def rotationCorrection_HT(self, frame, angle):
-    # rotation matrix:
-    width = int(self.vWidth)
-    height = int(self.vHeight)
-    center = (width/2, height/2)
-    matrix = cv2.getRotationMatrix2D(center, angle, 1) #center of rotation, angle, zoom In/zoom Out
-    # rotation calculates the cos and sin, taking absolutes of those (these extra steps are used to avoid cropping )
-    abs_cos = abs(matrix[0,0])
-    abs_sin = abs(matrix[0,1])
-    # find the new width and height bounds
-    region_w = int(height * abs_sin + width * abs_cos)
-    region_h = int(height * abs_cos + width * abs_sin)
-    # subtract old image center (bringing image back to origo) and adding the new image center coordinates
-    matrix[0, 2] += region_w/2 - center[0]
-    matrix[1, 2] += region_h/2 - center[1]
-    frame = cv2. warpAffine(frame, matrix, (region_w, region_h)) #resolution is specified
-    return(frame)
-
-def chooseFlameDirection_HT(self, text):
+def chooseFlameDirection(self, text):
+    global flameDir
     selection = self.directionBox.currentText()
     if selection == 'Left to right':
-        self.flameDir = 'toRight'
+        flameDir = 'toRight'
     elif selection == 'Right to left':
-        self.flameDir = 'toLeft'
+        flameDir = 'toLeft'
 
-def connectivityBox_HT(self, text):
+def connectivityBox(self, text):
     selection = self.connectivityBox.currentText()
     if selection == '4':
         self.connectivity_HT = 4
     elif selection == '8':
         self.connectivity_HT = 8
 
-def saveChannelsBtn_HT(self):
+def saveChannelsBtn(self):
     name = QFileDialog.getSaveFileName(self, 'Save channel values')
     name = name[0]
     if not name[-4:] == '.csv':
@@ -630,7 +407,7 @@ def saveChannelsBtn_HT(self):
         except:
             self.msgLabel.setText('Ops! The values were not saved.')
 
-def loadChannelsBtn_HT(self):
+def loadChannelsBtn(self):
     name = QFileDialog.getOpenFileName(self, 'Load channel values')
     try:
         with open(name[0], 'r') as csvfile:
@@ -659,7 +436,7 @@ def loadChannelsBtn_HT(self):
         notParameters_dlg.showMessage('Ops! There was a problem loading the parameters.')
         self.msgLabel.setText('Ops! Parameters were not loaded.')
 
-def absValBtn_HT(self):
+def absValBtn(self):
     abs_frames = list()
     abs_time = list()
     abs_xRight_mm = list()
@@ -697,13 +474,13 @@ def absValBtn_HT(self):
     HSVTrackingPlot(self.lbl2_HT, self.frameCount, self.spreadRateRight, '', 'o', 'b')
     HSVTrackingPlot(self.lbl2_HT, self.frameCount, self.spreadRateLeft, '','t', 'r')
 
-def saveBtn_HT(self):
+def saveBtn(self):
     fileName = QFileDialog.getSaveFileName(self, 'Save tracking data')
     fileName = fileName[0]
     if not fileName[-4:] == '.csv':
         fileName = fileName + '.csv'
 
-    fileInfo = ['Name', self.fNameLbl.text(), 'Scale [px/mm]', self.scaleIn.text(), 'Moving avg', self.movAvgIn_HT.text(), 'Points LE', self.avgLEIn_HT.text(), 'Flame dir.:', self.flameDir]
+    fileInfo = ['Name', self.fNameLbl.text(), 'Scale [px/mm]', self.scaleIn.text(), 'Moving avg', self.movAvgIn_HT.text(), 'Points LE', self.avgLEIn_HT.text(), 'Flame dir.:', flameDir, 'code version', str(self.FTversion)]
     lbl = ['File info', 'Frame', 'Time [s]', 'Right Edge [mm]', 'Left Edge [mm]', 'Length [mm]', 'Spread Rate RE [mm/s]', 'Spread Rate LE [mm/s]', 'Area [mm^2]']
     clms = [fileInfo, self.frameCount, self.timeCount, self.xRight_mm, self.xLeft_mm, self.flameLength_mm, self.spreadRateRight, self.spreadRateLeft, self.flameArea]
     clms_zip = zip_longest(*clms)
@@ -721,7 +498,7 @@ def saveBtn_HT(self):
         except:
             self.msgLabel.setText('Ops! The values were not saved.')
 
-def showFrameLarge_HT(self):
+def showFrameLarge(self):
     cv2.namedWindow(('Frame (RGB): ' + self.frameIn.text()), cv2.WINDOW_AUTOSIZE)
     cv2.imshow(('Frame (RGB): ' + self.frameIn.text()), self.currentFrameRGB_HT)
     #cv2.namedWindow(('Frame (black/white): ' + self.frameIn.text()), cv2.WINDOW_AUTOSIZE)
@@ -731,7 +508,20 @@ def showFrameLarge_HT(self):
             cv2.destroyAllWindows()
             return
 
-def helpBtn_HT(self):
+def filterParticleSldr(self):
+    frame, frameCrop = ft.checkEditing(self, self.frameNumber)
+    getFilteredFrame(self, frameCrop)
+    self.lbl1_HT.setPixmap(QPixmap.fromImage(self.frame))
+    self.lbl2_HT.setPixmap(QPixmap.fromImage(self.frameBW))
+    self.filterParticleSldr_HT.setMaximum(int(self.particleSldrMax.text()))
+
+def lightROIBtn(self):
+    frame, frameCrop = ft.checkEditing(self, self.frameNumber)
+    self.lightROI_HT = cv2.selectROI(frame)
+    cv2.destroyAllWindows()
+    self.lightROI_HT_recorded = True
+
+def helpBtn(self):
     msg = QMessageBox(self)
     msg.setText("""In this analysis the flame is tracked based on the image HSV colors. After specifying the video parameters and the flame direction, the flame region can be identified by choosing appropriate values of the HSV parameters (and particle size filtering). The HSV values vary depending on the colorspace of the frame/image - current implemntation uses a hue from 0-180 (since 0-360 deg hue is stored as H/2 for 8-bit), value and saturation are set from 0 to 255.
     The code will consider the range between minimum and maximum of each of the HSV as adjusted with the sliders. Small particles can be filtered out; the maximum value of the 'Filter particles size' slider corresponds to 25% of the size of the Region Of Interest (ROI).
@@ -751,51 +541,51 @@ def helpBtn_HT(self):
     """)
     msg.exec_()
 
-def hueMinLeftBtn_HT(self):
+def hueMinLeftBtn(self):
     currentValue = self.hueMinSlider.value()
     self.hueMinSlider.setValue(currentValue - 1)
     HSVSlider_released(self)
-def hueMinRightBtn_HT(self):
+def hueMinRightBtn(self):
     currentValue = self.hueMinSlider.value()
     self.hueMinSlider.setValue(currentValue + 1)
     HSVSlider_released(self)
-def hueMaxLeftBtn_HT(self):
+def hueMaxLeftBtn(self):
     currentValue = self.hueMaxSlider.value()
     self.hueMaxSlider.setValue(currentValue - 1)
     HSVSlider_released(self)
-def hueMaxRightBtn_HT(self):
+def hueMaxRightBtn(self):
     currentValue = self.hueMaxSlider.value()
     self.hueMaxSlider.setValue(currentValue + 1)
     HSVSlider_released(self)
-def satMinLeftBtn_HT(self):
+def satMinLeftBtn(self):
     currentValue = self.satMinSlider.value()
     self.satMinSlider.setValue(currentValue - 1)
     HSVSlider_released(self)
-def satMinRightBtn_HT(self):
+def satMinRightBtn(self):
     currentValue = self.satMinSlider.value()
     self.satMinSlider.setValue(currentValue + 1)
     HSVSlider_released(self)
-def satMaxLeftBtn_HT(self):
+def satMaxLeftBtn(self):
     currentValue = self.satMaxSlider.value()
     self.satMaxSlider.setValue(currentValue - 1)
     HSVSlider_released(self)
-def satMaxRightBtn_HT(self):
+def satMaxRightBtn(self):
     currentValue = self.satMaxSlider.value()
     self.satMaxSlider.setValue(currentValue + 1)
     HSVSlider_released(self)
-def valMinLeftBtn_HT(self):
+def valMinLeftBtn(self):
     currentValue = self.valMinSlider.value()
     self.valMinSlider.setValue(currentValue - 1)
     HSVSlider_released(self)
-def valMinRightBtn_HT(self):
+def valMinRightBtn(self):
     currentValue = self.valMinSlider.value()
     self.valMinSlider.setValue(currentValue + 1)
     HSVSlider_released(self)
-def valMaxLeftBtn_HT(self):
+def valMaxLeftBtn(self):
     currentValue = self.valMaxSlider.value()
     self.valMaxSlider.setValue(currentValue - 1)
     HSVSlider_released(self)
-def valMaxRightBtn_HT(self):
+def valMaxRightBtn(self):
     currentValue = self.valMaxSlider.value()
     self.valMaxSlider.setValue(currentValue + 1)
     HSVSlider_released(self)
