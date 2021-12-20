@@ -76,7 +76,10 @@ class Window(QWidget):
         (at your option) any later version.''')
 
         # Flame Tracker version
-        self.FTversion = 'v1.1.2'
+        self.FTversion = 'v1.1.3'
+
+        #this function contains all the initial variables to declare
+        initVars(self)
         # initialize GUI
         gui.previewBox(self)
 
@@ -89,8 +92,6 @@ class Window(QWidget):
             self.openSelection = 'image(s)'
 
     def openBtn_clicked(self):
-        #this function contains all the initial variables to declare
-        initVars(self)
 
         if self.openSelection == 'video':
             try:
