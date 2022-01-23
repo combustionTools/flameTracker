@@ -4,6 +4,7 @@ The Flame Tracker is a Python-based video processing application designed for th
 The Flame Tracker is open source and cross platform, and information about how to use it is available on the Wiki page (https://github.com/combustionTools/flameTracker/wiki).
 
 Original Author: Luca Carmignani, PhD
+
 Collaborator/Contributor/Co-Author: Charles Scudiere, PhD
 
 Contact: flameTrackerContact@gmail.com
