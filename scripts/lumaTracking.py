@@ -1,6 +1,6 @@
 """
 Flame Tracker. This program is designed to track flames or bright objects in videos or images.
-Copyright (C) 2020,2021  Luca Carmignani
+Copyright (C) 2020-2022  Luca Carmignani
 
 This file is part of Flame Tracker.
 
@@ -21,19 +21,19 @@ Author: Luca Carmignani, PhD
 Contact: flameTrackerContact@gmail.com
 """
 
-from PyQt5 import QtGui
-from PyQt5.QtGui import *
-from PyQt5.QtWidgets import *
-from PyQt5.QtCore import *
-from itertools import zip_longest
+# from PyQt6 import QtGui
+# from PyQt6.QtGui import *
+# from PyQt6.QtWidgets import *
+# from PyQt6.QtCore import *
+# from itertools import zip_longest
 
 import flameTracker as ft
 import boxesGUI_OS as gui
-import csv
-import cv2
-import pyqtgraph as pg
-import numpy as np
-import sys
+# import csv
+# import cv2
+# import pyqtgraph as pg
+# import numpy as np
+# import sys
 
 def initVars(self): # define initial variables
     global flameDir
@@ -41,14 +41,14 @@ def initVars(self): # define initial variables
 
 def getFilteredFrame(self, frame):
     # Transform the frame into the YCC space
-    frameYCC = cv2.cvtColor(frame, cv2.COLOR_BGR2YCR_CB)
-    Y, C, C = cv2.split(frameYCC)
+    frameYCC = ft.cv2.cvtColor(frame, ft.cv2.COLOR_BGR2YCR_CB)
+    Y, C, C = ft.cv2.split(frameYCC)
 
     # Isolate flame region with user specified threshold
-    (thresh, frameBW) = cv2.threshold(Y, int(self.thresholdIn.text()), 255, cv2.THRESH_BINARY)
+    (thresh, frameBW) = ft.cv2.threshold(Y, int(self.thresholdIn.text()), 255, ft.cv2.THRESH_BINARY)
 
     # Find all the connected components (8 means in the four directions and diagonals)
-    componentNum, componentLbl, stats, centroids = cv2.connectedComponentsWithStats(frameBW, connectivity=8)
+    componentNum, componentLbl, stats, centroids = ft.cv2.connectedComponentsWithStats(frameBW, connectivity=8)
     ### 1 = number of labels; 2 = array; 3 = [[x location (left), y location (top), width, height, area]] for each label; 4 = [centroid of each label, x and y]. Note: the background is the first component
 
     # minimum area (measured in px) for filtering the components
@@ -62,21 +62,25 @@ def getFilteredFrame(self, frame):
         else:
             frameBW[componentLbl == i] = 0
 
-    flamePx = np.where(frameBW == [255])
+    flamePx = ft.np.where(frameBW == [255])
 
     findFlameEdges(self, frameBW, flamePx)
 
     if self.showEdges.isChecked() == True:
-        cv2.line(Y, (self.xMax, 0),(self.xMax, int(self.roiFourIn.text())), (255, 255, 255), 2)
-        cv2.line(Y, (self.xMin, 0),(self.xMin, int(self.roiFourIn.text())), (255, 255, 255), 2)
+        ft.cv2.line(Y, (self.xMax, 0),(self.xMax, int(self.roiFourIn.text())), (255, 255, 255), 2)
+        ft.cv2.line(Y, (self.xMin, 0),(self.xMin, int(self.roiFourIn.text())), (255, 255, 255), 2)
 
     self.currentFrameY_LT = Y
     # calculate the total number of bytes in the frame
     totalBytes = Y.nbytes
     # divide by the number of rows
     bytesPerLine = int(totalBytes/Y.shape[0]) #I had to introduce it to avoid distortion in the opened file for some of the videos
-    self.frameY = QImage(Y.data, Y.shape[1], Y.shape[0], bytesPerLine, QImage.Format_Grayscale8) #shape[0] = height, [1] = width
-    self.frameY = self.frameY.scaled(self.lbl1_LT.size(), Qt.KeepAspectRatio, Qt.SmoothTransformation)
+    if self.pyqtVer == '5':
+        self.frameY = ft.QImage(Y.data, Y.shape[1], Y.shape[0], bytesPerLine, ft.QImage.Format_Grayscale8) #shape[0] = height, [1] = width
+        self.frameY = self.frameY.scaled(self.lbl1_LT.size(), ft.Qt.KeepAspectRatio, ft.Qt.SmoothTransformation)
+    elif self.pyqtVer == '6':
+        self.frameY = ft.QImage(Y.data, Y.shape[1], Y.shape[0], bytesPerLine, ft.QImage.Format.Format_Grayscale8) #shape[0] = height, [1] = width
+        self.frameY = self.frameY.scaled(self.lbl1_LT.size(), ft.Qt.AspectRatioMode.KeepAspectRatio, ft.Qt.TransformationMode.SmoothTransformation)
 
 def findFlameEdges(self, frameBW, flamePx):
     self.flameArea = len(flamePx[0])
@@ -106,22 +110,29 @@ def findFlameEdges(self, frameBW, flamePx):
         self.xLeft = self.vWidth - int(self.roiOneIn.text()) - self.xMin
 
     if self.showEdges.isChecked() == True:
-        cv2.line(frameBW, (self.xMax, 0),(self.xMax, int(self.roiFourIn.text())), (255, 255, 255), 2)
-        cv2.line(frameBW, (self.xMin, 0),(self.xMin, int(self.roiFourIn.text())), (255, 255, 255), 2)
+        ft.cv2.line(frameBW, (self.xMax, 0),(self.xMax, int(self.roiFourIn.text())), (255, 255, 255), 2)
+        ft.cv2.line(frameBW, (self.xMin, 0),(self.xMin, int(self.roiFourIn.text())), (255, 255, 255), 2)
 
     self.currentFrameBW_LT = frameBW
     totalBytes = frameBW.nbytes
     bytesPerLine = int(totalBytes/frameBW.shape[0])
-    self.frameBW = QImage(frameBW.data, frameBW.shape[1], frameBW.shape[0], bytesPerLine, QImage.Format_Grayscale8)
-    self.frameBW = self.frameBW.scaled(self.lbl2_LT.size(), Qt.KeepAspectRatio, Qt.SmoothTransformation)
+    if self.pyqtVer == '5':
+        self.frameBW = ft.QImage(frameBW.data, frameBW.shape[1], frameBW.shape[0], bytesPerLine, ft.QImage.Format_Grayscale8)
+        self.frameBW = self.frameBW.scaled(self.lbl2_LT.size(), ft.Qt.KeepAspectRatio, ft.Qt.SmoothTransformation)
+    elif self.pyqtVer == '6':
+        self.frameBW = ft.QImage(frameBW.data, frameBW.shape[1], frameBW.shape[0], bytesPerLine, ft.QImage.Format.Format_Grayscale8)
+        self.frameBW = self.frameBW.scaled(self.lbl2_LT.size(), ft.Qt.AspectRatioMode.KeepAspectRatio, ft.Qt.TransformationMode.SmoothTransformation)
 
 def lumaTracking(self):
     scale = True
     if not self.scaleIn.text():
         scale = False
-        msg = QMessageBox(self)
+        msg = ft.QMessageBox(self)
         msg.setText('The scale [px/mm] has not been specified')
-        msg.exec_()
+        if self.pyqtVer == '5':
+            msg.exec_()
+        elif self.pyqtVer == '6':
+            msg.exec()
     firstFrame = int(self.firstFrameIn.text())
     lastFrame = int(self.lastFrameIn.text())
     currentFrame = firstFrame
@@ -138,15 +149,15 @@ def lumaTracking(self):
         codec = str(self.codecIn.text())
         vFormat = str(self.formatIn.text())
         vName = self.fPath + '-YVideo.' + str(vFormat) # alternative: 'output.{}'.format(vFormat); self.fNameLbl.text() +
-        fourcc = cv2.VideoWriter_fourcc(*codec)
+        fourcc = ft.cv2.VideoWriter_fourcc(*codec)
         size = (int(self.roiThreeIn.text()), int(self.roiFourIn.text()))
         # open and set properties
-        vout = cv2.VideoWriter()
+        vout = ft.cv2.VideoWriter()
         vout.open(vName, fourcc, fps, size, 0)
 
     if scale: #this condition prevents crashes in case the scale is not specified
         while (currentFrame < lastFrame):
-            print('Frame #:', currentFrame)
+            # print('Frame #:', currentFrame,  end='\r')
             frame, frameCrop = ft.checkEditing(self, currentFrame)
             if self.filterLight.isChecked() == True:
                 if self.lightROI_LT_recorded == True:
@@ -154,27 +165,30 @@ def lumaTracking(self):
                     # low and high are the thresholds for each color channel
                     low = ([5, 5, 10]) # blueLow, greenLow, redLow
                     high = ([255, 255, 255]) # blueHigh, greenHigh, redHigh
-                    low = np.array(low, dtype = 'uint8') #this conversion is necessary
-                    high = np.array(high, dtype = 'uint8')
+                    low = ft.np.array(low, dtype = 'uint8') #this conversion is necessary
+                    high = ft.np.array(high, dtype = 'uint8')
                     currentLightROI = frame[self.lightROI_LT[1] : (self.lightROI_LT[1] + self.lightROI_LT[3]), self.lightROI_LT[0] : (self.lightROI_LT[0] + self.lightROI_LT[2])]
-                    newMask = cv2.inRange(currentLightROI, low, high)
-                    frame_light = cv2.bitwise_and(currentLightROI, currentLightROI, mask = newMask)
-                    grayFrame_light = cv2.cvtColor(frame_light, cv2.COLOR_BGR2GRAY)
-                    (thresh_light, frameBW_light) = cv2.threshold(grayFrame_light, 0, 255, cv2.THRESH_BINARY)
-                    flamePx_light = np.where(frameBW_light == [255])
+                    newMask = ft.cv2.inRange(currentLightROI, low, high)
+                    frame_light = ft.cv2.bitwise_and(currentLightROI, currentLightROI, mask = newMask)
+                    grayFrame_light = ft.cv2.cvtColor(frame_light, ft.cv2.COLOR_BGR2GRAY)
+                    (thresh_light, frameBW_light) = ft.cv2.threshold(grayFrame_light, 0, 255, ft.cv2.THRESH_BINARY)
+                    flamePx_light = ft.np.where(frameBW_light == [255])
                     area_light = int(self.lightROI_LT[3] * self.lightROI_LT[2])
                 else:
-                    msg = QMessageBox(self)
+                    msg = ft.QMessageBox(self)
                     msg.setText('Before the tracking, please click on "Pick a bright region" to select a region where the light is visible.')
-                    msg.exec_()
+                    if self.pyqtVer == '5':
+                        msg.exec_()
+                    elif self.pyqtVer == '6':
+                        msg.exec()
                     break
 
                 if len(flamePx_light[0]) < 0.5 * area_light:
                     getFilteredFrame(self, frameCrop)
-                    print('frame counted')
+                    # print('frame counted')
                 else:
                     currentFrame = currentFrame + 1 + int(self.skipFrameIn.text())
-                    print('frame not counted')
+                    # print('frame not counted')
                     continue
             else:
                 getFilteredFrame(self, frameCrop)
@@ -185,7 +199,8 @@ def lumaTracking(self):
             self.frameCount.append(currentFrame)
             if self.exportEdges_LT.isChecked():
                 vout.write(self.currentFrameY_LT)
-            print('Progress: ', round((currentFrame - firstFrame)/(lastFrame - firstFrame) * 10000)/100, '%')
+            # print('Frame #:', currentFrame,  end='\r')
+            print('Progress: ', round((currentFrame - firstFrame)/(lastFrame - firstFrame) * 10000)/100, '%', '(Frame #: ', currentFrame, ')', end='\r')
             currentFrame = currentFrame + 1 + int(self.skipFrameIn.text())
 
         print('Progress: 100 % - Tracking completed')
@@ -196,7 +211,7 @@ def lumaTracking(self):
 
         try:
             self.flameArea = [areaN / (float(self.scaleIn.text())**2) for areaN in flameArea]
-            self.flameArea = np.round(self.flameArea, 3)
+            self.flameArea = ft.np.round(self.flameArea, 3)
             self.flameArea = self.flameArea.tolist()
             self.timeCount = [frameN / float(self.vFpsLbl.text()) for frameN in self.frameCount]
         except:
@@ -205,7 +220,7 @@ def lumaTracking(self):
         for i in range(len(self.xRight_mm)):
             flameLength_mm.append(abs(self.xRight_mm[i] - self.xLeft_mm[i]))
 
-        flameLength_mm = np.round(flameLength_mm, 2)
+        flameLength_mm = ft.np.round(flameLength_mm, 2)
         self.flameLength_mm = flameLength_mm.tolist()
 
         movAvgPt = int(self.movAvgIn_LT.text()) #this number is half of the interval considered for the spread rate (movAvgPt = 2 means I am considering a total of 5 points (my point, 2 before and 2 after))
@@ -214,8 +229,8 @@ def lumaTracking(self):
 
         if movAvgPt == 0:
             for i in range(len(self.timeCount)-1):
-                xCoeffRight = np.polyfit(self.timeCount[(i):(i + 2)], self.xRight_mm[(i):(i + 2)], 1)
-                xCoeffLeft = np.polyfit(self.timeCount[(i):(i + 2)], self.xLeft_mm[(i):(i + 2)], 1)
+                xCoeffRight = ft.np.polyfit(self.timeCount[(i):(i + 2)], self.xRight_mm[(i):(i + 2)], 1)
+                xCoeffLeft = ft.np.polyfit(self.timeCount[(i):(i + 2)], self.xLeft_mm[(i):(i + 2)], 1)
                 self.spreadRateRight.append(xCoeffRight[0])
                 self.spreadRateLeft.append(xCoeffLeft[0])
             #repeat the last value
@@ -224,40 +239,40 @@ def lumaTracking(self):
         else: #here we calculate the instantaneous spread rate based on the moving avg. I also included the initial and final points
             for i in range(len(self.timeCount)):
                 if i - movAvgPt < 0:
-                    xCoeffRight = np.polyfit(self.timeCount[0:(i + movAvgPt + 1)], self.xRight_mm[0:(i + movAvgPt + 1)], 1)
-                    xCoeffLeft = np.polyfit(self.timeCount[0:(i + movAvgPt + 1)], self.xLeft_mm[0:(i + movAvgPt + 1)], 1)
+                    xCoeffRight = ft.np.polyfit(self.timeCount[0:(i + movAvgPt + 1)], self.xRight_mm[0:(i + movAvgPt + 1)], 1)
+                    xCoeffLeft = ft.np.polyfit(self.timeCount[0:(i + movAvgPt + 1)], self.xLeft_mm[0:(i + movAvgPt + 1)], 1)
                     self.spreadRateRight.append(xCoeffRight[0])
                     self.spreadRateLeft.append(xCoeffLeft[0])
                 elif i >= movAvgPt:
-                    xCoeffRight = np.polyfit(self.timeCount[(i - movAvgPt):(i + movAvgPt + 1)], self.xRight_mm[(i - movAvgPt):(i + movAvgPt + 1)], 1)
-                    xCoeffLeft = np.polyfit(self.timeCount[(i - movAvgPt):(i + movAvgPt + 1)], self.xLeft_mm[(i - movAvgPt):(i + movAvgPt + 1)], 1)
+                    xCoeffRight = ft.np.polyfit(self.timeCount[(i - movAvgPt):(i + movAvgPt + 1)], self.xRight_mm[(i - movAvgPt):(i + movAvgPt + 1)], 1)
+                    xCoeffLeft = ft.np.polyfit(self.timeCount[(i - movAvgPt):(i + movAvgPt + 1)], self.xLeft_mm[(i - movAvgPt):(i + movAvgPt + 1)], 1)
                     self.spreadRateRight.append(xCoeffRight[0])
                     self.spreadRateLeft.append(xCoeffLeft[0])
                 elif i + movAvgPt > len(self.timeCount):
-                    xCoeffRight = np.polyfit(self.timeCount[(i - movAvgPt):], self.xRight_mm[(i - movAvgPt):], 1)
-                    xCoeffLeft = np.polyfit(self.timeCount[(i - movAvgPt):], self.xLeft_mm[(i - movAvgPt):], 1)
+                    xCoeffRight = ft.np.polyfit(self.timeCount[(i - movAvgPt):], self.xRight_mm[(i - movAvgPt):], 1)
+                    xCoeffLeft = ft.np.polyfit(self.timeCount[(i - movAvgPt):], self.xLeft_mm[(i - movAvgPt):], 1)
                     self.spreadRateRight.append(xCoeffRight[0])
                     self.spreadRateLeft.append(xCoeffLeft[0])
 
-        self.xRight_mm = np.round(self.xRight_mm, 3)
+        self.xRight_mm = ft.np.round(self.xRight_mm, 3)
         self.xRight_mm = self.xRight_mm.tolist()
-        self.xLeft_mm = np.round(self.xLeft_mm, 3)
+        self.xLeft_mm = ft.np.round(self.xLeft_mm, 3)
         self.xLeft_mm = self.xLeft_mm.tolist()
-        self.spreadRateRight = np.round(self.spreadRateRight, 3)
+        self.spreadRateRight = ft.np.round(self.spreadRateRight, 3)
         self.spreadRateRight = self.spreadRateRight.tolist()
-        self.spreadRateLeft = np.round(self.spreadRateLeft, 3)
+        self.spreadRateLeft = ft.np.round(self.spreadRateLeft, 3)
         self.spreadRateLeft = self.spreadRateLeft.tolist()
 
-        self.lbl1_LT = pg.PlotWidget(self.lumaTrackingBox)
-        self.lbl2_LT = pg.PlotWidget(self.lumaTrackingBox)
+        self.lbl1_LT = ft.pg.PlotWidget(self.lumaTrackingBox)
+        self.lbl2_LT = ft.pg.PlotWidget(self.lumaTrackingBox)
 
-        if sys.platform == 'darwin':
+        if ft.sys.platform == 'darwin':
             lbl1 = [190, 25, 420, 300]
             lbl2 = [620, 25, 420, 300]
-        elif sys.platform == 'win32':
+        elif ft.sys.platform == 'win32':
             lbl1 = [190, 15, 420, 300]
             lbl2 = [620, 15, 420, 300]
-        elif sys.platform == 'linux':
+        elif ft.sys.platform == 'linux':
             lbl1 = [190, 25, 420, 300]
             lbl2 = [620, 25, 420, 300]
 
@@ -286,7 +301,7 @@ def lumaTracking(self):
         self.lbl2_LT.show()
 
 def lumaTrackingPlot(label, x, y, name, symbol, color):
-    pen = pg.mkPen(color)
+    pen = ft.pg.mkPen(color)
     label.plot(x, y, pen = pen, name = name, symbol = symbol, symbolSize = 7, symbolBrush = (color))
 
 def chooseFlameDirection(self, text):
@@ -298,20 +313,24 @@ def chooseFlameDirection(self, text):
         flameDir = 'toLeft'
 
 def saveData(self):
-    fileName = QFileDialog.getSaveFileName(self, 'Save tracking data')
+    fileName = ft.QFileDialog.getSaveFileName(self, 'Save tracking data')
     fileName = fileName[0]
     if not fileName[-4:] == '.csv':
         fileName = fileName + '.csv'
 
-    fileInfo = ['Name', self.fNameLbl.text(), 'Scale [px/mm]', self.scaleIn.text(), 'Luma Tracking', 'Flame dir.:', flameDir, 'Luma threshold', self.thresholdIn.text(), 'Min. particle [px]', str(self.filterParticleSldr_LT.value()),'Points LE', self.avgLEIn_LT.text(), 'Moving avg', self.movAvgIn_LT.text(), 'code version', str(self.FTversion)]
+    fileInfo = ['Name', self.fNameLbl.text(), 'Scale [px/mm]', self.scaleIn.text(), 'Luma Tracking', 'Flame dir.:', flameDir, 'Luma threshold', self.thresholdIn.text(), 'Min. particle [px]', str(self.filterParticleSldr_LT.value()),'Points LE', self.avgLEIn_LT.text(), 'Moving avg', self.movAvgIn_LT.text()]
+    if self.refPoint != []:
+        fileInfo = fileInfo + ['Ref. point (abs)', [self.refPoint[0], self.refPoint[1]]]
+    fileInfo = fileInfo + ['Code version', str(self.FTversion)]
+
     lbl = ['File info', 'Frame', 'Time [s]', 'Right edge [mm]', 'Left edge [mm]', 'Length [mm]', 'Spread Rate RE [mm/s]', 'Spread Rate LE [mm/s]', 'Area [mm^2]']
-    rows = [fileInfo, self.frameCount, self.timeCount, self.xRight_mm, self.xLeft_mm, self.flameLength_mm, self.spreadRateRight, self.spreadRateLeft, self.flameArea]
-    rows_zip = zip_longest(*rows)
+    clms = [fileInfo, self.frameCount, self.timeCount, self.xRight_mm, self.xLeft_mm, self.flameLength_mm, self.spreadRateRight, self.spreadRateLeft, self.flameArea]
+    clms_zip = ft.zip_longest(*clms)
 
     with open(fileName, 'w', newline = '') as csvfile:
-        writer = csv.writer(csvfile, delimiter = ',')
+        writer = ft.csv.writer(csvfile, delimiter = ',')
         writer.writerow(lbl)
-        for row in rows_zip:
+        for row in clms_zip:
             writer.writerow(row)
     self.msgLabel.setText('Data succesfully saved.')
 
@@ -349,45 +368,48 @@ def absValue(self):
 def filterParticleSldr(self):
     frame, frameCrop = ft.checkEditing(self, self.frameNumber)
     getFilteredFrame(self, frameCrop)
-    self.lbl1_LT.setPixmap(QPixmap.fromImage(self.frameY))
-    self.lbl2_LT.setPixmap(QPixmap.fromImage(self.frameBW))
+    self.lbl1_LT.setPixmap(ft.QPixmap.fromImage(self.frameY))
+    self.lbl2_LT.setPixmap(ft.QPixmap.fromImage(self.frameBW))
     self.filterParticleSldr_LT.setMaximum(int(self.particleSldrMax.text()))
 
 def showFrameLarge(self):
-    cv2.namedWindow(('Frame (luminance): ' + self.frameIn.text()), cv2.WINDOW_AUTOSIZE)
-    cv2.imshow(('Frame (luminance): ' + self.frameIn.text()), self.currentFrameY_LT)
-    cv2.namedWindow(('Frame (black/white): ' + self.frameIn.text()), cv2.WINDOW_AUTOSIZE)
-    cv2.imshow(('Frame (black/white): ' + self.frameIn.text()), self.currentFrameBW_LT)
+    ft.cv2.namedWindow(('Frame (luminance): ' + self.frameIn.text()), ft.cv2.WINDOW_AUTOSIZE)
+    ft.cv2.imshow(('Frame (luminance): ' + self.frameIn.text()), self.currentFrameY_LT)
+    ft.cv2.namedWindow(('Frame (black/white): ' + self.frameIn.text()), ft.cv2.WINDOW_AUTOSIZE)
+    ft.cv2.imshow(('Frame (black/white): ' + self.frameIn.text()), self.currentFrameBW_LT)
     while True:
-        if cv2.waitKey(1) == 27: #ord('Esc')
-            cv2.destroyAllWindows()
+        if ft.cv2.waitKey(1) == 27: #ord('Esc')
+            ft.cv2.destroyAllWindows()
             return
 
 def lightROIBtn(self):
     frame, frameCrop = ft.checkEditing(self, self.frameNumber)
-    self.lightROI_LT = cv2.selectROI(frame)
-    cv2.destroyAllWindows()
+    self.lightROI_LT = ft.cv2.selectROI(frame)
+    ft.cv2.destroyAllWindows()
     self.lightROI_LT_recorded = True
 
 def helpBtn(self):
-    msg = QMessageBox(self)
-    msg.setText("""In this analysis the luminance intensity of each pixel is used to isolate the flame. The frames are transformed from the RGB to the YCC color space. Only the Y (luma intensity) component is considered, and the threshold to filter the flame from the background can be adjusted by the user (from 0 to 255).
+    msg = ft.QMessageBox(self)
+    msg.setText("""Luma Tracking allows you to track a flame in an automatic way by considering the luminance intensity of each pixel in the ROI.
 
-    The Y channel of the image is shown in the window on the left, while the corresponding binary image is shown on the right.
+    The frames considered are transformed from the RGB to the YCC color space. Only the Y (luma intensity) component is considered, and the flame is isolated from the background by adjusting the 'Luma threshold' value (from 0 to 255).
 
-    Small bright regions can be filtered out with the 'Filter particles' slider. The value of the slider indicates the area (in px^2) of the regions to remove from the images, and you can change the maximum value by typing a number in the text box next to 'Filter particles'.
+    The resulting Y channel image is shown on the left window when the slider in the 'Preview box' is used, while the corresponding binary image is shown on the right. The left and right edges of the flame region are calculated as maximum and minimum locations of the binary image. '#px to locate edges' controls the number of pixels considered to calculate these locations.
 
-    The edges of the flame region are calculated as maximum and minimum locations of the binary image. The number of points considered to calculate these locations ('#px to locate edges:') can be adjusted as needed.
+    Small bright regions can be filtered out with the 'Filter particles' slider. The value of the slider indicates the area (in px^2) of the regions to remove from the image/frame, and you can change the maximum value by typing a number in the text box next to 'Filter particles'.
 
-    If there is a flashing light in the video, the illuminated frames can be discarded in the analysis by checking the 'Ignore flashing light' box. Before starting the analysis, click on 'Pick bright region' to select a (small) Region of Interest (ROI) where the effect of the light is visible. Note that this ROI is independent from the ROI specified in the 'Preview box'.
+    If there is a flashing or strobe light in the recorded video, you can click on 'Pick bright region' to choose a rectangular region (in the same way that the ROI is selected) that is illuminated when the light is on and dark when it is off (this region is independent from the ROI specified in the 'Preview box'). The frames where the light is on can be discarded during the analysis by checking the 'Ignore flashing light' box.
 
-    Flame position and spread rates are calculated automatically by clicking on 'Start Tracking'. The instantaneous spread rates are averaged according to the number of points specified by the user ('Moving avg points'). Note that the 'Moving avg points' value is doubled for the calculation of the spread rate (i.e. 'Moving avg points' = 2 considers two points before and two points after the instantaneous value).
+    Flame position and spread rates are calculated automatically after clicking on 'Start Tracking' (the Flame Tracker interface will not be responsive during the analysis, but the progress can be monitored in the terminal window). The instantaneous spread rates are averaged with a moving average (with a number of points specified by the 'Moving avg points' text box. Note that this value is doubled for the calculation of the spread rate, i.e. 'Moving avg points' = 2 considers two points before and two points after an instantaneous value). The 'Flame direction' determines the positive increment of the flame location along the horizontal coordinate.
 
-    'Absolute values' can be used to make the counts of flame position and time starting from zero.
+    By clicking on 'Absolute values', the x-axis of the tracked data will be shifted to the origin.
 
-    Click on 'Save data' to export a csv file with all the tracked information.
+    Click on 'Save data' to export a csv file with all the tracking results (position of left and right edges, their spread rates and their distance variation in time, as well as the area of the flame region).
 
-    By checking 'Video output', all the considered frames in the analysis (Y channel) will be exported as a video to visually check the tracking.
+    If 'Video output' is checked, the frames converted to the Y channel are exported as a new video, which could be used to visually check the tracking accuracy.
 
     """)
-    msg.exec_()
+    if self.pyqtVer == '5':
+        msg.exec_()
+    elif self.pyqtVer == '6':
+        msg.exec()

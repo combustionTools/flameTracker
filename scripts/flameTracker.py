@@ -1,6 +1,6 @@
 """
 Flame Tracker. This program is designed to track flames or bright objects in videos or images.
-Copyright (C) 2020,2021  Luca Carmignani; 2021 Charles Scudiere
+Copyright (C) 2020-2022  Luca Carmignani; 2021, 2022 Charles Scudiere
 
 This file is part of Flame Tracker.
 
@@ -21,22 +21,28 @@ Original Author: Luca Carmignani, PhD
 Collaborator/Contributor: Charles Scudiere, PhD
 Contact: flameTrackerContact@gmail.com
 """
+try:
+    from PyQt6 import QtGui
+    from PyQt6.QtGui import *
+    from PyQt6.QtWidgets import *
+    from PyQt6.QtCore import *
+except:
+    from PyQt5 import QtGui
+    from PyQt5.QtGui import *
+    from PyQt5.QtWidgets import *
+    from PyQt5.QtCore import *
 
+from itertools import zip_longest
 import cv2
 import numpy as np
 import csv
-import sys
+import sys, os
 import platform
 import time
 import re
 import pyqtgraph as pg
 
-from PyQt5 import QtGui
-from PyQt5.QtGui import *
-from PyQt5.QtWidgets import *
-from PyQt5.QtCore import *
-from itertools import zip_longest
-
+# local files for the flame tracking
 import manualTracking as mt
 import lumaTracking as lt
 import colorTracking as ct
@@ -62,6 +68,11 @@ def initVars(self): # define initial variables
     colorTrackingValue = False
     HSVTrackingValue = False
     editFrame = False
+    if QT_VERSION_STR[0] == '5':
+        self.pyqtVer = '5'
+        print('NOTE: You are using the package "PyQt5" for running the Flame Tracker. You should consider upgrading to "PyQt6" for improving compatibility with MacOS 12.1')
+    elif QT_VERSION_STR[0] == '6':
+        self.pyqtVer = '6'
 
 class Window(QWidget):
     def __init__(self, parent=None):
@@ -76,7 +87,7 @@ class Window(QWidget):
         (at your option) any later version.''')
 
         # Flame Tracker version
-        self.FTversion = 'v1.1.3'
+        self.FTversion = 'v1.1.4'
 
         #this function contains all the initial variables to declare
         initVars(self)
@@ -132,7 +143,9 @@ class Window(QWidget):
                 for children in self.analysisGroupBox.findChildren(QGroupBox):
                     children.setParent(None)
             except:
+                print('Unexpected error:', sys.exc_info())
                 self.msgLabel.setText('Error: the video could not be opened')
+
         elif self.openSelection == 'image(s)':
             try:
                 self.fPath, fFilter = QFileDialog.getOpenFileNames(self, 'Open Images')
@@ -184,6 +197,7 @@ class Window(QWidget):
                     children.setParent(None)
             except:
                 self.msgLabel.setText('Error: the image(s) could not be opened')
+                print('Unexpected error:', sys.exc_info())
 
     def goToFrameBtn_clicked(self):
         self.frameNumber = int(self.frameIn.text())
@@ -237,12 +251,18 @@ class Window(QWidget):
         if self.sLengthIn.text() == '-' or self.sWidthIn.text() == '-':
             msg = QMessageBox(self)
             msg.setText('The reference length and width need to be specified')
-            msg.exec_()
+            if self.pyqtVer == '5':
+                msg.exec_()
+            elif self.pyqtVer == '6':
+                msg.exec()
 
         try:
             msg = QMessageBox(self)
             msg.setText('The point order is: 1) top right, 2) bottom right, 3) bottom left, 4) top left.')
-            msg.exec_()
+            if self.pyqtVer == '5':
+                msg.exec_()
+            elif self.pyqtVer == '6':
+                msg.exec()
             self.msgLabel.setText('1) top right, 2) bottom right, 3) bottom left, 4) top left')
 
             roiOne = int(self.roiOneIn.text())
@@ -345,6 +365,7 @@ class Window(QWidget):
 
         except:
             self.msgLabel.setText('Ops! Something went wrong.')
+            print('Unexpected error:', sys.exc_info())
 
     def originalBtn_clicked(self):
         self.perspectiveValue = False
@@ -361,7 +382,7 @@ class Window(QWidget):
         if not name[-4:] == '.csv':
             name = name + '.csv'
         if name == '.csv': #this avoids name issues when the user closes the dialog without saving
-            self.msgLabel.setText('Ops! Something was wrong with the file name.')
+            self.msgLabel.setText('Ops! The file name was not valid and the parameters were not saved.')
         else:
             try:
                 with open(name, 'w', newline = '') as csvfile:
@@ -398,6 +419,7 @@ class Window(QWidget):
                     self.msgLabel.setText('Parameters saved.')
             except:
                 self.msgLabel.setText('Ops! Parameters were not saved.')
+                print('Unexpected error:', sys.exc_info())
 
     def loadParBtn_clicked(self):
         name = QFileDialog.getOpenFileName(self, 'Open parameters')
@@ -474,6 +496,7 @@ class Window(QWidget):
             notParameters_dlg = QErrorMessage(self)
             notParameters_dlg.showMessage('Ops! There was a problem loading the parameters.')
             self.msgLabel.setText('Parameters not loaded correctly.')
+            print('Unexpected error:', sys.exc_info())
 
     # selection connected to the specific file, getting rid of what was showing before
     def analysis_click(self, text):
@@ -606,8 +629,8 @@ class Window(QWidget):
             # wait for the mouse event or 'escape' key to quit
             while (True):
                 if clk == True:
-                    xPos_abs = xPos + roiOne
-                    yPos_abs = yPos + roiTwo
+                    xPos_abs = xPos #+ roiOne
+                    yPos_abs = yPos #+ roiTwo
                     break
 
                 if cv2.waitKey(1) == 27: #ord('q')
@@ -616,10 +639,10 @@ class Window(QWidget):
 
             if self.figSize.isChecked() == True:
                 self.refPoint = [(xPos_abs * 2), (yPos_abs * 2)] #absolute point
-                self.refPoint_ROI = [(xPos * 2), (yPos * 2)] #point function of ROI
+                self.refPoint_ROI = [(xPos - roiOne) * 2, (yPos - roiTwo) * 2] #point function of ROI
             else:
                 self.refPoint = [xPos_abs, yPos_abs] #absolute point
-                self.refPoint_ROI = [xPos, yPos] #point function of ROI
+                self.refPoint_ROI = [xPos - roiOne, yPos - roiTwo] #point function of ROI
 
             # print(f'Reference point (absolute): ({self.refPoint[0]}, {self.refPoint[1]})')
             # print(f'Reference point (ROI dependent): ({self.refPoint_ROI[0]}, {self.refPoint_ROI[1]})')
@@ -662,7 +685,7 @@ class Window(QWidget):
             while (currentFrame < lastFrame):
                 frame, frameCrop = checkEditing(self, currentFrame)
                 vout.write(frameCrop)
-                print('Progress: ', round((currentFrame - firstFrame)/(lastFrame - firstFrame) * 10000)/100, '%')
+                print('Progress: ', round((currentFrame - firstFrame)/(lastFrame - firstFrame) * 1000)/10, '%',  end='\r')
                 currentFrame = currentFrame + 1 + int(self.skipFrameIn.text())
 
             vout.release()
@@ -673,13 +696,16 @@ class Window(QWidget):
 
     def newVideoHelpBtn_clicked(self):
         msg = QMessageBox(self)
-        msg.setText('''To save the video editing, after specifying the properties of the new video, click on 'Export Video'.
+        msg.setText('''To save the edited video, click on 'Export Video' after specifying the new properties.
 
-        If Skip frames is not zero, to keep the same time of the original video, the new frame rate should be:
+        If 'Skip frames' is not zero, to keep the original time variation the new frame rate should be:
         fps(new) = fps(original)/(skipframes + 1)
 
-        Format and codec will depend on your operating system and the avaiable codecs (the best combination might require some trial and error).''')
-        msg.exec_()
+        'Format' and 'Codec' depend on your operating system and the avaiable codecs (the best combination might require some trial and error).''')
+        if self.pyqtVer == '5':
+            msg.exec_()
+        elif self.pyqtVer == '6':
+            msg.exec()
 
     def showFrameLargeBtn_clicked(self):
         cv2.namedWindow(('Frame: ' + str(self.frameNumber)), cv2.WINDOW_AUTOSIZE)
@@ -832,17 +858,24 @@ class Window(QWidget):
 
     def helpBtn_clicked(self):
         msg = QMessageBox(self)
-        msg.setText('''Flame Tracker is an image analysis program to detect and track a flame (or a luminous object) in images or videos (select the desired option before clicking on 'Open'). When opening folders with a large number of images, check that the number of frames corresponds to the correct number of images. Note that by opening more than one image a pop-up message will ask for the corresponding frame rate.
+        msg.setText('''Flame Tracker is an image analysis program to detect and track a flame (or a luminous object) in images or videos.
+
+        To get started, click on the 'Open' button to open a video. For images, select the option 'Image(s) from the dropdown menu before clicking on 'Open' (when opening more than one image a pop-up message will ask you for the corresponding frame rate).
 
         First column - information of the opened file such as size, duration, etc.
 
-        Second column -  shows initial and ending frames; only the selected range will show in the preview (the slider range will change as well). It is possible to skip frames for the analysis, but this number will not change the preview. The value of px/mm (scale) has to be specified before running any anlyses, and can be determined by clicking on 'Measure scale' and clicking on two reference points in the selected frame (a separate window will show up). A Region of Interest (ROI) can also be selected by dragging a rectangle in the selected frame after clicking on the button 'Select ROI'. Press 'Esc' keyboard to close the opened windows.
+        Second column -  shows initial and ending frames; only the selected range will show in the preview window on the right. It is possible to skip frames for the analysis, but all the frames are shown in the preview. The scale of the image/frame in px/mm can be determined by clicking on 'Measure scale' and clicking on two reference points in the pop-up window. Note that the scale has to be specified before running any anlyses. A Region of Interest (ROI) can also be selected by dragging a rectangle in the pop-up window after clicking on the button 'Select ROI'. Press 'Esc' keyboard to close any pop-up window.
 
-        Third column - optional adjustments: rotation, brightness and contrast. In case the perspective has to be corrected, two reference lengths have to be indicated (true values of horizontal and vertical lengths), corresponding to two length scales that will be selected in the frame. By clicking on 'Correct perspective' the order of mouse clicks is indicated.
+        Third column - optional adjustments: rotation, brightness and contrast. If the image/frame perspective has to be corrected, the desired value of two reference lengths has to be specified ('Horizontal' and 'Vertical' lengths). Then, by clicking on 'Correct perspective' the four corners of the object to correct can be selected in the pop-up window (the order of clicks is indicated by a message and in the GUI's information label). These corrections can be deleted by clicking on 'Restore original'.
 
-        Fourth column - choose the type of analysis (specific instructions are available for each selection), save/load parameters. Furthermore, it is possible to specify frame rate, codec and format (according to the operative system), and create a new video with all the desired modifications (only the ROI will be exported). The button '?' offers suggestions related to the frame rate to choose for the new video.
+        Fourth column - choose the type of analysis (specific instructions are available for each selection), and save/load parameters. Furthermore, it is possible to indicate a frame rate, codec and format (varying with the operating system), and create a new video with all the desired modifications (note that only the ROI will be exported). Click on '?' for suggestions on how to select the frame rate for the new video.
+
+        For any questions or feedback, feel free to send an email to: flametrackercontact@gmail.com
         ''')
-        msg.exec_()
+        if self.pyqtVer == '5':
+            msg.exec_()
+        elif self.pyqtVer == '6':
+            msg.exec()
 
 # this function waits for the next mouse click
 def click(event, x, y, flags, param):
@@ -862,13 +895,22 @@ def showFrame(self, frameNumber):
     cv2.rectangle(frame, firstPoint, secondPoint, (255, 255, 255), 3)
     if self.grayscale.isChecked() == True:
         bytes = frame.shape[1]
-        self.image = QImage(frame.data, frame.shape[1], frame.shape[0], bytes, QImage.Format_Grayscale8)
+        if self.pyqtVer == '5':
+            self.image = QImage(frame.data, frame.shape[1], frame.shape[0], bytes, QImage.Format_Grayscale8)
+        elif self.pyqtVer == '6':
+            self.image = QImage(frame.data, frame.shape[1], frame.shape[0], bytes, QImage.Format.Format_Grayscale8)
     else:
         bytes = 3 * frame.shape[1] #bytes per line, necessary to avoid distortion in the opened file
-        self.image = QImage(frame.data, frame.shape[1], frame.shape[0], bytes, QImage.Format_RGB888).rgbSwapped()
+        if self.pyqtVer == '5':
+            self.image = QImage(frame.data, frame.shape[1], frame.shape[0], bytes, QImage.Format_RGB888).rgbSwapped()
+        elif self.pyqtVer == '6':
+            self.image = QImage(frame.data, frame.shape[1], frame.shape[0], bytes, QImage.Format.Format_RGB888).rgbSwapped()
 
     self.currentFrame = frame
-    self.image = self.image.scaled(self.win1.size(), Qt.KeepAspectRatio, Qt.SmoothTransformation)
+    if self.pyqtVer == '5':
+        self.image = self.image.scaled(self.win1.size(), Qt.KeepAspectRatio, Qt.SmoothTransformation)
+    elif self.pyqtVer == '6':
+        self.image = self.image.scaled(self.win1.size(), Qt.AspectRatioMode.KeepAspectRatio, Qt.TransformationMode.SmoothTransformation)
     self.win1.setPixmap(QPixmap.fromImage(self.image))
 
 def perspectiveCorrection(self, frame):
@@ -966,9 +1008,12 @@ def checkAnalysisBox(self, frameNumber):
             secondPoint = (int(self.lightROI_MT[0]) + int(self.lightROI_MT[2]), int(self.lightROI_MT[1]) + int(self.lightROI_MT[3]))
             cv2.rectangle(frame, firstPoint, secondPoint, (255, 0, 0), 5)
         bytes1 = 3 * frame.shape[1] #bytes per line, necessary to avoid distortion in the opened file
-        image1 = QImage(frame.data, frame.shape[1], frame.shape[0], bytes1, QImage.Format_RGB888).rgbSwapped()
-        image1 = image1.scaled(self.lbl1_MT.size(), Qt.KeepAspectRatio, Qt.SmoothTransformation)
-        self.lbl1_MT.setPixmap(QPixmap.fromImage(image1))
+        if self.pyqtVer == '5':
+            image1 = QImage(frame.data, frame.shape[1], frame.shape[0], bytes1, QImage.Format_RGB888).rgbSwapped()
+            image1 = image1.scaled(self.lbl1_MT.size(), Qt.KeepAspectRatio, Qt.SmoothTransformation)
+        elif self.pyqtVer == '6':
+            image1 = QImage(frame.data, frame.shape[1], frame.shape[0], bytes1, QImage.Format.Format_RGB888).rgbSwapped()
+            image1 = image1.scaled(self.lbl1_MT.size(), Qt.AspectRatioMode.KeepAspectRatio, Qt.TransformationMode.SmoothTransformation)
         self.lbl1_MT.show()
 
     if lumaTrackingValue == True:
@@ -1058,4 +1103,7 @@ if __name__ == '__main__':
     app = QApplication(sys.argv)
     window = Window()
     window.show()
-    sys.exit(app.exec_())
+    if QT_VERSION_STR[0] == '5':
+        sys.exit(app.exec_())
+    elif QT_VERSION_STR[0] == '6':
+        sys.exit(app.exec())

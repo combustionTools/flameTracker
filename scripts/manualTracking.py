@@ -1,6 +1,6 @@
 """
 Flame Tracker. This program is designed to track flames or bright objects in videos or images.
-Copyright (C) 2020,2021  Luca Carmignani
+Copyright (C) 2020-2022  Luca Carmignani
 
 This file is part of Flame Tracker.
 
@@ -21,17 +21,17 @@ Author: Luca Carmignani, PhD
 Contact: flameTrackerContact@gmail.com
 """
 
-from PyQt5 import QtGui
-from PyQt5.QtGui import *
-from PyQt5.QtWidgets import *
-from PyQt5.QtCore import *
-from itertools import zip_longest
-import csv
-import cv2
+# from PyQt6 import QtGui
+# from PyQt6.QtGui import *
+# from PyQt6.QtWidgets import *
+# from PyQt6.QtCore import *
+# from itertools import zip_longest
+# import csv
+# import cv2
 import flameTracker as ft
 import boxesGUI_OS as gui
-import pyqtgraph as pg
-import numpy as np
+# import pyqtgraph as pg
+# import numpy as np
 
 
 def initVars(self): # define initial variables
@@ -43,7 +43,7 @@ def initVars(self): # define initial variables
 def startTracking(self):
     global clk, nClicks
     # transforming the first label into a plot
-    self.lbl1_MT = pg.PlotWidget(self.manualTrackingBox)
+    self.lbl1_MT = ft.pg.PlotWidget(self.manualTrackingBox)
     self.lbl1_MT.setGeometry(190, 25, 420, 300)
     self.lbl1_MT.setBackground('w')
     self.lbl1_MT.setLabel('left', 'Position [mm]', color='black', size=14)
@@ -79,9 +79,12 @@ def startTracking(self):
         print('Frame #:', currentFrame)
         if not self.scaleIn.text():
             scale = False
-            msg = QMessageBox(self)
+            msg = ft.QMessageBox(self)
             msg.setText('The scale [px/mm] has not been specified')
-            msg.exec_()
+            if self.pyqtVer == '5':
+                msg.exec_()
+            elif self.pyqtVer == '6':
+                msg.exec()
             break
 
         frame, frameCrop = ft.checkEditing(self, currentFrame)
@@ -91,15 +94,15 @@ def startTracking(self):
             # low and high are the thresholds for each color channel
             low = ([5, 5, 10]) # blueLow, greenLow, redLow
             high = ([255, 255, 255]) # blueHigh, greenHigh, redHigh
-            low = np.array(low, dtype = 'uint8') #this conversion is necessary
-            high = np.array(high, dtype = 'uint8')
+            low = ft.np.array(low, dtype = 'uint8') #this conversion is necessary
+            high = ft.np.array(high, dtype = 'uint8')
 
             currentLightROI = frame[self.lightROI_MT[1] : (self.lightROI_MT[1] + self.lightROI_MT[3]), self.lightROI_MT[0] : (self.lightROI_MT[0] + self.lightROI_MT[2])]
-            newMask = cv2.inRange(currentLightROI, low, high)
-            frame_light = cv2.bitwise_and(currentLightROI, currentLightROI, mask = newMask)
-            grayFrame_light = cv2.cvtColor(frame_light, cv2.COLOR_BGR2GRAY)
-            (thresh_light, BW_light) = cv2.threshold(grayFrame_light, 0, 255, cv2.THRESH_BINARY)
-            flamePx_light = np.where(BW_light == [255])
+            newMask = ft.cv2.inRange(currentLightROI, low, high)
+            frame_light = ft.cv2.bitwise_and(currentLightROI, currentLightROI, mask = newMask)
+            grayFrame_light = ft.cv2.cvtColor(frame_light, ft.cv2.COLOR_BGR2GRAY)
+            (thresh_light, BW_light) = ft.cv2.threshold(grayFrame_light, 0, 255, ft.cv2.THRESH_BINARY)
+            flamePx_light = ft.np.where(BW_light == [255])
             area_light = int(self.lightROI_MT[3] * self.lightROI_MT[2])
 
             if lightStatus == 'lightOff':
@@ -112,16 +115,16 @@ def startTracking(self):
                     continue
 
         # create the window and the line over the first point clicked
-        cv2.namedWindow('manualTracking', cv2.WINDOW_AUTOSIZE)
-        cv2.setMouseCallback('manualTracking', click)
+        ft.cv2.namedWindow('manualTracking', ft.cv2.WINDOW_AUTOSIZE)
+        ft.cv2.setMouseCallback('manualTracking', click)
 
         #if currentFrame > firstFrame:
         if len(posY) > 0:
             for n in range(nClicks):
                 if self.showEdges_MT.isChecked() == True:
-                    cv2.line(frameCrop, (0, int(posY[str(n+1)][0])),(int(self.roiThreeIn.text()), int(posY[str(n+1)][0])), (0, 245, 184), 2)
+                    ft.cv2.line(frameCrop, (0, int(posY[str(n+1)][0])),(int(self.roiThreeIn.text()), int(posY[str(n+1)][0])), (0, 245, 184), 2)
 
-        cv2.imshow('manualTracking',frameCrop)
+        ft.cv2.imshow('manualTracking',frameCrop)
 
         self.msgLabel.setText('Tracking started, press (Esc) to quit.')
         for n in range(nClicks):
@@ -136,8 +139,8 @@ def startTracking(self):
                         xClick = self.vWidth - int(self.roiOneIn.text()) - xPos
                     break
 
-                if cv2.waitKey(1) == 27: #ord('q')
-                    cv2.destroyAllWindows()
+                if ft.cv2.waitKey(1) == 27: #ord('q')
+                    ft.cv2.destroyAllWindows()
                     return
 
             # update each position and frame list for the current click
@@ -162,11 +165,14 @@ def startTracking(self):
         currentFrame = currentFrame + 1 + int(self.skipFrameIn.text())
 
     if len(timeCount) == 0:
-        msg = QMessageBox(self)
+        msg = ft.QMessageBox(self)
         msg.setText('No frames were detected, please check ROI size and light settings.')
-        msg.exec_()
+        if self.pyqtVer == '5':
+            msg.exec_()
+        elif self.pyqtVer == '6':
+            msg.exec()
 
-    cv2.destroyAllWindows()
+    ft.cv2.destroyAllWindows()
 
     self.posX_px = posX
     self.posX_plot = posX_mm
@@ -177,7 +183,7 @@ def startTracking(self):
     if scale:
         for n in range(nClicks):
             for i in range(len(timeCount['1'])-1):
-                xCoeff = np.polyfit(timeCount['1'][(i):(i + 2)], posX_mm[str(n+1)][(i):(i + 2)], 1)
+                xCoeff = ft.np.polyfit(timeCount['1'][(i):(i + 2)], posX_mm[str(n+1)][(i):(i + 2)], 1)
                 spreadRate = xCoeff[0]
                 if str(n+1) in self.spreadRate:
                     self.spreadRate[str(n+1)].append(spreadRate)
@@ -205,13 +211,13 @@ def startTracking(self):
 def click(event, x, y, flags, param):
     global xPos, yPos, clk
 
-    if event == cv2.EVENT_LBUTTONUP:
+    if event == ft.cv2.EVENT_LBUTTONUP:
         xPos = x
         yPos = y
         clk = True
 
 def manualTrackingPlot(label, x, y, lineName, symbol, color):
-    pen = pg.mkPen(color)
+    pen = ft.pg.mkPen(color)
     label.plot(x, y, pen = pen, name = lineName, symbol = symbol, symbolSize = 7, symbolBrush = (color))
 
 def absValue(self):
@@ -272,12 +278,12 @@ def chooseLightFilter(self):
 
 def lightROIBtn(self):
     frame, frameCrop = ft.checkEditing(self, self.frameNumber)
-    self.lightROI_MT = cv2.selectROI(frame)
-    cv2.destroyAllWindows()
+    self.lightROI_MT = ft.cv2.selectROI(frame)
+    ft.cv2.destroyAllWindows()
     self.lightROI_MT_recorded = True
 
 def saveData(self):
-    fileName = QFileDialog.getSaveFileName(self, 'Save tracking data')
+    fileName = ft.QFileDialog.getSaveFileName(self, 'Save tracking data')
     fileName = fileName[0]
     if not fileName[-4:] == '.csv':
         fileName = fileName + '.csv'
@@ -290,39 +296,44 @@ def saveData(self):
             lbl.append('xPos_click{} [px]'.format([n+1]))
             clmns.append(self.posX_px[str(n+1)])
             lbl.append('xPos_click{} [mm]'.format([n+1]))
-            clmns.append(np.round((self.posX_plot[str(n+1)]), 2))
+            clmns.append(ft.np.round((self.posX_plot[str(n+1)]), 2))
             lbl.append('Vf_click{}'.format([n+1]))
             clmns.append(self.spreadRate[str(n+1)])
 
-        clmns_zip = zip_longest(*clmns)
+        clmns_zip = ft.zip_longest(*clmns)
     except:
-        self.msgLabel.setText('Ops! Something went wrong with the click recordings.')
+        self.msgLabel.setText('Ops! Something went wrong while saving the data.')
+        print('Unexpected error:', ft.sys.exc_info())
 
     if fileName == '.csv': #this prevents name issues when the user closes the dialog without saving
-        self.msgLabel.setText('Ops! The values were not saved.')
+        self.msgLabel.setText('Ops! The file name was not valid and the data was not saved.')
     else:
         try:
             with open(fileName, 'w', newline = '') as csvfile:
-                writer = csv.writer(csvfile, delimiter = ',')
+                writer = ft.csv.writer(csvfile, delimiter = ',')
                 writer.writerow(lbl)
                 for row in clmns_zip:
                     writer.writerow(row)
             self.msgLabel.setText('Data successfully saved.')
         except:
-            notParameters_dlg = QErrorMessage(self)
+            notParameters_dlg = ft.QErrorMessage(self)
             notParameters_dlg.showMessage('Ops! Something went wrong, the values were not saved.')
             self.msgLabel.setText('Data not saved.')
+            print('Unexpected error:', ft.sys.exc_info())
 
 def helpBtn(self):
-    msg = QMessageBox(self)
-    msg.setText("""Manual Tracking allows you to click on the desired location(s) in the frames considered. You can select more than one click per frame by changing the 'Tracking points #:'.
+    msg = ft.QMessageBox(self)
+    msg.setText("""Manual Tracking allows you to track a flame with a point-and-click method.
 
-    If there is a flashing or strobe light in the recorded video, the option 'Frames light on' will consider only the frames where it is on, whereas 'Frames light off' will consider only frames without the light. If nothing is selected, all the frames are considered. To determine which frames have the light on, click on 'Pick bright region' to select a (small) Region of Interest (ROI) where the effect of the light is visible. Note that this ROI is independent from the ROI specified in the 'Preview box', and it will be shown as a blue rectangle in the left window of the 'Analysis box' when it is used.
+    'Tracking points #' defines the number of mouse clicks to record for each frame before moving to the next one (the default is one click per frame). By clicking on 'Start tracking', a pop-up window will show the first frame (press 'Esc' to exit at any time, but note that the progress will be lost). The following frames will show the horizontal lines corresponding to the points clicked. These lines can be hidden by unchecking 'Show tracking lines' before starting the analysis. After the tracking, the position vs time and spread rate vs time values will be shown in the windows in the 'Analysis box' when the slider in the 'Preview box' is used. The 'Flame direction' determines the positive increment of the flame location along the horizontal coordinate.
 
-    With 'Start Tracking' the frames will show up in a new window (press 'Esc' to exit at any time), and horizontal lines corresponding to the points clicked on the first frame will show up in the following frames (they can be hidden by unchecking 'Show tracking lines'). After the tracking, the position vs time and spread rate values will be shown in the windows in the 'Analysis box'.
+    If there is a flashing or strobe light in the recorded video, you can click on 'Pick bright region' to choose a rectangular region (in the same way that the ROI is selected) that is illuminated when the light is on and dark when it is off. Note that this region is independent from the ROI specified in the 'Preview box', and will show up of the left window in the 'Analysis box'. From the dropdown menu, select the option 'Frames light on' to consider only the frames where the light is on, or 'Frames light off' to consider only the frames without the light. By default all the frames are considered.
 
     By clicking on 'Absolute values', the x-axis of the tracked data will be shifted to the origin.
 
-    Click on 'Save data' to export a csv file with all the tracked information.
+    Click on 'Save data' to export a csv file with all the tracking results (position in pixel and mm for each point tracked, and their corresponding spread rate).
     """)
-    msg.exec_()
+    if self.pyqtVer == '5':
+        msg.exec_()
+    elif self.pyqtVer == '6':
+        msg.exec()
