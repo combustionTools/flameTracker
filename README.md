@@ -29,7 +29,7 @@ Python3 is required; if you don't have it, you can check these websites:
 ## 2. Required packages
 
 The packages required to run the code are (they can be installed with pip or anaconda):
-- Pyqt5 (https://pypi.org/project/PyQt5/)
+- Pyqt6 (https://pypi.org/project/PyQt6/)
 - opencv-python (https://pypi.org/project/opencv-python/)
 - numPy (https://numpy.org)
 - PyQtgraph (http://www.pyqtgraph.org)
