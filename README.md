@@ -36,7 +36,7 @@ The packages required to run the code are (they can be installed with pip or ana
 
 Note: Mac and Linux users may have to use pip3 to install the packages for Python3, otherwise they could be installed in the default Python2 folders.
 
-## 3. Substitute package file (not needed with Flame Tracker v1.1.4 and later versions)
+## 3. Substitute package file (only for Flame Tracker versions before v1.1.3)
 
 Note: this section is needed only if you are running old versions of the pyqtgraph package (not needed after 0.11)
 
