@@ -1,0 +1,22 @@
+File,example.mp4
+ROI,Value
+"ROI, x:",270
+"ROI, y:",180
+"ROI, w:",1630
+"ROI, h:",630
+First frame:,1000
+Last frame:,4000
+Skip frames:,5
+Scale (px/mm):,10.559
+Horizontal:,152
+Vertical:,55
+Current frame:,1000
+Rotation (deg):,-2
+Brightness:,0
+Contrast:,0
+Pre-rotation,Yes
+anglePerspective,-2.0
+Perspective,Yes
+sample,[293. 201.],[1799.  239.],[1798.  774.],[289. 784.]
+sampleMod,[293. 201.],[1904.2  201. ],[1900.2  784. ],[289. 784.]
+code version,v1.1.5beta
