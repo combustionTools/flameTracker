@@ -87,7 +87,7 @@ class Window(QWidget):
         (at your option) any later version.''')
 
         # Flame Tracker version
-        self.FTversion = 'v1.1.4'
+        self.FTversion = 'v1.1.5'
 
         #this function contains all the initial variables to declare
         initVars(self)
@@ -256,14 +256,15 @@ class Window(QWidget):
             elif self.pyqtVer == '6':
                 msg.exec()
 
+        self.msgLabel.setText('1) top right, 2) bottom right, 3) bottom left, 4) top left')
+
         try:
             msg = QMessageBox(self)
-            msg.setText('The point order is: 1) top right, 2) bottom right, 3) bottom left, 4) top left.')
+            msg.setText('The click order is: 1) top right, 2) bottom right, 3) bottom left, 4) top left.')
             if self.pyqtVer == '5':
                 msg.exec_()
             elif self.pyqtVer == '6':
                 msg.exec()
-            self.msgLabel.setText('1) top right, 2) bottom right, 3) bottom left, 4) top left')
 
             roiOne = int(self.roiOneIn.text())
             roiTwo = int(self.roiTwoIn.text())
@@ -280,6 +281,7 @@ class Window(QWidget):
             # The following conditions are the same of checkEditing(), here they are checked for the correction
             self.anglePerspective = float(self.rotationAngleIn.text())
             if float(self.rotationAngleIn.text()) != 0:
+                self.rotationValue = True
                 frame = rotationCorrection(self, frame, self.anglePerspective)
             if int(self.brightnessSlider.value()) != 0 or int(self.contrastSlider.value()) != 0:
                 frameContainer = np.zeros(frame.shape, frame.dtype)
@@ -357,11 +359,13 @@ class Window(QWidget):
             self.perspectiveValue = True # this value tells us if a flame is distorted or not
             self.msgLabel.setText('Image successfully corrected')
             showFrame(self, self.frameNumber)
+            ### Note (v1.1.5): the following is not true anymore
             # The rotation value has to be set after showing the frame to avoid double editing in the first preview
-            if float(self.rotationAngleIn.text()) != 0:
-                self.rotationValue = True
-            else:
-                self.rotationValue = False
+            # if float(self.rotationAngleIn.text()) != 0:
+            #     self.rotationValue = True
+            # else:
+            #     self.rotationValue = False
+
 
         except:
             self.msgLabel.setText('Ops! Something went wrong.')
