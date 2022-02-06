@@ -427,7 +427,7 @@ def loadChannelsBtn(self):
     name = ft.QFileDialog.getOpenFileName(self, 'Load channel values')
     try:
         with open(name[0], 'r') as csvfile:
-            reader = csv.reader(csvfile, delimiter = ',')
+            reader = ft.csv.reader(csvfile, delimiter = ',')
             for row in reader:
                 # CAS slider setting:
                 if 'H' in row:

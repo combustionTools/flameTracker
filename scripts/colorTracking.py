@@ -344,7 +344,7 @@ def saveChannelsBtn(self):
     else:
         try:
             with open(name, 'w', newline = '') as csvfile:
-                writer = csv.writer(csvfile, delimiter = ',')
+                writer = ft.csv.writer(csvfile, delimiter = ',')
                 writer.writerow(['File', self.fNameLbl.text()])
                 writer.writerow(['Channel', 'Minimum', 'Maximum'])
                 writer.writerow(['Red', str(self.redMinSlider.value()), str(self.redMaxSlider.value())])
