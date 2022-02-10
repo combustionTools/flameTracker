@@ -50,7 +50,8 @@ def startTracking(self):
     self.lbl1_MT.setLabel('bottom', 'Time [s]', color='black', size=14)
     self.lbl1_MT.getAxis('bottom').setPen(color=(0, 0, 0))
     self.lbl1_MT.getAxis('left').setPen(color=(0, 0, 0))
-    self.lbl1_MT.addLegend(offset = [1, 0.1]) # background color modified in line 122 and 123 of Versions/3.7/lib/python3.7/site-packages/pyqtgraph/graphicsItems
+    # For versions before v1.1.4: background color modified in line 122 and 123 of Versions/3.7/lib/python3.7/site-packages/pyqtgraph/graphicsItems
+    self.lbl1_MT.addLegend(offset = [1, 0.1])
 
     firstFrame = int(self.firstFrameIn.text())
     lastFrame = int(self.lastFrameIn.text())

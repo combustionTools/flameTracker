@@ -78,7 +78,7 @@ class Window(QWidget):
     def __init__(self, parent=None):
         super(Window, self).__init__(parent)
 
-        print('''Flame Tracker - Copyright (C) 2020,2021 Luca Carmignani; 2021 Charles Scudiere
+        print('''Flame Tracker - Copyright (C) 2020-2022 Luca Carmignani; 2021, 2022 Charles Scudiere
         This program comes with ABSOLUTELY NO WARRANTY; See the GNU General
         Public License for more details.
         This is free software, and you can redistribute it and/or modify
@@ -87,7 +87,7 @@ class Window(QWidget):
         (at your option) any later version.''')
 
         # Flame Tracker version
-        self.FTversion = 'v1.1.6'
+        self.FTversion = 'v1.1.7'
 
         #this function contains all the initial variables to declare
         initVars(self)
@@ -657,6 +657,63 @@ class Window(QWidget):
             print('Unexpected error:', sys.exc_info())
             self.msgLabel.setText('Something went wrong and the reference point was not measured.')
 
+    def measureLenBtn_clicked(self):
+        self.msgLabel.setText('Click on two points to measure their distance.')
+        global clk
+        clk = False # False unless the mouse is clicked
+        try:
+            roiOne = int(self.roiOneIn.text())
+            roiTwo = int(self.roiTwoIn.text())
+            roiThree = int(self.roiThreeIn.text())
+            roiFour = int(self.roiFourIn.text())
+
+            points = list()
+
+            frame, frameCrop = checkEditing(self, self.frameNumber)
+
+            cv2.namedWindow('MeasureLength', cv2.WINDOW_AUTOSIZE)
+            cv2.setMouseCallback('MeasureLength', click)
+            if self.figSize.isChecked() == True:
+                newWidth = int(frameCrop.shape[1] / 2) #original width divided by 2
+                newHeight = int(frameCrop.shape[0] / 2) #original height divided by 2
+                halfFig = cv2.resize(frameCrop, (newWidth, newHeight))
+                cv2.imshow('MeasureLength', halfFig)
+            else:
+                cv2.imshow('MeasureLength', frameCrop)
+
+            for n in range(2):
+                # wait for the mouse event or 'escape' key to quit
+                while (True):
+                    if clk == True:
+                        clk = False
+                        break
+
+                    if cv2.waitKey(1) == 27: #ord('q')
+                        cv2.destroyAllWindows()
+                        return
+
+                # update each position and frame list for the current click
+                if self.figSize.isChecked() == True:
+                    points.append(xPos * 2)
+                    points.append(yPos * 2)
+                else:
+                    points.append(xPos)
+                    points.append(yPos)
+
+            length_px = ((points[3]-points[1])**2 + (points[2]-points[0])**2)**0.5
+            length_px = np.round(length_px, 3)
+            if str(self.scaleIn.text()):
+                length_mm = length_px / float(self.scaleIn.text())
+                length_mm = np.round(length_mm, 3)
+                self.msgLabel.setText(f'Measured length: {length_px} px; {length_mm} mm')
+            else:
+                self.msgLabel.setText(f'Measured length: {length_px} px; insert scale for mm')
+
+            cv2.destroyAllWindows()
+        except:
+            print('Unexpected error:', sys.exc_info())
+            self.msgLabel.setText('Something went wrong and the length was not measured.')
+
     def editFramesSlider_released(self):
         self.brightnessLbl.setText(str(self.brightnessSlider.value()))
         self.contrastLbl.setText(str(self.contrastSlider.value()))
@@ -864,17 +921,19 @@ class Window(QWidget):
         msg = QMessageBox(self)
         msg.setText('''Flame Tracker is an image analysis program to detect and track a flame (or a luminous object) in images or videos.
 
-        To get started, click on the 'Open' button to open a video. For images, select the option 'Image(s) from the dropdown menu before clicking on 'Open' (when opening more than one image a pop-up message will ask you for the corresponding frame rate).
+        Click on the 'Open' button to open a video. For images, select the option 'Image(s) from the dropdown menu before clicking on 'Open' (when opening more than one image a pop-up message will ask you for the corresponding frame rate).
 
         First column - information of the opened file such as size, duration, etc.
 
-        Second column -  shows initial and ending frames; only the selected range will show in the preview window on the right. It is possible to skip frames for the analysis, but all the frames are shown in the preview. The scale of the image/frame in px/mm can be determined by clicking on 'Measure scale' and clicking on two reference points in the pop-up window. Note that the scale has to be specified before running any anlyses. A Region of Interest (ROI) can also be selected by dragging a rectangle in the pop-up window after clicking on the button 'Select ROI'. Press 'Esc' keyboard to close any pop-up window.
+        Second column -  only the selected frame range will show in the preview window on the right. Click on 'Measure scale' and then on two reference points in the pop-up window to measure the scale of the image/frame in px/mm. Note that the scale has to be specified before running any anlyses. A Region of Interest (ROI) can also be selected by dragging a rectangle in the pop-up window after clicking on the button 'Select ROI'. Press 'Esc' to close any pop-up window.
 
-        Third column - optional adjustments: rotation, brightness and contrast. If the image/frame perspective has to be corrected, the desired value of two reference lengths has to be specified ('Horizontal' and 'Vertical' lengths). Then, by clicking on 'Correct perspective' the four corners of the object to correct can be selected in the pop-up window (the order of clicks is indicated by a message and in the GUI's information label). These corrections can be deleted by clicking on 'Restore original'.
+        Third column - optional adjustments: rotation, brightness and contrast. If the image/frame perspective has to be corrected, the actual values of two reference lengths have to be specified ('Horizontal' and 'Vertical'). Then, by clicking on 'Correct perspective' the four corners of the object to correct can be selected in the pop-up window. These corrections can be deleted by clicking on 'Restore original'.
 
-        Fourth column - choose the type of analysis (specific instructions are available for each selection), and save/load parameters. Furthermore, it is possible to indicate a frame rate, codec and format (varying with the operating system), and create a new video with all the desired modifications (note that only the ROI will be exported). Click on '?' for suggestions on how to select the frame rate for the new video.
+        Fourth column - choose the type of analysis (specific instructions are available for each selection), and save/load parameters. Furthermore, it is possible to export the edited video (note that only the ROI will be exported). Click on '?' for suggestions on how to select the frame rate for the new video.
 
-        For any questions or feedback, feel free to send an email to: flametrackercontact@gmail.com
+        More information are available on GitHub: https://github.com/combustionTools/flameTracker/wiki
+
+        Contact: flametrackercontact@gmail.com
         ''')
         if self.pyqtVer == '5':
             msg.exec_()
@@ -1018,6 +1077,8 @@ def checkAnalysisBox(self, frameNumber):
         elif self.pyqtVer == '6':
             image1 = QImage(frame.data, frame.shape[1], frame.shape[0], bytes1, QImage.Format.Format_RGB888).rgbSwapped()
             image1 = image1.scaled(self.lbl1_MT.size(), Qt.AspectRatioMode.KeepAspectRatio, Qt.TransformationMode.SmoothTransformation)
+
+        self.lbl1_MT.setPixmap(QPixmap.fromImage(image1)) # this line was added (again?) in v1.1.7 to show the preview frame in the analysis box
         self.lbl1_MT.show()
 
     if lumaTrackingValue == True:
