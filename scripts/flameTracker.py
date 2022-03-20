@@ -87,7 +87,7 @@ class Window(QWidget):
         (at your option) any later version.''')
 
         # Flame Tracker version
-        self.FTversion = 'v1.1.8beta'
+        self.FTversion = 'v1.1.8'
 
         #this function contains all the initial variables to declare
         initVars(self)
