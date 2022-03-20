@@ -52,11 +52,11 @@ import boxesGUI_OS as gui
 # import sys
 
 def initVars(self): # define initial variables
-    global flameDir
-    flameDir = 'toRight'
+    # global flameDir
+    # flameDir = 'toRight'
     # Add time/frame plotting toggle - CAS
-    self.isPlotTimevsFrame = False #True
-    self.connectivity_HT = 4
+    # self.isPlotTimevsFrame = False #True
+    # self.connectivity_HT = 4
     self.lightROI_HT_recorded = False
 
 def getFilteredFrame(self, frame):
@@ -77,7 +77,7 @@ def getFilteredFrame(self, frame):
     (threshold, frameBW) = ft.cv2.threshold(grayFrame, 0, 255, ft.cv2.THRESH_BINARY)
 
     # Find all the connected components (8 means in the four directions and diagonals)
-    componentNum, componentLbl, stats, centroids = ft.cv2.connectedComponentsWithStats(frameBW, connectivity = self.connectivity_HT)
+    componentNum, componentLbl, stats, centroids = ft.cv2.connectedComponentsWithStats(frameBW, connectivity = int(self.connectivityBox.currentText())) # self.connectivity_HT)
     ### 1 = number of labels; 2 = array; 3 = [[x location (left), y location (top), width, height, area]] for each label; 4 = [centroid of each label, x and y]. Note: the background is the first component
 
     # minimum area (measured in px) for filtering the components
@@ -126,7 +126,7 @@ def getFilteredFrame(self, frame):
         self.frameBW = self.frameBW.scaled(self.lbl1_HT.size(), ft.Qt.AspectRatioMode.KeepAspectRatio, ft.Qt.TransformationMode.SmoothTransformation)
 
 def findFlameEdges(self, frameBW, flamePx):
-    global flameDir
+    # global flameDir
     self.flameArea = len(flamePx[0])
     self.xMax = 0
     self.xMin = 0
@@ -143,10 +143,13 @@ def findFlameEdges(self, frameBW, flamePx):
 
         self.xMax = int(self.xMax/int(self.avgLEIn_HT.text()))
         self.xMin = int(self.xMin/int(self.avgLEIn_HT.text()))
-        if flameDir == 'toRight':
+
+        #     if flameDir == 'toRight'::
+        if self.directionBox.currentText() == 'Left to right':
             self.xRight = int(self.roiOneIn.text()) + self.xMax
             self.xLeft = int(self.roiOneIn.text()) + self.xMin
-        elif flameDir == 'toLeft':
+        elif self.directionBox.currentText() == 'Right to left':
+            # elif flameDir == 'toLeft':
             self.xRight = self.vWidth - int(self.roiOneIn.text()) - self.xMax
             self.xLeft = self.vWidth - int(self.roiOneIn.text()) - self.xMin
     except:
@@ -166,6 +169,8 @@ def HSVTracking(self):
     firstFrame = int(self.firstFrameIn.text())
     lastFrame = int(self.lastFrameIn.text())
     currentFrame = firstFrame
+    self.xRight_px = list()
+    self.xLeft_px = list()
     self.xRight_mm = list()
     self.xLeft_mm = list()
     flameLength_mm = list()
@@ -184,6 +189,10 @@ def HSVTracking(self):
         vout.open(vName, fourcc, fps, size, True)
 
     if scale: #this condition prevents crashes in case the scale is not specified
+        xAxis_lbl1 = self.xAxis_lbl1.currentText()
+        yAxis_lbl1 = self.yAxis_lbl1.currentText()
+        xAxis_lbl2 = self.xAxis_lbl2.currentText()
+        yAxis_lbl2 = self.yAxis_lbl2.currentText()
         while (currentFrame < lastFrame):
             # print('Frame #:', currentFrame)
             frame, frameCrop = ft.checkEditing(self, currentFrame)
@@ -221,6 +230,8 @@ def HSVTracking(self):
             else:
                 getFilteredFrame(self, frameCrop)
 
+            self.xRight_px.append(self.xRight)
+            self.xLeft_px.append(self.xLeft)
             self.xRight_mm.append(self.xRight / float(self.scaleIn.text()))
             self.xLeft_mm.append(self.xLeft / float(self.scaleIn.text()))
             flameArea.append(self.flameArea)
@@ -320,13 +331,15 @@ def HSVTracking(self):
 
         self.lbl1_HT.setGeometry(lbl1[0], lbl1[1], lbl1[2], lbl1[3]) # Changed geometry as removed BW image display
         self.lbl1_HT.setBackground('w')
-        self.lbl1_HT.setLabel('left', 'Position [mm]', color='black', size=14)
-        if self.isPlotTimevsFrame:
-            ## Plot in terms of time
-            self.lbl1_HT.setLabel('bottom', 'Time [s]', color='black', size=14)
-        else:
-            ## CAS Plot in terms of frame:
-            self.lbl1_HT.setLabel('bottom', 'Frame', color='black', size=14)
+        # self.lbl1_HT.setLabel('left', 'Position [mm]', color='black', size=14)
+        self.lbl1_HT.setLabel('left', str(yAxis_lbl1), color='black', size=14)
+        self.lbl1_HT.setLabel('bottom', str(xAxis_lbl1), color='black', size=14)
+        # if self.isPlotTimevsFrame:
+        #     ## Plot in terms of time
+        #     self.lbl1_HT.setLabel('bottom', 'Time [s]', color='black', size=14)
+        # else:
+        #     ## CAS Plot in terms of frame:
+        #     self.lbl1_HT.setLabel('bottom', 'Frame', color='black', size=14)
 
         self.lbl1_HT.getAxis('bottom').setPen(color=(0, 0, 0))
         self.lbl1_HT.getAxis('left').setPen(color=(0, 0, 0))
@@ -336,30 +349,46 @@ def HSVTracking(self):
         #print('\nView rect=', self.lbl2_HT.viewRect() )
         #print('\nGeometry set to', self.lbl2_HT.viewGeometry())
         self.lbl2_HT.setBackground('w')
-        self.lbl2_HT.setLabel('left', 'Spread Rate [mm/s]', color='black', size=14)
-        if self.isPlotTimevsFrame:
-            ## Plot in terms of time
-            self.lbl2_HT.setLabel('bottom', 'Time [s]', color='black', size=14)
-        else:
-            ## CAS Plot in terms of frame:
-            self.lbl2_HT.setLabel('bottom', 'Frame', color='black', size=14)
+        # self.lbl2_HT.setLabel('left', 'Spread Rate [mm/s]', color='black', size=14)
+        self.lbl2_HT.setLabel('left', str(yAxis_lbl2), color='black', size=14)
+        self.lbl2_HT.setLabel('bottom', str(xAxis_lbl2), color='black', size=14)
+        # if self.isPlotTimevsFrame:
+        #     ## Plot in terms of time
+        #     self.lbl2_HT.setLabel('bottom', 'Time [s]', color='black', size=14)
+        # else:
+        #     ## CAS Plot in terms of frame:
+        #     self.lbl2_HT.setLabel('bottom', 'Frame', color='black', size=14)
 
         self.lbl2_HT.getAxis('bottom').setPen(color=(0, 0, 0))
         self.lbl2_HT.getAxis('left').setPen(color=(0, 0, 0))
         self.lbl2_HT.addLegend(offset = [1, 0.1]) # background color modified in line 122 and 123 of Versions/3.7/lib/python3.7/site-packages/pyqtgraph/graphicsItems
 
-        if self.isPlotTimevsFrame:
-            ## Plot in terms of time
-            HSVTrackingPlot(self.lbl1_HT, self.timeCount, self.xRight_mm, 'right edge', 'o', 'b')
-            HSVTrackingPlot(self.lbl1_HT, self.timeCount, self.xLeft_mm, 'left edge', 't', 'r')
-            HSVTrackingPlot(self.lbl2_HT, self.timeCount, self.spreadRateRight, 'right edge', 'o', 'b')
-            HSVTrackingPlot(self.lbl2_HT, self.timeCount, self.spreadRateLeft, 'left edge', 't', 'r')
+        # if self.isPlotTimevsFrame:
+        #     ## Plot in terms of time
+        #     HSVTrackingPlot(self.lbl1_HT, self.timeCount, self.xRight_mm, 'right edge', 'o', 'b')
+        #     HSVTrackingPlot(self.lbl1_HT, self.timeCount, self.xLeft_mm, 'left edge', 't', 'r')
+        #     HSVTrackingPlot(self.lbl2_HT, self.timeCount, self.spreadRateRight, 'right edge', 'o', 'b')
+        #     HSVTrackingPlot(self.lbl2_HT, self.timeCount, self.spreadRateLeft, 'left edge', 't', 'r')
+        # else:
+        #     ## CAS Plot in terms of frame:
+        #     HSVTrackingPlot(self.lbl1_HT, self.frameCount, self.xRight_mm, 'right edge', 'o', 'b')
+        #     HSVTrackingPlot(self.lbl1_HT, self.frameCount, self.xLeft_mm, 'left edge', 't', 'r')
+        #     HSVTrackingPlot(self.lbl2_HT, self.frameCount, self.spreadRateRight, 'right edge', 'o', 'b')
+        #     HSVTrackingPlot(self.lbl2_HT, self.frameCount, self.spreadRateLeft, 'left edge', 't', 'r')
+        xPlot1, yRight1, yLeft1 = selectAxes(self, xAxis_lbl1, yAxis_lbl1)
+        xPlot2, yRight2, yLeft2 = selectAxes(self, xAxis_lbl2, yAxis_lbl2)
+
+        if yAxis_lbl1 == 'Flame length [mm]':
+            HSVTrackingPlot(self.lbl1_HT, xPlot1, yRight1, 'flame length', 'o', 'b')
         else:
-            ## CAS Plot in terms of frame:
-            HSVTrackingPlot(self.lbl1_HT, self.frameCount, self.xRight_mm, 'right edge', 'o', 'b')
-            HSVTrackingPlot(self.lbl1_HT, self.frameCount, self.xLeft_mm, 'left edge', 't', 'r')
-            HSVTrackingPlot(self.lbl2_HT, self.frameCount, self.spreadRateRight, 'right edge', 'o', 'b')
-            HSVTrackingPlot(self.lbl2_HT, self.frameCount, self.spreadRateLeft, 'left edge', 't', 'r')
+            HSVTrackingPlot(self.lbl1_HT, xPlot1, yRight1, 'right edge', 'o', 'b')
+            HSVTrackingPlot(self.lbl1_HT, xPlot1, yLeft1, 'left edge', 't', 'r')
+
+        if yAxis_lbl2 == 'Flame length [mm]':
+            HSVTrackingPlot(self.lbl2_HT, xPlot2, yRight2, 'flame length', 'o', 'b')
+        else:
+            HSVTrackingPlot(self.lbl2_HT, xPlot2, yRight2, 'right edge', 'o', 'b')
+            HSVTrackingPlot(self.lbl2_HT, xPlot2, yLeft2, 'left edge', 't', 'r')
 
         # print('Showing!')
         self.lbl1_HT.show()
@@ -381,20 +410,20 @@ def filterParticleSldr(self):
     self.lbl1_HT.setPixmap(ft.QPixmap.fromImage(self.frame))
     self.lbl2_HT.setPixmap(ft.QPixmap.fromImage(self.frameBW))
 
-def chooseFlameDirection(self, text):
-    global flameDir
-    selection = self.directionBox.currentText()
-    if selection == 'Left to right':
-        flameDir = 'toRight'
-    elif selection == 'Right to left':
-        flameDir = 'toLeft'
+# def chooseFlameDirection(self, text):
+#     global flameDir
+#     selection = self.directionBox.currentText()
+#     if selection == 'Left to right':
+#         flameDir = 'toRight'
+#     elif selection == 'Right to left':
+#         flameDir = 'toLeft'
 
-def connectivityBox(self, text):
-    selection = self.connectivityBox.currentText()
-    if selection == '4':
-        self.connectivity_HT = 4
-    elif selection == '8':
-        self.connectivity_HT = 8
+# def connectivityBox(self, text):
+#     selection = self.connectivityBox.currentText()
+#     if selection == '4':
+#         self.connectivity_HT = 4
+#     elif selection == '8':
+#         self.connectivity_HT = 8
 
 def saveChannelsBtn(self):
     name = ft.QFileDialog.getSaveFileName(self, 'Save channel values')
@@ -417,7 +446,8 @@ def saveChannelsBtn(self):
                 writer.writerow(['Particle size', str(self.filterParticleSldr_HT.value())])
                 writer.writerow(['Moving average', str(self.movAvgIn_HT.text())])
                 writer.writerow(['Points LE', str(self.avgLEIn_HT.text())])
-                writer.writerow(['Connectivity', str(self.connectivity_HT)])
+                # writer.writerow(['Connectivity', str(self.connectivity_HT)])
+                writer.writerow(['Connectivity', self.connectivityBox.currentText()])
             self.msgLabel.setText('Channel values saved.')
         except:
             self.msgLabel.setText('Ops! The values were not saved.')
@@ -454,8 +484,15 @@ def loadChannelsBtn(self):
         print('Unexpected error:', ft.sys.exc_info())
 
 def absValBtn(self):
+    xAxis_lbl1 = self.xAxis_lbl1.currentText()
+    yAxis_lbl1 = self.yAxis_lbl1.currentText()
+    xAxis_lbl2 = self.xAxis_lbl2.currentText()
+    yAxis_lbl2 = self.yAxis_lbl2.currentText()
+
     abs_frames = list()
     abs_time = list()
+    abs_xRight_px = list()
+    abs_xLeft_px = list()
     abs_xRight_mm = list()
     abs_xLeft_mm = list()
 
@@ -465,6 +502,12 @@ def absValBtn(self):
     for i in self.timeCount:
         abs_time.append(i - self.timeCount[0])
 
+    for i in self.xRight_px:
+        abs_xRight_px.append(i - self.xRight_px[0])
+
+    for i in self.xLeft_px:
+        abs_xLeft_px.append(i - self.xRight_px[0])
+
     for i in self.xRight_mm:
         abs_xRight_mm.append(i - self.xRight_mm[0])
 
@@ -473,6 +516,8 @@ def absValBtn(self):
 
     self.frameCount = abs_frames
     self.timeCount = abs_time
+    self.xRight_px = abs_xRight_px
+    self.xLeft_px = abs_xLeft_px
     self.xRight_mm = abs_xRight_mm
     self.xLeft_mm = abs_xLeft_mm
 
@@ -486,10 +531,25 @@ def absValBtn(self):
     #HSVTrackingPlot(self.lbl2_HT, self.timeCount, self.spreadRateLeft, '','t', 'r')
 
     ## CAS Plot in terms of frame:
-    HSVTrackingPlot(self.lbl1_HT, self.frameCount, self.xRight_mm, '', 'o', 'b')
-    HSVTrackingPlot(self.lbl1_HT, self.frameCount, self.xLeft_mm, '','t', 'r')
-    HSVTrackingPlot(self.lbl2_HT, self.frameCount, self.spreadRateRight, '', 'o', 'b')
-    HSVTrackingPlot(self.lbl2_HT, self.frameCount, self.spreadRateLeft, '','t', 'r')
+    # HSVTrackingPlot(self.lbl1_HT, self.frameCount, self.xRight_mm, '', 'o', 'b')
+    # HSVTrackingPlot(self.lbl1_HT, self.frameCount, self.xLeft_mm, '','t', 'r')
+    # HSVTrackingPlot(self.lbl2_HT, self.frameCount, self.spreadRateRight, '', 'o', 'b')
+    # HSVTrackingPlot(self.lbl2_HT, self.frameCount, self.spreadRateLeft, '','t', 'r')
+
+    xPlot1, yRight1, yLeft1 = selectAxes(self, xAxis_lbl1, yAxis_lbl1)
+    xPlot2, yRight2, yLeft2 = selectAxes(self, xAxis_lbl2, yAxis_lbl2)
+
+    if yAxis_lbl1 == 'Flame length [mm]':
+        HSVTrackingPlot(self.lbl1_HT, xPlot1, yRight1, 'flame length', 'o', 'b')
+    else:
+        HSVTrackingPlot(self.lbl1_HT, xPlot1, yRight1, 'right edge', 'o', 'b')
+        HSVTrackingPlot(self.lbl1_HT, xPlot1, yLeft1, 'left edge', 't', 'r')
+
+    if yAxis_lbl2 == 'Flame length [mm]':
+        HSVTrackingPlot(self.lbl2_HT, xPlot2, yRight2, 'flame length', 'o', 'b')
+    else:
+        HSVTrackingPlot(self.lbl2_HT, xPlot2, yRight2, 'right edge', 'o', 'b')
+        HSVTrackingPlot(self.lbl2_HT, xPlot2, yLeft2, 'left edge', 't', 'r')
 
 def saveBtn(self):
     fileName = ft.QFileDialog.getSaveFileName(self, 'Save tracking data')
@@ -497,7 +557,7 @@ def saveBtn(self):
     if not fileName[-4:] == '.csv':
         fileName = fileName + '.csv'
 
-    fileInfo = ['Name', self.fNameLbl.text(), 'Scale [px/mm]', self.scaleIn.text(), 'Moving avg', self.movAvgIn_HT.text(), 'Points LE', self.avgLEIn_HT.text(), 'Flame dir.:', flameDir, 'code version', str(self.FTversion)]
+    fileInfo = ['Name', self.fNameLbl.text(), 'Scale [px/mm]', self.scaleIn.text(), 'Moving avg', self.movAvgIn_HT.text(), 'Points LE', self.avgLEIn_HT.text(), 'Flame dir.:', self.directionBox.currentText(), 'code version', str(self.FTversion)]
     lbl = ['File info', 'Frame', 'Time [s]', 'Right Edge [mm]', 'Left Edge [mm]', 'Length [mm]', 'Spread Rate RE [mm/s]', 'Spread Rate LE [mm/s]', 'Area [mm^2]']
     clms = [fileInfo, self.frameCount, self.timeCount, self.xRight_mm, self.xLeft_mm, self.flameLength_mm, self.spreadRateRight, self.spreadRateLeft, self.flameArea]
     clms_zip = ft.zip_longest(*clms)
@@ -611,3 +671,61 @@ def valMaxRightBtn(self):
     currentValue = self.valMaxSlider.value()
     self.valMaxSlider.setValue(currentValue + 1)
     HSVSlider_released(self)
+
+def selectAxes(self, xAxis_lbl, yAxis_lbl):
+
+    if xAxis_lbl == 'Time [s]':
+        xPlot = self.timeCount
+    elif xAxis_lbl == 'Frame #':
+        xPlot = self.frameCount
+    if yAxis_lbl == 'Position [mm]':
+        yRight = self.xRight_mm
+        yLeft = self.xLeft_mm
+    if yAxis_lbl == 'Position [px]':
+        yRight = self.xRight_px
+        yLeft = self.xLeft_px
+    elif yAxis_lbl == 'Flame length [mm]':
+        yRight = self.flameLength_mm
+        yLeft = 0
+    elif yAxis_lbl == 'Spread rate [mm/s]':
+        yRight = self.spreadRateRight
+        yLeft = self.spreadRateLeft
+
+    return(xPlot, yRight, yLeft)
+
+def updateGraphsBtn(self):
+    try:
+        xAxis_lbl1 = self.xAxis_lbl1.currentText()
+        yAxis_lbl1 = self.yAxis_lbl1.currentText()
+        xAxis_lbl2 = self.xAxis_lbl2.currentText()
+        yAxis_lbl2 = self.yAxis_lbl2.currentText()
+        self.lbl1_HT.clear()
+        self.lbl2_HT.clear()
+        self.lbl1_HT.addLegend(offset = [1, 0.1])
+        self.lbl2_HT.addLegend(offset = [1, 0.1])
+
+        xPlot1, yRight1, yLeft1 = selectAxes(self, xAxis_lbl1, yAxis_lbl1)
+        xPlot2, yRight2, yLeft2 = selectAxes(self, xAxis_lbl2, yAxis_lbl2)
+
+        self.lbl1_HT.setLabel('left', str(yAxis_lbl1), color='black', size=14)
+        self.lbl1_HT.setLabel('bottom', str(xAxis_lbl1), color='black', size=14)
+        self.lbl2_HT.setLabel('left', str(yAxis_lbl2), color='black', size=14)
+        self.lbl2_HT.setLabel('bottom', str(xAxis_lbl2), color='black', size=14)
+
+        if yAxis_lbl1 == 'Flame length [mm]':
+            HSVTrackingPlot(self.lbl1_HT, xPlot1, yRight1, 'flame length', 'o', 'b')
+        else:
+            HSVTrackingPlot(self.lbl1_HT, xPlot1, yRight1, 'right edge', 'o', 'b')
+            HSVTrackingPlot(self.lbl1_HT, xPlot1, yLeft1, 'left edge', 't', 'r')
+
+        if yAxis_lbl2 == 'Flame length [mm]':
+            HSVTrackingPlot(self.lbl2_HT, xPlot2, yRight2, 'flame length', 'o', 'b')
+        else:
+            HSVTrackingPlot(self.lbl2_HT, xPlot2, yRight2, 'right edge', 'o', 'b')
+            HSVTrackingPlot(self.lbl2_HT, xPlot2, yLeft2, 'left edge', 't', 'r')
+
+        self.lbl1_HT.show()
+        self.lbl2_HT.show()
+    except:
+        print('Unexpected error:', ft.sys.exc_info())
+        self.msgLabel.setText('Error: the graphs could not be updated.')

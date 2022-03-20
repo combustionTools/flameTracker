@@ -21,33 +21,51 @@ Author: Luca Carmignani, PhD
 Contact: flameTrackerContact@gmail.com
 """
 
-# from PyQt6 import QtGui
-# from PyQt6.QtGui import *
-# from PyQt6.QtWidgets import *
-# from PyQt6.QtCore import *
-# from itertools import zip_longest
-# import csv
-# import cv2
 import flameTracker as ft
 import boxesGUI_OS as gui
-# import pyqtgraph as pg
-# import numpy as np
-
 
 def initVars(self): # define initial variables
-    global flameDir, lightStatus
-    flameDir = 'toRight'
-    lightStatus = 'None'
+    # global lightStatus #flameDir
+    # flameDir = 'toRight'
+    # lightStatus = 'None'
     self.lightROI_MT_recorded = False
 
 def startTracking(self):
-    global clk, nClicks
+    global clk, nClicks #, flameDir
+    # select the variables to plot based on user input
+    xAxis_lbl1 = self.xAxis_lbl1.currentText()
+    yAxis_lbl1 = self.yAxis_lbl1.currentText()
+    xAxis_lbl2 = self.xAxis_lbl2.currentText()
+    yAxis_lbl2 = self.yAxis_lbl2.currentText()
+    # if xAxisSel_lbl1 == 'Time':
+    #     xAxis_lbl1 = 'Time [s]'
+    # elif xAxisSel_lbl1 == 'Frames':
+    #     xAxis_lbl1 = 'Frame #'
+    # if yAxisSel_lbl1 == 'Position [mm]':
+    #     yAxis_lbl1 = 'Position [mm]'
+    # elif yAxisSel_lbl1 == 'Position [px]':
+    #     yAxis_lbl1 = 'Position [px]'
+    # elif yAxisSel_lbl1 == 'Spread rate':
+    #     yAxis_lbl1 = 'Spread rate [mm/s]'
+
+    # if xAxisSel_lbl2 == 'Time':
+    #     xAxis_lbl2 = 'Time [s]'
+    # elif xAxisSel_lbl2 == 'Frames':
+    #     xAxis_lbl2 = 'Frame #'
+    # if yAxisSel_lbl2 == 'Position [mm]':
+    #     yAxis_lbl2 = 'Position [mm]'
+    # elif yAxisSel_lbl2 == 'Position [px]':
+    #     yAxis_lbl2 = 'Position [px]'
+    # elif yAxisSel_lbl2 == 'Spread rate':
+    #     yAxis_lbl2 = 'Spread rate [mm/s]'
+
     # transforming the first label into a plot
     self.lbl1_MT = ft.pg.PlotWidget(self.manualTrackingBox)
-    self.lbl1_MT.setGeometry(190, 25, 420, 300)
+    self.lbl1_MT.setGeometry(250, 25, 390, 270)
     self.lbl1_MT.setBackground('w')
-    self.lbl1_MT.setLabel('left', 'Position [mm]', color='black', size=14)
-    self.lbl1_MT.setLabel('bottom', 'Time [s]', color='black', size=14)
+    self.lbl1_MT.setLabel('left', str(yAxis_lbl1), color='black', size=14)
+    # self.lbl1_MT.setLabel('bottom', 'Time [s]', color='black', size=14)
+    self.lbl1_MT.setLabel('bottom', str(xAxis_lbl1), color='black', size=14)
     self.lbl1_MT.getAxis('bottom').setPen(color=(0, 0, 0))
     self.lbl1_MT.getAxis('left').setPen(color=(0, 0, 0))
     # For versions before v1.1.4: background color modified in line 122 and 123 of Versions/3.7/lib/python3.7/site-packages/pyqtgraph/graphicsItems
@@ -77,7 +95,8 @@ def startTracking(self):
         self.msgLabel.setText('Clicks not specified (=1)')
 
     while (currentFrame < lastFrame):
-        print('Frame #:', currentFrame)
+        print('Frame #:', currentFrame, end='\r')
+
         if not self.scaleIn.text():
             scale = False
             msg = ft.QMessageBox(self)
@@ -106,18 +125,24 @@ def startTracking(self):
             flamePx_light = ft.np.where(BW_light == [255])
             area_light = int(self.lightROI_MT[3] * self.lightROI_MT[2])
 
-            if lightStatus == 'lightOff':
+            # if lightStatus == 'lightOff':
+            if self.filterLight_MT.currentText() == 'Frames light off':
                 if len(flamePx_light[0]) > 0.5 * area_light: #avoid this frame
                     currentFrame = currentFrame + 1 + int(self.skipFrameIn.text())
                     continue
-            elif lightStatus == 'lightOn':
+            # elif lightStatus == 'lightOn':
+            elif self.filterLight_MT.currentText() == 'Frames light on':
                 if len(flamePx_light[0]) < 0.5 * area_light: #avoid this frame
                     currentFrame = currentFrame + 1 + int(self.skipFrameIn.text())
                     continue
 
         # create the window and the line over the first point clicked
         ft.cv2.namedWindow('manualTracking', ft.cv2.WINDOW_AUTOSIZE)
+        ft.cv2.setWindowTitle('manualTracking', f'MT, frame #: {currentFrame}')
+        # ft.cv2.namedWindow(f'ManualTracking; frame #: {currentFrame}', ft.cv2.WINDOW_AUTOSIZE)
         ft.cv2.setMouseCallback('manualTracking', click)
+        # ft.cv2.setMouseCallback(f'ManualTracking; frame #: {currentFrame}', click)
+
 
         #if currentFrame > firstFrame:
         if len(posY) > 0:
@@ -125,7 +150,8 @@ def startTracking(self):
                 if self.showEdges_MT.isChecked() == True:
                     ft.cv2.line(frameCrop, (0, int(posY[str(n+1)][0])),(int(self.roiThreeIn.text()), int(posY[str(n+1)][0])), (0, 245, 184), 2)
 
-        ft.cv2.imshow('manualTracking',frameCrop)
+        ft.cv2.imshow('manualTracking', frameCrop)
+        # ft.cv2.imshow(f'ManualTracking; frame #: {currentFrame}',frameCrop)
 
         self.msgLabel.setText('Tracking started, press (Esc) to quit.')
         for n in range(nClicks):
@@ -134,9 +160,10 @@ def startTracking(self):
                 if clk == True:
                     clk = False
                     # the zero location changes based on the flame direction
-                    if flameDir == 'toRight':
+
+                    if self.directionBox.currentText() == 'Left to right':
                         xClick = xPos + int(self.roiOneIn.text())
-                    elif flameDir == 'toLeft':
+                    elif self.directionBox.currentText() == 'Right to left':
                         xClick = self.vWidth - int(self.roiOneIn.text()) - xPos
                     break
 
@@ -164,6 +191,8 @@ def startTracking(self):
                     timeCount[str(n+1)] = [currentFrame / float(self.vFpsLbl.text())]
 
         currentFrame = currentFrame + 1 + int(self.skipFrameIn.text())
+    print('Tracking completed')
+    self.msgLabel.setText('Tracking completed')
 
     if len(timeCount) == 0:
         msg = ft.QMessageBox(self)
@@ -203,8 +232,34 @@ def startTracking(self):
             except:
                 if n > len(color):
                     self.msgLabel.setText('Not enough colors for plotting.')
-            manualTrackingPlot(self.lbl1_MT, self.time_plot['1'], self.posX_plot[str(n+1)], name, 'o', clr)
-            manualTrackingPlot(self.lbl2_MT, self.time_plot['1'], self.spreadRate[str(n+1)], name, 'o', clr)
+
+            xPlot1, yPlot1 = selectAxes(self, xAxis_lbl1, yAxis_lbl1, n)
+            xPlot2, yPlot2 = selectAxes(self, xAxis_lbl2, yAxis_lbl2, n)
+            # if xAxis_lbl1 == 'Time [s]':
+            #     xPlot1 = self.time_plot['1']
+            # elif xAxis_lbl1 == 'Frame #':
+            #     xPlot1 = self.frames_plot['1']
+            # if yAxis_lbl1 == 'Position [mm]':
+            #     yPlot1 = self.posX_plot[str(n+1)]
+            # elif yAxis_lbl1 == 'Position [px]':
+            #     yPlot1 = self.posX_px[str(n+1)]
+            # elif yAxis_lbl1 == 'Spread rate [mm/s]':
+            #     yPlot1 = self.spreadRate[str(n+1)]
+            #
+            # if xAxis_lbl2 == 'Time [s]':
+            #     xPlot2 = self.time_plot['1']
+            # elif xAxis_lbl2 == 'Frame #':
+            #     xPlot2 = self.frames_plot['1']
+            # if yAxis_lbl2 == 'Position [mm]':
+            #     yPlot2 = self.posX_plot[str(n+1)]
+            # elif yAxis_lbl2 == 'Position [px]':
+            #     yPlot2 = self.posX_px[str(n+1)]
+            # elif yAxis_lbl2 == 'Spread rate [mm/s]':
+            #     yPlot2 = self.spreadRate[str(n+1)]
+            # manualTrackingPlot(self.lbl1_MT, self.time_plot['1'], self.posX_plot[str(n+1)], name, 'o', clr)
+            manualTrackingPlot(self.lbl1_MT, xPlot1, yPlot1, name, 'o', clr)
+            # manualTrackingPlot(self.lbl2_MT, self.time_plot['1'], self.spreadRate[str(n+1)], name, 'o', clr)
+            manualTrackingPlot(self.lbl2_MT, xPlot2, yPlot2, name, 'o', clr)
 
         self.lbl1_MT.show()
 
@@ -255,27 +310,35 @@ def absValue(self):
           except:
               if n > len(color):
                   self.msgLabel.setText('Not enough colors for plotting.')
-          manualTrackingPlot(self.lbl1_MT, self.time_plot['1'], self.posX_plot[str(n+1)], '', 'o', clr)
-          manualTrackingPlot(self.lbl2_MT, self.time_plot['1'], self.spreadRate[str(n+1)], '', 'o', clr)
+          xAxis_lbl1 = self.xAxis_lbl1.currentText()
+          yAxis_lbl1 = self.yAxis_lbl1.currentText()
+          xAxis_lbl2 = self.xAxis_lbl2.currentText()
+          yAxis_lbl2 = self.yAxis_lbl2.currentText()
+          xPlot1, yPlot1 = selectAxes(self, xAxis_lbl1, yAxis_lbl1, n)
+          xPlot2, yPlot2 = selectAxes(self, xAxis_lbl2, yAxis_lbl2, n)
+          # manualTrackingPlot(self.lbl1_MT, self.time_plot['1'], self.posX_plot[str(n+1)], '', 'o', clr)
+          # manualTrackingPlot(self.lbl2_MT, self.time_plot['1'], self.spreadRate[str(n+1)], '', 'o', clr)
+          manualTrackingPlot(self.lbl1_MT, xPlot1, yPlot1, '', 'o', clr)
+          manualTrackingPlot(self.lbl2_MT, xPlot2, yPlot2, '', 'o', clr)
 
-def chooseFlameDirection(self):
-    global flameDir
-    selection = self.directionBox.currentText()
-    if selection == 'Left to right':
-        flameDir = 'toRight'
-    elif selection == 'Right to left':
-        flameDir = 'toLeft'
+# def chooseFlameDirection(self):
+#     global flameDir
+#     selection = self.directionBox.currentText()
+#     if selection == 'Left to right':
+#         flameDir = 'toRight'
+#     elif selection == 'Right to left':
+#         flameDir = 'toLeft'
 
 
-def chooseLightFilter(self):
-    global lightStatus
-    selection = self.filterLight_MT.currentText()
-    if selection == 'Track every frame':
-        lightStatus = 'None'
-    elif selection == 'Frames light on':
-        lightStatus = 'lightOn'
-    elif selection == 'Frames light off':
-        lightStatus = 'lightOff'
+# def chooseLightFilter(self):
+#     global lightStatus
+#     selection = self.filterLight_MT.currentText()
+#     if selection == 'Track every frame':
+#         lightStatus = 'None'
+#     elif selection == 'Frames light on':
+#         lightStatus = 'lightOn'
+#     elif selection == 'Frames light off':
+#         lightStatus = 'lightOff'
 
 def lightROIBtn(self):
     frame, frameCrop = ft.checkEditing(self, self.frameNumber)
@@ -290,7 +353,7 @@ def saveData(self):
         fileName = fileName + '.csv'
 
     try:
-        fileInfo = ['Name', self.fNameLbl.text(), 'Scale [px/mm]', self.scaleIn.text(), 'Manual Tracking', 'Flame dir.:', flameDir, 'code version', str(self.FTversion)]
+        fileInfo = ['Name', self.fNameLbl.text(), 'Scale [px/mm]', self.scaleIn.text(), 'Manual Tracking', 'Flame dir.:', self.directionBox.currentText(), 'code version', str(self.FTversion)]
         lbl = ['File info', 'Frame', 'Time [s]']
         clmns = [fileInfo, self.frames_plot['1'], self.time_plot['1']]
         for n in range(int(self.nClicksLbl.text())):
@@ -321,6 +384,57 @@ def saveData(self):
             notParameters_dlg.showMessage('Ops! Something went wrong, the values were not saved.')
             self.msgLabel.setText('Data not saved.')
             print('Unexpected error:', ft.sys.exc_info())
+
+def updateGraphsBtn(self):
+    try:
+        xAxis_lbl1 = self.xAxis_lbl1.currentText()
+        yAxis_lbl1 = self.yAxis_lbl1.currentText()
+        xAxis_lbl2 = self.xAxis_lbl2.currentText()
+        yAxis_lbl2 = self.yAxis_lbl2.currentText()
+        self.lbl1_MT.clear()
+        self.lbl2_MT.clear()
+        self.lbl1_MT.addLegend(offset = [1, 0.1])
+        self.lbl2_MT.addLegend(offset = [1, 0.1])
+        color = ['b', 'r', 'k', 'g', 'c', 'y']
+        for n in range(nClicks):
+            name = 'click{}'.format([n+1])
+            try:
+                clr = color[n]
+            except:
+                if n > len(color):
+                    self.msgLabel.setText('Not enough colors for plotting.')
+
+            xPlot1, yPlot1 = selectAxes(self, xAxis_lbl1, yAxis_lbl1, n)
+            xPlot2, yPlot2 = selectAxes(self, xAxis_lbl2, yAxis_lbl2, n)
+
+            self.lbl1_MT.setLabel('left', str(yAxis_lbl1), color='black', size=14)
+            self.lbl1_MT.setLabel('bottom', str(xAxis_lbl1), color='black', size=14)
+            self.lbl2_MT.setLabel('left', str(yAxis_lbl2), color='black', size=14)
+            self.lbl2_MT.setLabel('bottom', str(xAxis_lbl2), color='black', size=14)
+            manualTrackingPlot(self.lbl1_MT, xPlot1, yPlot1, name, 'o', clr)
+            manualTrackingPlot(self.lbl2_MT, xPlot2, yPlot2, name, 'o', clr)
+
+        self.lbl1_MT.show()
+        self.lbl2_MT.show()
+    except:
+        print('Unexpected error:', ft.sys.exc_info())
+        self.msgLabel.setText('Error: the graphs could not be updated.')
+
+def selectAxes(self, xAxis_lbl, yAxis_lbl, n):
+
+    if xAxis_lbl == 'Time [s]':
+        xPlot = self.time_plot['1']
+    elif xAxis_lbl == 'Frame #':
+        xPlot = self.frames_plot['1']
+    if yAxis_lbl == 'Position [mm]':
+        yPlot = self.posX_plot[str(n+1)]
+    elif yAxis_lbl == 'Position [px]':
+        yPlot = self.posX_px[str(n+1)]
+    elif yAxis_lbl == 'Spread rate [mm/s]':
+        yPlot = self.spreadRate[str(n+1)]
+
+    return(xPlot, yPlot)
+
 
 def helpBtn(self):
     msg = ft.QMessageBox(self)

@@ -87,7 +87,7 @@ class Window(QWidget):
         (at your option) any later version.''')
 
         # Flame Tracker version
-        self.FTversion = 'v1.1.7'
+        self.FTversion = 'v1.1.8beta'
 
         #this function contains all the initial variables to declare
         initVars(self)
@@ -527,7 +527,7 @@ class Window(QWidget):
             for children in self.analysisGroupBox.findChildren(QGroupBox):
                 children.setParent(None)
             gui.lumaTrackingBox(self)
-            lt.initVars(self)
+            # lt.initVars(self)
             self.lumaTrackingBox.show()
             manualTrackingValue = False
             lumaTrackingValue = True
@@ -750,8 +750,8 @@ class Window(QWidget):
                 currentFrame = currentFrame + 1 + int(self.skipFrameIn.text())
 
             vout.release()
-            print('Progress: 100 %, the video has been created.')
-            self.msgLabel.setText('The video has been created.')
+            print('Progress: 100 %, the video has been exported.')
+            self.msgLabel.setText('The video has been exported.')
         else:
             self.msgLabel.setText('Error: Enter a valid video name')
 
@@ -784,26 +784,30 @@ class Window(QWidget):
                 return
 
     ### Manual tracking block methods (defined in manualTracking.py)
-    def directionMT_clicked(self, text):
-        mt.chooseFlameDirection(self)
+    # def directionMT_clicked(self, text):
+    #     mt.chooseFlameDirection(self)
     def manualTrackingBtn_clicked(self):
         mt.startTracking(self)
     def saveBtn_MT_clicked(self):
         mt.saveData(self)
     def absValBtn_MT_clicked(self):
         mt.absValue(self)
-    def filterLight_MT_clicked(self, text):
-        mt.chooseLightFilter(self)
+    # def filterLight_MT_clicked(self, text):
+    #     mt.chooseLightFilter(self)
     def lightROIBtn_MT_clicked(self):
         mt.lightROIBtn(self)
+    # def xAxisBoxMT_clicked(self, text):
+    #     mt.xAxisSel(self)
     def helpBtn_MT_clicked(self):
         mt.helpBtn(self)
+    def updateGraphsBtn_MT_clicked(self):
+        mt.updateGraphsBtn(self)
 
     ### Luma tracking block methods (defined in lumaTracking.py)
     def lumaTrackingBtn_clicked(self):
         lt.lumaTracking(self)
-    def directionLT_clicked(self, text):
-        lt.chooseFlameDirection(self, text)
+    # def directionLT_clicked(self, text):
+    #     lt.chooseFlameDirection(self, text)
     def saveDataBtn_LT_clicked(self):
         lt.saveData(self)
     def absValBtn_LT_clicked(self):
@@ -816,6 +820,8 @@ class Window(QWidget):
         lt.showFrameLarge(self)
     def helpBtn_LT_clicked(self):
         lt.helpBtn(self)
+    def updateGraphsBtn_LT_clicked(self):
+        lt.updateGraphsBtn(self)
 
     ### Color tracking methods (defined in colorTracking.py)
     def singleColorSlider_released(self):
@@ -848,10 +854,10 @@ class Window(QWidget):
         ct.filterParticleSldr(self)
     def lightROIBtn_CT_clicked(self):
         ct.lightROIBtn(self)
-    def directionCT_clicked(self, text):
-        ct.chooseFlameDirection(self, text)
-    def connectivityBoxCT_clicked(self, text):
-        ct.connectivityBox(self, text)
+    # def directionCT_clicked(self, text):
+    #     ct.chooseFlameDirection(self, text)
+    # def connectivityBoxCT_clicked(self, text):
+    #     ct.connectivityBox(self, text)
     def saveChannelsBtn_CT_clicked(self):
         ct.saveChannelsBtn(self)
     def loadChannelsBtn_CT_clicked(self):
@@ -866,6 +872,8 @@ class Window(QWidget):
         ct.showFrameLarge(self)
     def helpBtn_CT_clicked(self):
         ct.helpBtn(self)
+    def updateGraphsBtn_CT_clicked(self):
+        ct.updateGraphsBtn(self)
 
     ### HSV tracking methods (defined in HSVTracking.py)
     def singleHSVSlider_released(self):
@@ -898,10 +906,10 @@ class Window(QWidget):
         ht.lightROIBtn(self)
     def filterParticleSldr_HT_released(self):
         ht.filterParticleSldr(self)
-    def directionHT_clicked(self, text):
-        ht.chooseFlameDirection(self, text)
-    def connectivityBoxHT_clicked(self, text):
-        ht.connectivityBox(self, text)
+    # def directionHT_clicked(self, text):
+    #     ht.chooseFlameDirection(self, text)
+    # def connectivityBoxHT_clicked(self, text):
+    #     ht.connectivityBox(self, text)
     def saveChannelsBtn_HT_clicked(self):
         ht.saveChannelsBtn(self)
     def loadChannelsBtn_HT_clicked(self):
@@ -916,6 +924,9 @@ class Window(QWidget):
         ht.showFrameLarge(self)
     def helpBtn_HT_clicked(self):
         ht.helpBtn(self)
+    def updateGraphsBtn_HT_clicked(self):
+        ht.updateGraphsBtn(self)
+
 
     def helpBtn_clicked(self):
         msg = QMessageBox(self)
@@ -1050,11 +1061,14 @@ def checkAnalysisBox(self, frameNumber):
     # true value when the analysis is selected
     if manualTrackingValue == True:
         if sys.platform == 'darwin':
-            lbl1 = [190, 25, 420, 300]
+            # lbl1 = [190, 25, 420, 300]
+            lbl1 = [250, 25, 390, 270]
         elif sys.platform == 'win32':
-            lbl1 = [190, 15, 420, 300]
+            # lbl1 = [190, 15, 420, 300]
+            lbl1 = [250, 15, 390, 270]
         elif sys.platform == 'linux':
-            lbl1 = [190, 25, 420, 300]
+            # lbl1 = [190, 25, 420, 300]
+            lbl1 = [250, 25, 390, 270]
 
         # label 1 might have become a plot widget, so we need to update them again
         self.lbl1_MT = QLabel(self.manualTrackingBox)
@@ -1083,14 +1097,21 @@ def checkAnalysisBox(self, frameNumber):
 
     if lumaTrackingValue == True:
         if sys.platform == 'darwin':
-            lbl1 = [190, 25, 420, 300]
-            lbl2 = [620, 25, 420, 300]
+            # lbl1 = [190, 25, 420, 300]
+            # lbl2 = [620, 25, 420, 300]
+            lbl1 = [250, 25, 390, 270]
+            lbl2 = [650, 25, 390, 270]
+
         elif sys.platform == 'win32':
-            lbl1 = [190, 15, 420, 300]
-            lbl2 = [620, 15, 420, 300]
+            # lbl1 = [190, 15, 420, 300]
+            # lbl2 = [620, 15, 420, 300]
+            lbl1 = [250, 15, 390, 270]
+            lbl2 = [650, 15, 390, 270]
         elif sys.platform == 'linux':
-            lbl1 = [190, 25, 420, 300]
-            lbl2 = [620, 25, 420, 300]
+            # lbl1 = [190, 25, 420, 300]
+            # lbl2 = [620, 25, 420, 300]
+            lbl1 = [250, 25, 390, 270]
+            lbl2 = [650, 25, 390, 270]
         # the labels might have become plot widgets, so we need to update them again
         self.lbl1_LT = QLabel(self.lumaTrackingBox)
         self.lbl2_LT = QLabel(self.lumaTrackingBox)
