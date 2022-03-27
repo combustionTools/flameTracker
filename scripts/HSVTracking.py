@@ -470,7 +470,9 @@ def loadChannelsBtn(self):
                     self.valMinSlider.setValue(int(row[1]))
                     self.valMaxSlider.setValue(int(row[2]))
                 elif 'Particle size' in row:
+                    self.filterParticleSldr_HT.setMaximum(int(row[1]))
                     self.filterParticleSldr_HT.setValue(int(row[1]))
+                    self.particleSldrMax.setText(row[1])
                 elif 'Moving average' in row:
                     self.movAvgIn_HT.setText(row[1])
                 elif 'Points LE' in row:
