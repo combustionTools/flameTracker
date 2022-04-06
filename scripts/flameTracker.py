@@ -41,6 +41,8 @@ import platform
 import time
 import re
 import pyqtgraph as pg
+# import sip
+
 
 # local files for the flame tracking
 import manualTracking as mt
@@ -74,9 +76,9 @@ def initVars(self): # define initial variables
     elif QT_VERSION_STR[0] == '6':
         self.pyqtVer = '6'
 
-class Window(QWidget):
+class FlameTrackerWindow(QMainWindow): #QWidget
     def __init__(self, parent=None):
-        super(Window, self).__init__(parent)
+        super(FlameTrackerWindow, self).__init__(parent)
 
         print('''Flame Tracker - Copyright (C) 2020-2022 Luca Carmignani; 2021, 2022 Charles Scudiere
         This program comes with ABSOLUTELY NO WARRANTY; See the GNU General
@@ -87,14 +89,364 @@ class Window(QWidget):
         (at your option) any later version.''')
 
         # Flame Tracker version
-        self.FTversion = 'v1.1.9'
+        self.FTversion = 'v1.2.0beta'
 
+        # creating the toolbar
+        toolbar = QToolBar('FT toolbar')
+        toolbar.setIconSize(QSize(16, 16))
+        self.addToolBar(toolbar)
+
+        # list of actions available (used both in toolbar and menubar)
+        openV_ico = QStyle.StandardPixmap.SP_DialogOpenButton
+        openV_ico = self.style().standardIcon(openV_ico)
+        openVideo = QAction(openV_ico, 'Open video', self)
+        openVideo.triggered.connect(self.openVideo_click)
+        openI_ico = QStyle.StandardPixmap.SP_DirIcon
+        openI_ico = self.style().standardIcon(openI_ico)
+        openImages = QAction(openI_ico, 'Open image(s)', self)
+        openImages.triggered.connect(self.openImages_click)
+        savePar_ico = QStyle.StandardPixmap.SP_DialogSaveButton
+        savePar_ico = self.style().standardIcon(savePar_ico)
+        savePar = QAction(savePar_ico, 'Save parameters', self)
+        savePar.triggered.connect(self.saveParBtn_clicked)
+        loadPar_ico = QStyle.StandardPixmap.SP_DriveDVDIcon
+        loadPar_ico = self.style().standardIcon(loadPar_ico)
+        loadPar = QAction(loadPar_ico, 'Load parameters', self)
+        loadPar.triggered.connect(self.loadParBtn_clicked)
+        measureScale = QAction('Measure scale', self)
+        measureScale.triggered.connect(self.measureScaleBtn_clicked)
+        refPoint = QAction('Select reference point', self)
+        refPoint.triggered.connect(self.refPointBtn_clicked)
+        measureLength = QAction('Measure length', self)
+        measureLength.triggered.connect(self.measureLenBtn_clicked)
+        exportVideo = QAction('Export edited video', self)
+        exportVideo.triggered.connect(self.exportVideo_click)
+
+        MTselection = QAction('Manual tracking', self, checkable=True, checked=False)
+        MTselection.triggered.connect(self.showManualTracking)
+        LTselection = QAction('Luma tracking', self, checkable=True, checked=False)
+        LTselection.triggered.connect(self.showLumaTracking)
+        RTselection = QAction('RGB tracking', self, checkable=True, checked=False)
+        RTselection.triggered.connect(self.showRGBTracking)
+        HTselection = QAction('HSV tracking', self, checkable=True, checked=False)
+        HTselection.triggered.connect(self.showHSVTracking)
+
+        showFrame = QAction('Show frame in new window', self)
+        showFrame.triggered.connect(self.showFrameLargeBtn_clicked)
+
+        # self.figSize = QCheckBox('Half-size figure')
+        self.figSize = QAction('Reduced-size windows', self)
+        self.figSize.setCheckable(True)
+        # self.figSize = ft.QCheckBox('Half-size figures', parametersBox)
+        # # toolbar.addWidget(QPushButton('OpenButton'))
+        # pixmapi = getattr(QStyle, 'SP_DialogOpenButton')
+        # icon = self.style().standardIcon(pixmapi)
+        # openBtn.setIcon(icon)
+        # toolbar.addWidget(QPushButton(openBtn))
+
+        # openVBtn = QPushButton('Video')
+        # openVBtn.clicked.connect(self.openVideo_click)
+        # openVBtn.setIcon(open_ico)
+        # toolbar.addWidget(openVBtn)
+        toolbar.addAction(openVideo)
+
+        # openIBtn = QPushButton('Image(s)')
+        # openIBtn.clicked.connect(self.openImages_click)
+        # openIBtn.setIcon(open_ico)
+        # toolbar.addWidget(openIBtn)
+        toolbar.addAction(openImages)
+
+        toolbar.addSeparator()
+
+        toolbar.addAction(savePar)
+        toolbar.addAction(loadPar)
+
+        toolbar.addSeparator()
+
+        scaleBtn = QPushButton('Scale')
+        scaleBtn.clicked.connect(self.measureScaleBtn_clicked)
+        toolbar.addWidget(scaleBtn)
+        refPointBtn = QPushButton('Point')
+        refPointBtn.clicked.connect(self.refPointBtn_clicked)
+        toolbar.addWidget(refPointBtn)
+        lengthBtn = QPushButton('Length')
+        lengthBtn.clicked.connect(self.measureLenBtn_clicked)
+        toolbar.addWidget(lengthBtn)
+
+        # toolbar.addWidget(self.figSize)
+
+        # button_action = QAction(QIcon('SP_DialogApplyButton'), 'text1', self)
+        # # button_action.setStatusTip("This is your button")
+        # button_action.triggered.connect(self.openVideo_click)
+        # button_action.setCheckable(True)
+        # toolbar.addAction(button_action)
+
+        toolbar.addSeparator()
+
+        showFrameBtn = QPushButton('Frame')
+        showFrameBtn.clicked.connect(self.showFrameLargeBtn_clicked)
+        toolbar.addWidget(showFrameBtn)
+
+        ## creating the menu bar
+        # openVideo = QAction('Open video', self)
+        # openVideo.triggered.connect(self.openVideo_click)
+        # openImages = QAction('Open image(s)', self)
+        # openImages.triggered.connect(self.openImages_click)
+        # # button_action.setStatusTip("This is your button")
+        # button_action.triggered.connect(self.onMyToolBarButtonClick)
+        # toolbar.addAction(button_action)
+        # self.setStatusBar(QStatusBar(self))
+        self.menu = self.menuBar()
+        fileMenu = self.menu.addMenu("&File")
+        fileMenu.addAction(openVideo)
+        fileMenu.addAction(openImages)
+        fileMenu.addAction(savePar)
+        fileMenu.addAction(loadPar)
+        fileMenu.addAction(exportVideo)
+
+        measureMenu = self.menu.addMenu("&Measure")
+        measureMenu.addAction(measureScale)
+        measureMenu.addAction(refPoint)
+        measureMenu.addAction(measureLength)
+
+        trackingMenu = self.menu.addMenu("&Tracking")
+        trackingMenu.addAction(MTselection)
+        trackingMenu.addAction(LTselection)
+        trackingMenu.addAction(RTselection)
+        trackingMenu.addAction(HTselection)
+        self.trackingGroup = QActionGroup(self)
+        self.trackingGroup.addAction(MTselection)
+        self.trackingGroup.addAction(LTselection)
+        self.trackingGroup.addAction(RTselection)
+        self.trackingGroup.addAction(HTselection)
+        self.trackingGroup.setExclusive(True)
+
+        frameMenu = self.menu.addMenu("&Frame display")
+        frameMenu.addAction(showFrame)
+        frameMenu.addAction(self.figSize)
+        # trackingMenu.addAction(figSize)
+
+        helpFT = QAction('Video editing', self)
+        helpFT.triggered.connect(self.helpFT_click)
+        helpMT = QAction('Manual tracking', self)
+        helpMT.triggered.connect(self.helpMT_click)
+        helpLT = QAction('Luma tracking', self)
+        helpCT = QAction('Color tracking', self)
+        helpHT = QAction('HSV tracking', self)
+        helpMenu = self.menu.addMenu("&Help")
+        helpMenu.addAction(helpFT)
+        helpMenu.addAction(helpMT)
+        helpMenu.addAction(helpLT)
+        helpMenu.addAction(helpCT)
+        helpMenu.addAction(helpHT)
         #this function contains all the initial variables to declare
         initVars(self)
         # initialize GUI
         gui.previewBox(self)
 
 ### methods
+    def showManualTracking(self):
+        removeExistingMethod(self)
+        # for i in reversed(range(self.box_layout.count())):
+        #     self.box_layout.itemAt(i).widget().deleteLater()
+        #
+        # self.box_layout.removeItem(self.box_layout)
+        # try:
+        #     # self.menu.removeMenu(self.LTmenu)
+        #     self.LTmenu.clear()
+        #     print('menu deleted')
+        # except:
+        #     print('no menu found')
+        # for widget in self.analysisGroupBox.children():
+        #     print('child', widget)
+        #     # widget.setParent(None)
+        #     widget.deleteLater()
+        gui.manualTrackingBox(self)
+        mt.initVars(self)
+        # self.analysisGroupBox.show()
+        # self.manualTrackingBox.show()
+        # self.manualTrackingBox.show()
+
+    def showLumaTracking(self):
+        removeExistingMethod(self)
+        # for i in reversed(range(self.box_layout.count())):
+        #     self.box_layout.itemAt(i).widget().deleteLater()
+        #
+        # self.box_layout.removeItem(self.box_layout)
+        # try:
+        #     # self.menu.removeMenu(self.LTmenu)
+        #     self.MTmenu.clear()
+        #     print('menu deleted')
+        # except:
+        #     print('no menu found')
+
+        # for children in self.analysisGroupBox.findChildren(QGroupBox):
+        #     children.setParent(None)
+        gui.lumaTrackingBox(self)
+        # lt.initVars(self)
+        # self.lumaTrackingBox.show()
+
+    def showRGBTracking(self):
+        removeExistingMethod(self)
+        # for i in reversed(range(self.box_layout.count())):
+        #     self.box_layout.itemAt(i).widget().deleteLater()
+        #
+        # self.box_layout.removeItem(self.box_layout)
+        # for children in self.analysisGroupBox.findChildren(QGroupBox):
+        #     children.setParent(None)
+        gui.colorTrackingBox(self)
+        ct.initVars(self)
+        # self.colorTrackingBox.show()
+
+    def showHSVTracking(self):
+        removeExistingMethod(self)
+        # for i in reversed(range(self.box_layout.count())):
+        #     self.box_layout.itemAt(i).widget().deleteLater()
+        #
+        # self.box_layout.removeItem(self.box_layout)
+        # for children in self.analysisGroupBox.findChildren(QGroupBox):
+        #     children.setParent(None)
+        gui.HSVTrackingBox(self)
+        ht.initVars(self) # include default variables in this function
+        # self.HSVTrackingBox.show()
+
+    def openVideo_click(self):
+        self.openSelection = 'video'
+        try:
+            self.fPath, fFilter = QFileDialog.getOpenFileName(self, 'Open File')
+            # look for the name: look for '/' after any character (.), repeated any times (*), and extract everything that comes after in a non-greedy way
+            self.fName = re.findall('.*[/](.*)?', self.fPath)
+            self.fNameLbl.setText(str(self.fName[0]))
+            self.fVideo = cv2.VideoCapture(self.fPath)
+            self.vFrames = int(self.fVideo.get(cv2.CAP_PROP_FRAME_COUNT)) #get(7)
+            self.vHeight = int(self.fVideo.get(cv2.CAP_PROP_FRAME_HEIGHT))
+            self.vWidth = int(self.fVideo.get(cv2.CAP_PROP_FRAME_WIDTH))
+            self.vFps = round(self.fVideo.get(cv2.CAP_PROP_FPS) * 100) / 100 #(get(5))
+            self.vFramesLbl.setText(str(self.vFrames))
+            self.vWidthLbl.setText(str(self.vWidth))
+            self.vHeightLbl.setText(str(self.vHeight))
+            self.vFpsLbl.setText(str(self.vFps))
+            self.vDuration = self.vFrames / self.vFps
+            self.vDuration = round(self.vDuration * 100) / 100 #only 2 decimals for duration
+            self.vDurationLbl.setText(str(self.vDuration))
+
+            #Set parameter defaults upon opening a new video
+            self.roiOneIn.setText('0')
+            self.roiTwoIn.setText('0')
+            self.roiThreeIn.setText(str(self.vWidth - 1))
+            self.roiFourIn.setText(str(self.vHeight - 1))
+            self.firstFrameIn.setText('0')
+            self.lastFrameIn.setText(str(self.vFrames - 1))
+            self.skipFrameIn.setText('5') # with 5 you would obtain an even number of points with 24, 30, and 60 fps (not too relevant)
+            self.frameIn.setText('0')
+            self.frameNumber = 0
+            self.previewSlider.setMinimum(int(self.firstFrameIn.text()))
+            self.previewSlider.setMaximum(int(self.lastFrameIn.text()))
+            self.previewSlider.setValue(int(self.frameIn.text()))
+            self.rotationAngleIn.setText('0')
+
+            showFrame(self, self.frameNumber)
+            self.msgLabel.setText('Video read succesfully')
+            # for children in self.analysisGroupBox.findChildren(QGroupBox):
+            #     children.setParent(None)
+        except:
+            print('Unexpected error:', sys.exc_info())
+            self.msgLabel.setText('Error: the video could not be opened')
+
+    def openImages_click(self):
+        self.openSelection = 'image(s)'
+        try:
+            self.fPath, fFilter = QFileDialog.getOpenFileNames(self, 'Open Images')
+            self.imagesList = list()
+            for name in self.fPath:
+                self.imagesList.append(name)
+
+            if len(self.imagesList) == 1:
+                self.fName = re.findall('.*[/](.*)?', self.fPath[0])
+                self.fNameLbl.setText(str(self.fName[0]))
+                fps = 1
+            elif len(self.imagesList) > 1:
+                self.fName = re.findall('.*[/](.*)?', self.fPath[0])
+                self.fNameLbl.setText(str(self.fName[0] + ', ...'))
+                fps, done1 = QInputDialog.getText(self, 'Input Dialog', 'Please specify frames per second:')
+                if not fps:
+                    fps = 1
+
+            image = cv2.imread(self.imagesList[0])
+
+            self.vFrames = len(self.imagesList)
+            self.vHeight = int(image.shape[0])
+            self.vWidth = int(image.shape[1])
+            self.vFps = fps
+            self.vFramesLbl.setText(str(self.vFrames))
+            self.vWidthLbl.setText(str(self.vWidth))
+            self.vHeightLbl.setText(str(self.vHeight))
+            self.vFpsLbl.setText(str(self.vFps))
+            self.vDuration = self.vFrames / float(self.vFps)
+            self.vDuration = round(self.vDuration * 100) / 100 #only 2 decimals for duration
+            self.vDurationLbl.setText(str(self.vDuration))
+            self.roiOneIn.setText('0')
+            self.roiTwoIn.setText('0')
+            self.roiThreeIn.setText(str(self.vWidth - 1))
+            self.roiFourIn.setText(str(self.vHeight - 1))
+            self.firstFrameIn.setText('0')
+            self.lastFrameIn.setText(str(self.vFrames - 1))
+            self.skipFrameIn.setText('0')
+            self.frameIn.setText('0')
+            self.frameNumber = 0
+            self.previewSlider.setMinimum(int(self.firstFrameIn.text()))
+            self.previewSlider.setMaximum(int(self.lastFrameIn.text()))
+            self.previewSlider.setValue(int(self.frameIn.text()))
+            self.rotationAngleIn.setText('0')
+
+            showFrame(self, self.frameNumber)
+            self.msgLabel.setText('Image(s)read succesfully')
+            # for children in self.analysisGroupBox.findChildren(QGroupBox):
+            #     children.setParent(None)
+        except:
+            self.msgLabel.setText('Error: the image(s) could not be opened')
+            print('Unexpected error:', sys.exc_info())
+
+    def helpFT_click(self):
+        msg = QMessageBox(self)
+        msg.setText('''Flame Tracker is an image analysis program to detect and track a flame (or a luminous object) in images or videos.
+
+        Click on the 'Open' button to open a video. For images, select the option 'Image(s) from the dropdown menu before clicking on 'Open' (when opening more than one image a pop-up message will ask you for the corresponding frame rate).
+
+        First column - information of the opened file such as size, duration, etc.
+
+        Second column -  only the selected frame range will show in the preview window on the right. Click on 'Measure scale' and then on two reference points in the pop-up window to measure the scale of the image/frame in px/mm. Note that the scale has to be specified before running any anlyses. A Region of Interest (ROI) can also be selected by dragging a rectangle in the pop-up window after clicking on the button 'Select ROI'. Press 'Esc' to close any pop-up window.
+
+        Third column - optional adjustments: rotation, brightness and contrast. If the image/frame perspective has to be corrected, the actual values of two reference lengths have to be specified ('Horizontal' and 'Vertical'). Then, by clicking on 'Correct perspective' the four corners of the object to correct can be selected in the pop-up window. These corrections can be deleted by clicking on 'Restore original'.
+
+        Fourth column - choose the type of analysis (specific instructions are available for each selection), and save/load parameters. Furthermore, it is possible to export the edited video (note that only the ROI will be exported). Click on '?' for suggestions on how to select the frame rate for the new video.
+
+        More information are available on GitHub: https://github.com/combustionTools/flameTracker/wiki
+
+        Contact: flametrackercontact@gmail.com
+        ''')
+        if self.pyqtVer == '5':
+            msg.exec_()
+        elif self.pyqtVer == '6':
+            msg.exec()
+
+    def helpMT_click(self):
+        msg = QMessageBox(self)
+        msg.setText("""Manual Tracking allows you to track a flame with a point-and-click method.
+
+        'Tracking points #' defines the number of mouse clicks to record for each frame before moving to the next one (the default is one click per frame). By clicking on 'Start tracking', a pop-up window will show the first frame (press 'Esc' to exit at any time, but note that the progress will be lost). The following frames will show the horizontal lines corresponding to the points clicked. These lines can be hidden by unchecking 'Show tracking lines' before starting the analysis. After the tracking, the position vs time and spread rate vs time values will be shown in the windows in the 'Analysis box' when the slider in the 'Preview box' is used. The 'Flame direction' determines the positive increment of the flame location along the horizontal coordinate.
+
+        If there is a flashing or strobe light in the recorded video, you can click on 'Pick bright region' to choose a rectangular region (in the same way that the ROI is selected) that is illuminated when the light is on and dark when it is off. Note that this region is independent from the ROI specified in the 'Preview box', and will show up of the left window in the 'Analysis box'. From the dropdown menu, select the option 'Frames light on' to consider only the frames where the light is on, or 'Frames light off' to consider only the frames without the light. By default all the frames are considered.
+
+        By clicking on 'Absolute values', the x-axis of the tracked data will be shifted to the origin.
+
+        Click on 'Save data' to export a csv file with all the tracking results (position in pixel and mm for each point tracked, and their corresponding spread rate).
+        """)
+        if self.pyqtVer == '5':
+            msg.exec_()
+        elif self.pyqtVer == '6':
+            msg.exec()
+
     def openSelection_click(self, text):
         selection = self.openSelectionBox.currentText()
         if selection == 'Video':
@@ -720,40 +1072,50 @@ class Window(QWidget):
         showFrame(self, self.frameNumber)
 
     def exportVideoBtn_clicked(self):
-        fps = round(float(self.fpsIn.text()))
-        codec = str(self.codecIn.text())
-        vFormat = str(self.formatIn.text())
-        vName = QFileDialog.getSaveFileName(self, 'Save File')
-        vName = vName[0]
-        if not vName[-len(vFormat):] == vFormat:
-            # print('Appending', vFormat, 'to filename')
-            vName = str(vName) + '.' + str(vFormat) # alternative: 'output.{}'.format(vFormat)
-        fourcc = cv2.VideoWriter_fourcc(*codec)
-        size = (int(self.roiThreeIn.text()), int(self.roiFourIn.text()))
+        self.w = MyPopup()
+        self.w.setGeometry(QRect(100, 100, 400, 200))
+        self.w.show()
+        # print('Condition', self.w.condition)
 
-        if vName != '.' + str(vFormat): # if the name is not empty
-            # open and set properties
-            vout = cv2.VideoWriter()
-            if self.grayscale.isChecked() == True:
-                vout.open(vName,fourcc,fps,size, isColor = False)
-            else:
-                vout.open(vName,fourcc,fps,size,True)
+        # while self.w.condition == False:
+        #     print('waiting for condition')
+        #     if self.w.condition == True:
+        #         print('I am happy')
 
-            firstFrame = int(self.firstFrameIn.text())
-            lastFrame = int(self.lastFrameIn.text())
-            currentFrame = firstFrame
-
-            while (currentFrame < lastFrame):
-                frame, frameCrop = checkEditing(self, currentFrame)
-                vout.write(frameCrop)
-                print('Progress: ', round((currentFrame - firstFrame)/(lastFrame - firstFrame) * 1000)/10, '%',  end='\r')
-                currentFrame = currentFrame + 1 + int(self.skipFrameIn.text())
-
-            vout.release()
-            print('Progress: 100 %, the video has been exported.')
-            self.msgLabel.setText('The video has been exported.')
-        else:
-            self.msgLabel.setText('Error: Enter a valid video name')
+        # fps = round(float(self.fpsIn.text()))
+        # codec = str(self.codecIn.text())
+        # vFormat = str(self.formatIn.text())
+        # vName = QFileDialog.getSaveFileName(self, 'Save File')
+        # vName = vName[0]
+        # if not vName[-len(vFormat):] == vFormat:
+        #     # print('Appending', vFormat, 'to filename')
+        #     vName = str(vName) + '.' + str(vFormat) # alternative: 'output.{}'.format(vFormat)
+        # fourcc = cv2.VideoWriter_fourcc(*codec)
+        # size = (int(self.roiThreeIn.text()), int(self.roiFourIn.text()))
+        #
+        # if vName != '.' + str(vFormat): # if the name is not empty
+        #     # open and set properties
+        #     vout = cv2.VideoWriter()
+        #     if self.grayscale.isChecked() == True:
+        #         vout.open(vName,fourcc,fps,size, isColor = False)
+        #     else:
+        #         vout.open(vName,fourcc,fps,size,True)
+        #
+        #     firstFrame = int(self.firstFrameIn.text())
+        #     lastFrame = int(self.lastFrameIn.text())
+        #     currentFrame = firstFrame
+        #
+        #     while (currentFrame < lastFrame):
+        #         frame, frameCrop = checkEditing(self, currentFrame)
+        #         vout.write(frameCrop)
+        #         print('Progress: ', round((currentFrame - firstFrame)/(lastFrame - firstFrame) * 1000)/10, '%',  end='\r')
+        #         currentFrame = currentFrame + 1 + int(self.skipFrameIn.text())
+        #
+        #     vout.release()
+        #     print('Progress: 100 %, the video has been exported.')
+        #     self.msgLabel.setText('The video has been exported.')
+        # else:
+        #     self.msgLabel.setText('Error: Enter a valid video name')
 
     def newVideoHelpBtn_clicked(self):
         msg = QMessageBox(self)
@@ -951,6 +1313,134 @@ class Window(QWidget):
         elif self.pyqtVer == '6':
             msg.exec()
 
+    def exportVideo_click(self):
+        # Open pop-up window to ask about frame rate, codec and format
+        self.expV_win = MyPopup(self)
+        self.expV_win.setGeometry(QRect(100, 100, 400, 200))
+        self.expV_win.show()
+
+    def nextBtn_clicked(self, self2):
+
+        # mainClass = FlameTrackerWindow()
+        # print('test', FlameTrackerWindow.firstFrameIn.text())
+        print('test self1 after button', self.firstFrameIn.text())
+        fps = float(self.expV_win.fpsLine.text())
+        codec = str(self.expV_win.codecLine.text())
+        format = str(self.expV_win.formatLine.text())
+        self.expV_win.close()
+        print('About to export video')
+
+        path = QFileDialog.getSaveFileName(self, 'Save edited video')
+        path = path[0]
+
+        if not path[-len(format):] == format:
+            # print('Appending', vFormat, 'to filename')
+            path = str(path) + '.' + str(format)
+        fourcc = cv2.VideoWriter_fourcc(*codec)
+        size = (int(self.roiThreeIn.text()), int(self.roiFourIn.text()))
+        name = re.findall('.*[/](.*)?', path)
+        if path != '.' + str(format): # if the name is not empty
+            # open and set properties
+            vout = cv2.VideoWriter()
+            if self.grayscale.isChecked() == True:
+                vout.open(path, fourcc, fps, size, isColor = False)
+            else:
+                vout.open(path, fourcc, fps, size,True)
+
+            firstFrame = int(self.firstFrameIn.text())
+            lastFrame = int(self.lastFrameIn.text())
+            currentFrame = firstFrame
+
+            while (currentFrame < lastFrame):
+                frame, frameCrop = checkEditing(self, currentFrame)
+                vout.write(frameCrop)
+                print('Progress: ', round((currentFrame - firstFrame)/(lastFrame - firstFrame) * 1000)/10, '%',  end='\r')
+                currentFrame = currentFrame + 1 + int(self.skipFrameIn.text())
+
+            vout.release()
+            print(f'Progress: 100 %, {name[0]} has been exported.')
+            self.msgLabel.setText(f'{name[0]} has been exported.')
+        else:
+            self.msgLabel.setText('Error: Enter a valid video name')
+
+
+def removeExistingMethod(self):
+    try:
+        print('existing method', self.trackingMethod)
+        if self.trackingMethod == 'Manual tracking':
+            self.MTmenu.clear()
+            print('menu bar MT removed')
+        if self.trackingMethod == 'Luma tracking':
+            self.LTmenu.clear()
+            print('menu bar LT removed')
+        if self.trackingMethod == 'RGB tracking':
+            self.CTmenu.clear()
+            print('menu bar CT removed')
+        if self.trackingMethod == 'HSV tracking':
+            self.HTmenu.clear()
+            print('menu bar HT removed')
+    except:
+        print('passed removeExistingMethod')
+        pass
+    methodSelected = self.trackingGroup.checkedAction()
+    methodSelected = methodSelected.text()
+    self.trackingMethod = methodSelected
+
+    for i in reversed(range(self.box_layout.count())):
+        self.box_layout.itemAt(i).widget().deleteLater()
+
+    self.box_layout.removeItem(self.box_layout)
+
+#
+# self.box_layout.removeItem(self.box_layout)
+# try:
+#     # self.menu.removeMenu(self.LTmenu)
+#     self.LTmenu.clear()
+#     print('menu deleted')
+# except:
+#     print('no menu found')
+# def exportVideo(self, self2):
+#     fps = self2.fpsIn
+#     codec = self2.codecIn
+#     format = self2.formatIn
+#     print('try', fps)
+
+
+
+    # print('try test', self.roiThreeIn.text())
+    # path = QFileDialog.getSaveFileName(self, 'Save edited video')
+    # path = path[0]
+    # name = re.findall('.*[/](.*)?', path)
+    # if not path[-len(format):] == format:
+    #     # print('Appending', vFormat, 'to filename')
+    #     path = str(path) + '.' + str(format)
+    # fourcc = cv2.VideoWriter_fourcc(*codec)
+    # size = (int(self.roiThreeIn.text()), int(self.roiFourIn.text()))
+    # #
+    # if path != '.' + str(format): # if the name is not empty
+    #     # open and set properties
+    #     vout = cv2.VideoWriter()
+    #     if self.grayscale.isChecked() == True:
+    #         vout.open(path, fourcc, fps, size, isColor = False)
+    #     else:
+    #         vout.open(path, fourcc, fps, size,True)
+    #
+    #     firstFrame = int(self.firstFrameIn.text())
+    #     lastFrame = int(self.lastFrameIn.text())
+    #     currentFrame = firstFrame
+    #
+    #     while (currentFrame < lastFrame):
+    #         frame, frameCrop = checkEditing(self, currentFrame)
+    #         vout.write(frameCrop)
+    #         print('Progress: ', round((currentFrame - firstFrame)/(lastFrame - firstFrame) * 1000)/10, '%',  end='\r')
+    #         currentFrame = currentFrame + 1 + int(self.skipFrameIn.text())
+    #
+    #     vout.release()
+    #     print(f'Progress: 100 %, the video {name} has been exported.')
+    #     self.msgLabel.setText('The video has been exported.')
+    # else:
+    #     self.msgLabel.setText('Error: Enter a valid video name')
+
 # this function waits for the next mouse click
 def click(event, x, y, flags, param):
     global xPos, yPos, clk
@@ -1059,20 +1549,26 @@ def checkEditing(self, frameNumber):
 
 def checkAnalysisBox(self, frameNumber):
     # true value when the analysis is selected
-    if manualTrackingValue == True:
-        if sys.platform == 'darwin':
-            # lbl1 = [190, 25, 420, 300]
-            lbl1 = [250, 25, 390, 270]
-        elif sys.platform == 'win32':
-            # lbl1 = [190, 15, 420, 300]
-            lbl1 = [250, 15, 390, 270]
-        elif sys.platform == 'linux':
-            # lbl1 = [190, 25, 420, 300]
-            lbl1 = [250, 25, 390, 270]
+    # if manualTrackingValue == True:
+    if self.trackingMethod == 'Manual tracking':
+        # if sys.platform == 'darwin':
+        #     # lbl1 = [190, 25, 420, 300]
+        #     lbl1 = [250, 25, 390, 270]
+        # elif sys.platform == 'win32':
+        #     # lbl1 = [190, 15, 420, 300]
+        #     lbl1 = [250, 15, 390, 270]
+        # elif sys.platform == 'linux':
+        #     # lbl1 = [190, 25, 420, 300]
+        #     lbl1 = [250, 25, 390, 270]
+        testSize = self.lbl1_MT.size()
+        print('size lbl1 before', testSize[0] )
 
         # label 1 might have become a plot widget, so we need to update them again
-        self.lbl1_MT = QLabel(self.manualTrackingBox)
-        self.lbl1_MT.setGeometry(lbl1[0], lbl1[1], lbl1[2], lbl1[3])
+        self.lbl1_MT = QLabel()
+        self.box_layout.addWidget(self.lbl1_MT, 0, 3, 8, 4)
+        print('size lbl1 label', self.lbl1_MT.size() )
+        #self.lbl1_MT = QLabel(self.manualTrackingBox)
+        # self.lbl1_MT.setGeometry(lbl1[0], lbl1[1], lbl1[2], lbl1[3])
         self.lbl1_MT.setStyleSheet('background-color: white')
 
         frame, frameCrop = checkEditing(self, frameNumber)
@@ -1085,12 +1581,12 @@ def checkAnalysisBox(self, frameNumber):
             secondPoint = (int(self.lightROI_MT[0]) + int(self.lightROI_MT[2]), int(self.lightROI_MT[1]) + int(self.lightROI_MT[3]))
             cv2.rectangle(frame, firstPoint, secondPoint, (255, 0, 0), 5)
         bytes1 = 3 * frame.shape[1] #bytes per line, necessary to avoid distortion in the opened file
-        if self.pyqtVer == '5':
-            image1 = QImage(frame.data, frame.shape[1], frame.shape[0], bytes1, QImage.Format_RGB888).rgbSwapped()
-            image1 = image1.scaled(self.lbl1_MT.size(), Qt.KeepAspectRatio, Qt.SmoothTransformation)
-        elif self.pyqtVer == '6':
-            image1 = QImage(frame.data, frame.shape[1], frame.shape[0], bytes1, QImage.Format.Format_RGB888).rgbSwapped()
-            image1 = image1.scaled(self.lbl1_MT.size(), Qt.AspectRatioMode.KeepAspectRatio, Qt.TransformationMode.SmoothTransformation)
+        # if self.pyqtVer == '5':
+        #     image1 = QImage(frame.data, frame.shape[1], frame.shape[0], bytes1, QImage.Format_RGB888).rgbSwapped()
+        #     image1 = image1.scaled(self.lbl1_MT.size(), Qt.KeepAspectRatio, Qt.SmoothTransformation)
+        # elif self.pyqtVer == '6':
+        image1 = QImage(frame.data, frame.shape[1], frame.shape[0], bytes1, QImage.Format.Format_RGB888).rgbSwapped()
+        image1 = image1.scaled(self.lbl1_MT.size(), Qt.AspectRatioMode.KeepAspectRatio, Qt.TransformationMode.SmoothTransformation)
 
         self.lbl1_MT.setPixmap(QPixmap.fromImage(image1)) # this line was added (again?) in v1.1.7 to show the preview frame in the analysis box
         self.lbl1_MT.show()
@@ -1185,9 +1681,141 @@ def checkAnalysisBox(self, frameNumber):
         self.lbl1_HT.show()
         self.lbl2_HT.show()
 
+
+class MyPopup(QWidget):
+    def __init__(self2, self):
+        # self.frameIn = FlameTrackerWindow.firstFrameIn
+        mainWin = self
+        QWidget.__init__(self2)
+        # print('First frame, new class', firstFrame)
+        # mainClass = FlameTrackerWindow()
+        # print('test', FlameTrackerWindow.firstFrameIn.text())
+
+        self2.setWindowTitle('Select video format')
+        # self.setGeometry(500,200, 400,400)
+        grid = QGridLayout()
+        # grid.setRowStretch(grid.rowCount(), 1)
+        # grid.setColumnStretch(grid.columnCount(), 4)
+        # grid.setSpacing(10)
+
+        info1Txt = QLabel('To keep the original time: \nfps(new) = fps(original)/(skipframes + 1)', self2)
+        info2Txt = QLabel('Video codec and format depend on your OS and available packages \n(the best combination may require some trial and error).', self2)
+
+        print('test self1 before button', mainWin.firstFrameIn.text())
+
+
+        fpsTxt = QLabel('New frame rate (fps):')
+        self2.fpsLine = QLineEdit('30')
+        codecTxt = QLabel('Video codec:')
+        self2.codecLine = QLineEdit('mp4v')
+        formatTxt = QLabel('Video format:')
+        self2.formatLine = QLineEdit('mp4')
+        nextBtn = QPushButton('Next')
+        nextBtn.clicked.connect(mainWin.nextBtn_clicked)
+        # stopBtn = QPushButton('Cancel')
+        # stopBtn.clicked.connect(QCoreApplication.instance().quit)#self.stopBtn_clicked)
+
+        # testLbl = QLabel('Hi')
+        # grid.addWidget(testLbl, 0, 0)
+        grid.addWidget(info1Txt, 0, 0, 1, 1) #row, clmn, row span, clmn span
+        grid.addWidget(info2Txt, 1, 0, 1, 2)
+        grid.addWidget(fpsTxt, 2, 0)
+        grid.addWidget(self2.fpsLine, 2, 1)
+        grid.addWidget(codecTxt, 3, 0)
+        grid.addWidget(self2.codecLine, 3, 1)
+        grid.addWidget(formatTxt, 4, 0)
+        grid.addWidget(self2.formatLine, 4, 1)
+        grid.addWidget(nextBtn, 5, 1)
+        # grid.addWidget(stopBtn, 6, 1)
+
+        self2.setLayout(grid)
+
+        self2.winTest = False
+        # widget = QWidget()
+        # widget.setLayout(layout)
+        # self.setCentralWidget(widget)
+
+
+        # grid = QGridLayout()
+        # # groupbox.setLayout(grid)
+        # grid.addWidget(QLabel('Save edited video:'), 0, 0)
+        # # grid.addWidget(QLabel('Frame rate (fps):'), 1, 0)
+        # grid.addWidget(QLineEdit('30'), 1, 1)
+        # # grid.addWidget(good_radiobutton,2,0)
+        # # grid.addWidget(naive_radiobutton,2,1)
+        # # grid.addWidget(convertButton,3,0,1,0)
+        #
+        # widget = QWidget()
+        # widget.setLayout(grid)
+        # self.setCentralWidget(widget)
+
+    # def nextBtn_clicked(self2):
+    #
+    #     # mainClass = FlameTrackerWindow()
+    #     # print('test', FlameTrackerWindow.firstFrameIn.text())
+    #
+    #     self.fpsIn = float(self2.fpsLine.text())
+    #     self.codecIn = str(self2.codecLine.text())
+    #     self.formatIn = str(self2.formatLine.text())
+    #     self2.close()
+    #     print('About to export video')
+    #     print('test self1 after button', self.formatIn)
+        # exportVideo(self, self2)
+
+    #     codecTxt = QLabel('Video codec:')
+    #     self.codecIn = QLineEdit('mp4v')
+    #     formatTxt = QLabel('Video format:')
+    #     self.formatIn = QLineEdit('mp4')
+    #     nextBtn = QPushButton('Next')
+    #     nextBtn.clicked.connect(self.nextBtn_clicked)
+    # #     fps = round(float(self.fpsIn.text()))
+    #     codec = str(self.codecIn.text())
+    #     format = str(self.formatIn.text())
+    #
+    #     # fps = round(float(self.fpsIn.text()))
+    #     # codec = str(self.codecIn.text())
+    #     # vFormat = str(self.formatIn.text())
+    #     vName = QFileDialog.getSaveFileName(self, 'Save File')
+    #     vName = vName[0]
+    #     if not vName[-len(format):] == format:
+    #         # print('Appending', vFormat, 'to filename')
+    #         vName = str(vName) + '.' + str(format) # alternative: 'output.{}'.format(vFormat)
+    #     fourcc = cv2.VideoWriter_fourcc(*codec)
+    #     print('test', mainClass.roiThreeIn)
+    #     size = (int(mainClass.roiThreeIn.text()), int(mainClass.roiFourIn.text()))
+    #
+    #     if vName != '.' + str(vFormat): # if the name is not empty
+    #         # open and set properties
+    #         vout = cv2.VideoWriter()
+    #         if mainClass.self.grayscale.isChecked() == True:
+    #             vout.open(vName,fourcc,fps,size, isColor = False)
+    #         else:
+    #             vout.open(vName,fourcc,fps,size,True)
+    #
+    #         mainClass.firstFrame = int(self.firstFrameIn.text())
+    #         mainClass.lastFrame = int(self.lastFrameIn.text())
+    #         currentFrame = firstFrame
+    #
+    #         while (currentFrame < lastFrame):
+    #             frame, frameCrop = checkEditing(self, currentFrame)
+    #             vout.write(frameCrop)
+    #             print('Progress: ', round((currentFrame - firstFrame)/(lastFrame - firstFrame) * 1000)/10, '%',  end='\r')
+    #             currentFrame = currentFrame + 1 + int(mainClass.self.skipFrameIn.text())
+    #
+    #         vout.release()
+    #         print('Progress: 100 %, the video has been exported.')
+    #         mainClass.self.msgLabel.setText('The video has been exported.')
+    #     else:
+    #         mainClass.self.msgLabel.setText('Error: Enter a valid video name')
+    #
+    #
+    # def stopBtn_clicked(self):
+    #     print('Stop')
+    #     cv2.destroyAllWindows()
+
 if __name__ == '__main__':
     app = QApplication(sys.argv)
-    window = Window()
+    window = FlameTrackerWindow()
     window.show()
     if QT_VERSION_STR[0] == '5':
         sys.exit(app.exec_())

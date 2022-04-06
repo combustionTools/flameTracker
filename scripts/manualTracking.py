@@ -60,8 +60,11 @@ def startTracking(self):
     #     yAxis_lbl2 = 'Spread rate [mm/s]'
 
     # transforming the first label into a plot
-    self.lbl1_MT = ft.pg.PlotWidget(self.manualTrackingBox)
-    self.lbl1_MT.setGeometry(250, 25, 390, 270)
+    self.lbl1_MT = ft.pg.PlotWidget()
+    self.box_layout.addWidget(self.lbl1_MT, 0, 3, 8, 4)
+
+#    self.lbl1_MT = ft.pg.PlotWidget(self.manualTrackingBox)
+    # self.lbl1_MT.setGeometry(250, 25, 390, 270)
     self.lbl1_MT.setBackground('w')
     self.lbl1_MT.setLabel('left', str(yAxis_lbl1), color='black', size=14)
     # self.lbl1_MT.setLabel('bottom', 'Time [s]', color='black', size=14)

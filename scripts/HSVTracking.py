@@ -58,6 +58,8 @@ def initVars(self): # define initial variables
     # self.isPlotTimevsFrame = False #True
     # self.connectivity_HT = 4
     self.lightROI_HT_recorded = False
+    self.connectivity = self.connectivityGroup.checkedAction()
+    self.connectivity = self.connectivity.text()
 
 def getFilteredFrame(self, frame):
     # Filter here: #CAS Modified for HSV tracking instead of color tracking
@@ -77,7 +79,7 @@ def getFilteredFrame(self, frame):
     (threshold, frameBW) = ft.cv2.threshold(grayFrame, 0, 255, ft.cv2.THRESH_BINARY)
 
     # Find all the connected components (8 means in the four directions and diagonals)
-    componentNum, componentLbl, stats, centroids = ft.cv2.connectedComponentsWithStats(frameBW, connectivity = int(self.connectivityBox.currentText())) # self.connectivity_HT)
+    componentNum, componentLbl, stats, centroids = ft.cv2.connectedComponentsWithStats(frameBW, connectivity = int(self.connectivity)) # self.connectivity_HT) Box.currentText()
     ### 1 = number of labels; 2 = array; 3 = [[x location (left), y location (top), width, height, area]] for each label; 4 = [centroid of each label, x and y]. Note: the background is the first component
 
     # minimum area (measured in px) for filtering the components
@@ -95,7 +97,7 @@ def getFilteredFrame(self, frame):
 
     findFlameEdges(self, frameBW, flamePx)
 
-    if self.showEdges.isChecked() == True:
+    if self.showEdges_HT.isChecked() == True:
         ft.cv2.line(frame, (self.xMax, 0),(self.xMax, int(self.roiFourIn.text())), (255, 255, 255), 2)
         ft.cv2.line(frame, (self.xMin, 0),(self.xMin, int(self.roiFourIn.text())), (255, 255, 255), 2)
         ft.cv2.line(frameBW, (self.xMax, 0),(self.xMax, int(self.roiFourIn.text())), (255, 255, 255), 2)
@@ -168,6 +170,8 @@ def HSVTracking(self):
 
     firstFrame = int(self.firstFrameIn.text())
     lastFrame = int(self.lastFrameIn.text())
+    self.connectivity = self.connectivityGroup.checkedAction()
+    self.connectivity = self.connectivity.text()
     currentFrame = firstFrame
     self.xRight_px = list()
     self.xLeft_px = list()
@@ -447,7 +451,7 @@ def saveChannelsBtn(self):
                 writer.writerow(['Moving average', str(self.movAvgIn_HT.text())])
                 writer.writerow(['Points LE', str(self.avgLEIn_HT.text())])
                 # writer.writerow(['Connectivity', str(self.connectivity_HT)])
-                writer.writerow(['Connectivity', self.connectivityBox.currentText()])
+                writer.writerow(['Connectivity', self.connectivity]) #Box.currentText()
             self.msgLabel.setText('Channel values saved.')
         except:
             self.msgLabel.setText('Ops! The values were not saved.')

@@ -58,7 +58,7 @@ def getFilteredFrame(self, frame):
     (threshold, frameBW) = ft.cv2.threshold(grayFrame, 0, 255, ft.cv2.THRESH_BINARY)
 
     # Find all the connected components (8 means in the four directions and diagonals)
-    componentNum, componentLbl, stats, centroids = ft.cv2.connectedComponentsWithStats(frameBW, connectivity = int(self.connectivityBox.currentText()))
+    componentNum, componentLbl, stats, centroids = ft.cv2.connectedComponentsWithStats(frameBW, connectivity = int(self.connectivity))#Box.currentText()
     ### 1 = number of labels; 2 = array; 3 = [[x location (left), y location (top), width, height, area]] for each label; 4 = [centroid of each label, x and y]. Note: the background is the first component
 
     # minimum area (measured in px) for filtering the components
@@ -76,7 +76,7 @@ def getFilteredFrame(self, frame):
 
     findFlameEdges(self, frameBW, flamePx)
 
-    if self.showEdges.isChecked() == True:
+    if self.showEdges_CT.isChecked() == True:
         ft.cv2.line(frame, (self.xMax, 0),(self.xMax, int(self.roiFourIn.text())), (255, 255, 255), 2)
         ft.cv2.line(frame, (self.xMin, 0),(self.xMin, int(self.roiFourIn.text())), (255, 255, 255), 2)
         ft.cv2.line(frameBW, (self.xMax, 0),(self.xMax, int(self.roiFourIn.text())), (255, 255, 255), 2)
@@ -146,6 +146,9 @@ def colorTracking(self):
 
     firstFrame = int(self.firstFrameIn.text())
     lastFrame = int(self.lastFrameIn.text())
+    self.connectivity = self.connectivityGroup.checkedAction()
+    self.connectivity = self.connectivity.text()
+
     currentFrame = firstFrame
     self.xRight_px = list()
     self.xLeft_px = list()
@@ -354,13 +357,13 @@ def filterParticleSldr(self):
 #     elif selection == 'Right to left':
 #         flameDir = 'toLeft'
 
-# def connectivityBox(self, text):
-#     global connectivity_CT
-#     selection = self.connectivityBox.currentText()
-#     if selection == '4':
-#         connectivity_CT = 4
-#     elif selection == '8':
-#         connectivity_CT = 8
+# def connectivityBoxCT_clicked(self):
+    # global connectivity_CT
+    # selection = self.connectivityBox.currentText()
+    # if selection == '4':
+    #     connectivity_CT = 4
+    # elif selection == '8':
+    #     connectivity_CT = 8
 
 def saveChannelsBtn(self):
     name = ft.QFileDialog.getSaveFileName(self, 'Save channel values')
@@ -382,7 +385,7 @@ def saveChannelsBtn(self):
                 writer.writerow(['Particle size', str(self.filterParticleSldr_CT.value())])
                 writer.writerow(['Moving average', str(self.movAvgIn_CT.text())])
                 writer.writerow(['Points LE', str(self.avgLEIn_CT.text())])
-                writer.writerow(['Connectivity', self.connectivityBox.currentText()])
+                writer.writerow(['Connectivity', self.connectivity])#Box.currentText()])
             self.msgLabel.setText('Channel values saved.')
         except:
             self.msgLabel.setText('Ops! The values were not saved.')
@@ -405,7 +408,7 @@ def loadChannelsBtn(self):
                     self.blueMaxSlider.setValue(int(row[2]))
                 elif 'Particle size' in row:
                     self.filterParticleSldr_CT.setMaximum(int(row[1]))
-                    self.filterParticleSldr_CT.setValue(int(row[1]))                
+                    self.filterParticleSldr_CT.setValue(int(row[1]))
                     self.particleSldrMax.setText(row[1])
                 elif 'Moving average' in row:
                     self.movAvgIn_CT.setText(row[1])

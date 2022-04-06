@@ -66,7 +66,7 @@ def getFilteredFrame(self, frame):
 
     findFlameEdges(self, frameBW, flamePx)
 
-    if self.showEdges.isChecked() == True:
+    if self.showEdges_LT.isChecked() == True:
         ft.cv2.line(Y, (self.xMax, 0),(self.xMax, int(self.roiFourIn.text())), (255, 255, 255), 2)
         ft.cv2.line(Y, (self.xMin, 0),(self.xMin, int(self.roiFourIn.text())), (255, 255, 255), 2)
 
@@ -111,7 +111,7 @@ def findFlameEdges(self, frameBW, flamePx):
         self.xRight = self.vWidth - int(self.roiOneIn.text()) - self.xMax
         self.xLeft = self.vWidth - int(self.roiOneIn.text()) - self.xMin
 
-    if self.showEdges.isChecked() == True:
+    if self.showEdges_LT.isChecked() == True:
         ft.cv2.line(frameBW, (self.xMax, 0),(self.xMax, int(self.roiFourIn.text())), (255, 255, 255), 2)
         ft.cv2.line(frameBW, (self.xMin, 0),(self.xMin, int(self.roiFourIn.text())), (255, 255, 255), 2)
 
