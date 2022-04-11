@@ -325,15 +325,21 @@ def HSVTracking(self):
         self.spreadRateLeft = ft.np.round(self.spreadRateLeft, 3)
         self.spreadRateLeft = self.spreadRateLeft.tolist()
 
-        self.lbl1_HT = ft.pg.PlotWidget(self.HSVTrackingBox)
-        if ft.sys.platform == 'darwin' or ft.sys.platform == 'linux':
-            lbl1 = [370,  25, 670, 125]
-            lbl2 = [370, 150, 670, 125]
-        elif ft.sys.platform == 'win32':
-            lbl1 = [370,  15, 670, 125]
-            lbl2 = [370, 150, 670, 125]
-
-        self.lbl1_HT.setGeometry(lbl1[0], lbl1[1], lbl1[2], lbl1[3]) # Changed geometry as removed BW image display
+        # self.lbl1_HT = ft.pg.PlotWidget(self.HSVTrackingBox)
+        self.lbl1_HT.deleteLater()
+        self.lbl2_HT.deleteLater()
+        self.lbl1_HT = ft.pg.PlotWidget()
+        self.lbl2_HT = ft.pg.PlotWidget()
+        self.box_layout.addWidget(self.lbl1_HT, 0, 9, 4, 6)
+        self.box_layout.addWidget(self.lbl2_HT, 4, 9, 4, 6)
+        # if ft.sys.platform == 'darwin' or ft.sys.platform == 'linux':
+        #     lbl1 = [370,  25, 670, 125]
+        #     lbl2 = [370, 150, 670, 125]
+        # elif ft.sys.platform == 'win32':
+        #     lbl1 = [370,  15, 670, 125]
+        #     lbl2 = [370, 150, 670, 125]
+        #
+        # self.lbl1_HT.setGeometry(lbl1[0], lbl1[1], lbl1[2], lbl1[3]) # Changed geometry as removed BW image display
         self.lbl1_HT.setBackground('w')
         # self.lbl1_HT.setLabel('left', 'Position [mm]', color='black', size=14)
         self.lbl1_HT.setLabel('left', str(yAxis_lbl1), color='black', size=14)
@@ -348,8 +354,8 @@ def HSVTracking(self):
         self.lbl1_HT.getAxis('bottom').setPen(color=(0, 0, 0))
         self.lbl1_HT.getAxis('left').setPen(color=(0, 0, 0))
         self.lbl1_HT.addLegend(offset = [1, 0.1]) # background color modified in line 122 and 123 of Versions/3.7/lib/python3.7/site-packages/pyqtgraph/graphicsItems
-        self.lbl2_HT = ft.pg.PlotWidget(self.HSVTrackingBox)
-        self.lbl2_HT.setGeometry(lbl2[0], lbl2[1], lbl2[2], lbl2[3])
+        # self.lbl2_HT = ft.pg.PlotWidget(self.HSVTrackingBox)
+        # self.lbl2_HT.setGeometry(lbl2[0], lbl2[1], lbl2[2], lbl2[3])
         #print('\nView rect=', self.lbl2_HT.viewRect() )
         #print('\nGeometry set to', self.lbl2_HT.viewGeometry())
         self.lbl2_HT.setBackground('w')

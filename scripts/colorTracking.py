@@ -39,7 +39,9 @@ def initVars(self): # define initial variables
     # global connectivity_CT #, flameDir
     # # flameDir = 'toRight'
     # connectivity_CT = 4
-    self.lightROI_CT_recorded = False
+    self.lightROI_RT_recorded = False
+    self.connectivity = self.connectivityGroup.checkedAction()
+    self.connectivity = self.connectivity.text()
 
 def getFilteredFrame(self, frame):
     blueLow = self.blueMinSlider.value()
@@ -62,7 +64,7 @@ def getFilteredFrame(self, frame):
     ### 1 = number of labels; 2 = array; 3 = [[x location (left), y location (top), width, height, area]] for each label; 4 = [centroid of each label, x and y]. Note: the background is the first component
 
     # minimum area (measured in px) for filtering the components
-    minArea = self.filterParticleSldr_CT.value()
+    minArea = self.filterParticleSldr_RT.value()
     componentAreas = stats[:, 4] # stats is a list of list, here we start from 0 (the background), and we consider the last elements (area)
 
     # keep only the components with area larger than minArea, starting from 1 to avoid the background
@@ -76,35 +78,35 @@ def getFilteredFrame(self, frame):
 
     findFlameEdges(self, frameBW, flamePx)
 
-    if self.showEdges_CT.isChecked() == True:
+    if self.showEdges_RT.isChecked() == True:
         ft.cv2.line(frame, (self.xMax, 0),(self.xMax, int(self.roiFourIn.text())), (255, 255, 255), 2)
         ft.cv2.line(frame, (self.xMin, 0),(self.xMin, int(self.roiFourIn.text())), (255, 255, 255), 2)
         ft.cv2.line(frameBW, (self.xMax, 0),(self.xMax, int(self.roiFourIn.text())), (255, 255, 255), 2)
         ft.cv2.line(frameBW, (self.xMin, 0),(self.xMin, int(self.roiFourIn.text())), (255, 255, 255), 2)
 
-    self.currentFrameRGB_CT = frame
+    self.currentFrameRGB_RT = frame
     # calculate the total number of bytes in the frame for lbl1
     totalBytes = frame.nbytes
     # divide by the number of rows
     bytesPerLine = int(totalBytes/frame.shape[0]) #I had to introduce it to avoid distortion in the opened file for some of the videos
     if self.pyqtVer == '5':
         self.frame = ft.QImage(frame.data, frame.shape[1], frame.shape[0], bytesPerLine, ft.QImage.Format_BGR888)#.rgbSwapped() #shape[0] = height, [1] = width QImage.Format_Indexed8 BGR888
-        self.frame = self.frame.scaled(self.lbl1_CT.size(), ft.Qt.KeepAspectRatio, ft.Qt.SmoothTransformation)
+        self.frame = self.frame.scaled(self.lbl1_RT.size(), ft.Qt.KeepAspectRatio, ft.Qt.SmoothTransformation)
     elif self.pyqtVer == '6':
         self.frame = ft.QImage(frame.data, frame.shape[1], frame.shape[0], bytesPerLine, ft.QImage.Format.Format_BGR888)#.rgbSwapped() #shape[0] = height, [1] = width QImage.Format_Indexed8 BGR888
-        self.frame = self.frame.scaled(self.lbl1_CT.size(), ft.Qt.AspectRatioMode.KeepAspectRatio, ft.Qt.TransformationMode.SmoothTransformation)
+        self.frame = self.frame.scaled(self.lbl1_RT.size(), ft.Qt.AspectRatioMode.KeepAspectRatio, ft.Qt.TransformationMode.SmoothTransformation)
 
-    self.currentFrameBW_CT = frameBW
+    self.currentFrameBW_RT = frameBW
     # calculate the total number of bytes in the frame for lbl2
     totalBytesBW = frameBW.nbytes
     # divide by the number of rows
     bytesPerLineBW = int(totalBytesBW/frameBW.shape[0]) #I had to introduce it to avoid distortion in the opened file for some of the videos
     if self.pyqtVer == '5':
         self.frameBW = ft.QImage(frameBW.data, frameBW.shape[1], frameBW.shape[0], bytesPerLineBW, ft.QImage.Format_Grayscale8)#.rgbSwapped() #shape[0] = height, [1] = width QImage.Format_Indexed8 or Grayscale8 BGR888
-        self.frameBW = self.frameBW.scaled(self.lbl1_CT.size(), ft.Qt.KeepAspectRatio, ft.Qt.SmoothTransformation)
+        self.frameBW = self.frameBW.scaled(self.lbl1_RT.size(), ft.Qt.KeepAspectRatio, ft.Qt.SmoothTransformation)
     elif self.pyqtVer == '6':
         self.frameBW = ft.QImage(frameBW.data, frameBW.shape[1], frameBW.shape[0], bytesPerLineBW, ft.QImage.Format.Format_Grayscale8)#.rgbSwapped() #shape[0] = height, [1] = width QImage.Format_Indexed8 or Grayscale8 BGR888
-        self.frameBW = self.frameBW.scaled(self.lbl1_CT.size(), ft.Qt.AspectRatioMode.KeepAspectRatio, ft.Qt.TransformationMode.SmoothTransformation)
+        self.frameBW = self.frameBW.scaled(self.lbl1_RT.size(), ft.Qt.AspectRatioMode.KeepAspectRatio, ft.Qt.TransformationMode.SmoothTransformation)
 
 def findFlameEdges(self, frameBW, flamePx):
     self.flameArea = len(flamePx[0])
@@ -116,13 +118,13 @@ def findFlameEdges(self, frameBW, flamePx):
     i = 0
     try:
         # average of the flame location based on the n# of points indicated by the user
-        for x in range(int(self.avgLEIn_CT.text())):
+        for x in range(int(self.avgLEIn_RT.text())):
             i = i + 1
             self.xMax = self.xMax + sortedBWx[-i]
             self.xMin = self.xMin + sortedBWx[i]
 
-        self.xMax = int(self.xMax/int(self.avgLEIn_CT.text()))
-        self.xMin = int(self.xMin/int(self.avgLEIn_CT.text()))
+        self.xMax = int(self.xMax/int(self.avgLEIn_RT.text()))
+        self.xMin = int(self.xMin/int(self.avgLEIn_RT.text()))
         # if flameDir == 'toRight':
         if self.directionBox.currentText() == 'Left to right':
             self.xRight = int(self.roiOneIn.text()) + self.xMax
@@ -158,7 +160,7 @@ def colorTracking(self):
     self.frameCount = list()
     flameArea = list()
 
-    if self.exportEdges_CT.isChecked():
+    if self.exportEdges_RT.isChecked():
         fps = (float(self.vFpsLbl.text()))/(int(self.skipFrameIn.text()) + 1) #fps(new) = fps(original)/(skipframes + 1)
         codec = str(self.codecIn.text())
         vFormat = str(self.formatIn.text())
@@ -177,20 +179,20 @@ def colorTracking(self):
         while (currentFrame < lastFrame):
             # print('Frame #:', currentFrame)
             frame, frameCrop = ft.checkEditing(self, currentFrame)
-            if self.filterLight_CT.isChecked() == True:
-                if self.lightROI_CT_recorded == True: #beta
+            if self.filterLight_RT.isChecked() == True:
+                if self.lightROI_RT_recorded == True: #beta
                     # looking for frames with a light on (which would increase the red and green channel values of the background)
-                    low = ([5, 5, 10]) # blueLow, greenLow, redLow (see color tracking)
+                    low = ([5, 5, 10]) # blueLow, greenLow, redLow
                     high = ([255, 255, 255]) # blueHigh, greenHigh, redHigh
                     low = ft.np.array(low, dtype = 'uint8') #this conversion is necessary
                     high = ft.np.array(high, dtype = 'uint8')
-                    currentLightROI = frame[self.lightROI_CT[1] : (self.lightROI_CT[1] + self.lightROI_CT[3]), self.lightROI_CT[0] : (self.lightROI_CT[0] + self.lightROI_CT[2])]
+                    currentLightROI = frame[self.lightROI_RT[1] : (self.lightROI_RT[1] + self.lightROI_RT[3]), self.lightROI_RT[0] : (self.lightROI_RT[0] + self.lightROI_RT[2])]
                     newMask = ft.cv2.inRange(currentLightROI, low, high)
                     frame_light = ft.cv2.bitwise_and(currentLightROI, currentLightROI, mask = newMask)
                     grayFrame_light = ft.cv2.cvtColor(frame_light, ft.cv2.COLOR_BGR2GRAY)
                     (thresh_light, frameBW_light) = ft.cv2.threshold(grayFrame_light, 0, 255, ft.cv2.THRESH_BINARY)
                     flamePx_light = ft.np.where(frameBW_light == [255]) #beta
-                    area_lightROI = int(self.lightROI_CT[3] * self.lightROI_CT[2])
+                    area_lightROI = int(self.lightROI_RT[3] * self.lightROI_RT[2])
                 else:
                     msg = ft.QMessageBox(self)
                     msg.setText('Before the tracking, please click on "Pick a bright region" to select a region where the light is visible.')
@@ -216,8 +218,8 @@ def colorTracking(self):
             self.xLeft_mm.append(self.xLeft / float(self.scaleIn.text()))
             flameArea.append(self.flameArea)
             self.frameCount.append(currentFrame)
-            if self.exportEdges_CT.isChecked():
-                vout.write(self.currentFrameRGB_CT)
+            if self.exportEdges_RT.isChecked():
+                vout.write(self.currentFrameRGB_RT)
             print('Progress: ', round((currentFrame - firstFrame)/(lastFrame - firstFrame) * 10000)/100, '%', '(Frame #: ', currentFrame, ')', end='\r')
             currentFrame = currentFrame + 1 + int(self.skipFrameIn.text())
 
@@ -237,12 +239,12 @@ def colorTracking(self):
         print('Progress: 100 % - Tracking completed')
         self.msgLabel.setText('Tracking completed')
 
-        if self.exportEdges_CT.isChecked():
+        if self.exportEdges_RT.isChecked():
             vout.release()
             self.msgLabel.setText('Tracking completed and video created.')
 
         # the following approach to calculate the spread rate is the same one used for lumaTracking
-        movAvgPt = int(self.movAvgIn_CT.text()) #this number is half of the interval considered for the spread rate (movAvgPt = 2 means I am considering a total of 5 points (my point, 2 before and 2 after))
+        movAvgPt = int(self.movAvgIn_RT.text()) #this number is half of the interval considered for the spread rate (movAvgPt = 2 means I am considering a total of 5 points (my point, 2 before and 2 after))
         self.spreadRateRight = list()
         self.spreadRateLeft = list()
 
@@ -278,59 +280,67 @@ def colorTracking(self):
         self.spreadRateLeft = ft.np.round(self.spreadRateLeft, 3)
         self.spreadRateLeft = self.spreadRateLeft.tolist()
 
-        self.lbl1_CT = ft.pg.PlotWidget(self.colorTrackingBox)
-        self.lbl2_CT = ft.pg.PlotWidget(self.colorTrackingBox)
-        if ft.sys.platform == 'darwin':
-            lbl1 = [370, 25, 330, 250]
-            lbl2 = [710, 25, 330, 250]
-        elif ft.sys.platform == 'win32':
-            lbl1 = [370, 15, 330, 250]
-            lbl2 = [710, 15, 330, 250]
-        elif ft.sys.platform == 'linux':
-            lbl1 = [370, 25, 330, 250]
-            lbl2 = [710, 25, 330, 250]
+        # self.lbl1_RT = ft.pg.PlotWidget(self.colorTrackingBox)
+        # self.lbl2_RT = ft.pg.PlotWidget(self.colorTrackingBox)
+        # if ft.sys.platform == 'darwin':
+        #     lbl1 = [370, 25, 330, 250]
+        #     lbl2 = [710, 25, 330, 250]
+        # elif ft.sys.platform == 'win32':
+        #     lbl1 = [370, 15, 330, 250]
+        #     lbl2 = [710, 15, 330, 250]
+        # elif ft.sys.platform == 'linux':
+        #     lbl1 = [370, 25, 330, 250]
+        #     lbl2 = [710, 25, 330, 250]
+        #
+        # self.lbl1_RT.setGeometry(lbl1[0], lbl1[1], lbl1[2], lbl1[3])
+        # self.lbl2_RT.setGeometry(lbl2[0], lbl2[1], lbl2[2], lbl2[3])
 
-        self.lbl1_CT.setGeometry(lbl1[0], lbl1[1], lbl1[2], lbl1[3])
-        self.lbl2_CT.setGeometry(lbl2[0], lbl2[1], lbl2[2], lbl2[3])
-        self.lbl1_CT.setBackground('w')
-        # self.lbl1_CT.setLabel('left', 'Position [mm]', color='black', size=14)
-        # self.lbl1_CT.setLabel('bottom', 'Time [s]', color='black', size=14)
-        self.lbl1_CT.setLabel('left', str(yAxis_lbl1), color='black', size=14)
-        self.lbl1_CT.setLabel('bottom', str(xAxis_lbl1), color='black', size=14)
-        self.lbl1_CT.getAxis('bottom').setPen(color=(0, 0, 0))
-        self.lbl1_CT.getAxis('left').setPen(color=(0, 0, 0))
-        self.lbl1_CT.addLegend(offset = [1, 0.1]) # background color modified in line 122 and 123 of Versions/3.7/lib/python3.7/site-packages/pyqtgraph/graphicsItems
-        self.lbl2_CT.setBackground('w')
+        self.lbl1_RT.deleteLater()
+        self.lbl2_RT.deleteLater()
+        self.lbl1_RT = ft.pg.PlotWidget()
+        self.lbl2_RT = ft.pg.PlotWidget()
+        self.box_layout.addWidget(self.lbl1_RT, 0, 9, 8, 3)
+        self.box_layout.addWidget(self.lbl2_RT, 0, 12, 8, 3)
+
+        self.lbl1_RT.setBackground('w')
+        # self.lbl1_RT.setLabel('left', 'Position [mm]', color='black', size=14)
+        # self.lbl1_RT.setLabel('bottom', 'Time [s]', color='black', size=14)
+        self.lbl1_RT.setLabel('left', str(yAxis_lbl1), color='black', size=14)
+        self.lbl1_RT.setLabel('bottom', str(xAxis_lbl1), color='black', size=14)
+        self.lbl1_RT.getAxis('bottom').setPen(color=(0, 0, 0))
+        self.lbl1_RT.getAxis('left').setPen(color=(0, 0, 0))
+        self.lbl1_RT.addLegend(offset = [1, 0.1]) # background color modified in line 122 and 123 of Versions/3.7/lib/python3.7/site-packages/pyqtgraph/graphicsItems
+        self.lbl2_RT.setBackground('w')
         # self.lbl2_CT.setLabel('left', 'Spread Rate [mm/s]', color='black', size=14)
         # self.lbl2_CT.setLabel('bottom', 'Time [s]', color='black', size=14)
-        self.lbl2_CT.setLabel('left', str(yAxis_lbl2), color='black', size=14)
-        self.lbl2_CT.setLabel('bottom', str(xAxis_lbl2), color='black', size=14)
-        self.lbl2_CT.getAxis('bottom').setPen(color=(0, 0, 0))
-        self.lbl2_CT.getAxis('left').setPen(color=(0, 0, 0))
-        self.lbl2_CT.addLegend(offset = [1, 0.1]) # background color modified in line 122 and 123 of Versions/3.7/lib/python3.7/site-packages/pyqtgraph/graphicsItems
+        self.lbl2_RT.setLabel('left', str(yAxis_lbl2), color='black', size=14)
+        self.lbl2_RT.setLabel('bottom', str(xAxis_lbl2), color='black', size=14)
+        self.lbl2_RT.getAxis('bottom').setPen(color=(0, 0, 0))
+        self.lbl2_RT.getAxis('left').setPen(color=(0, 0, 0))
+        self.lbl2_RT.addLegend(offset = [1, 0.1]) # background color modified in line 122 and 123 of Versions/3.7/lib/python3.7/site-packages/pyqtgraph/graphicsItems
 
         xPlot1, yRight1, yLeft1 = selectAxes(self, xAxis_lbl1, yAxis_lbl1)
         xPlot2, yRight2, yLeft2 = selectAxes(self, xAxis_lbl2, yAxis_lbl2)
 
         if yAxis_lbl1 == 'Flame length [mm]':
-            colorTrackingPlot(self.lbl1_CT, xPlot1, yRight1, 'flame length', 'o', 'b')
+            colorTrackingPlot(self.lbl1_RT, xPlot1, yRight1, 'flame length', 'o', 'b')
         else:
-            colorTrackingPlot(self.lbl1_CT, xPlot1, yRight1, 'right edge', 'o', 'b')
-            colorTrackingPlot(self.lbl1_CT, xPlot1, yLeft1, 'left edge', 't', 'r')
+            colorTrackingPlot(self.lbl1_RT, xPlot1, yRight1, 'right edge', 'o', 'b')
+            colorTrackingPlot(self.lbl1_RT, xPlot1, yLeft1, 'left edge', 't', 'r')
 
         if yAxis_lbl2 == 'Flame length [mm]':
-            colorTrackingPlot(self.lbl2_CT, xPlot2, yRight2, 'flame length', 'o', 'b')
+            colorTrackingPlot(self.lbl2_RT, xPlot2, yRight2, 'flame length', 'o', 'b')
         else:
-            colorTrackingPlot(self.lbl2_CT, xPlot2, yRight2, 'right edge', 'o', 'b')
-            colorTrackingPlot(self.lbl2_CT, xPlot2, yLeft2, 'left edge', 't', 'r')
+            colorTrackingPlot(self.lbl2_RT, xPlot2, yRight2, 'right edge', 'o', 'b')
+            colorTrackingPlot(self.lbl2_RT, xPlot2, yLeft2, 'left edge', 't', 'r')
 
         # colorTrackingPlot(self.lbl1_CT, self.timeCount, self.xRight_mm, 'right edge', 'o', 'b')
         # colorTrackingPlot(self.lbl1_CT, self.timeCount, self.xLeft_mm, 'left edge', 't', 'r')
         # colorTrackingPlot(self.lbl2_CT, self.timeCount, self.spreadRateRight, 'right edge', 'o', 'b')
         # colorTrackingPlot(self.lbl2_CT, self.timeCount, self.spreadRateLeft, 'left edge', 't', 'r')
 
-        self.lbl1_CT.show()
-        self.lbl2_CT.show()
+        self.lbl1_RT.show()
+        self.lbl2_RT.show()
 
 def colorTrackingPlot(label, x, y, name, symbol, color):
     pen = ft.pg.mkPen(color)
@@ -339,15 +349,15 @@ def colorTrackingPlot(label, x, y, name, symbol, color):
 def colorSlider_released(self):
     frame, frameCrop = ft.checkEditing(self, self.frameNumber)
     getFilteredFrame(self, frameCrop)
-    self.lbl1_CT.setPixmap(ft.QPixmap.fromImage(self.frame))
-    self.lbl2_CT.setPixmap(ft.QPixmap.fromImage(self.frameBW))
+    self.lbl1_RT.setPixmap(ft.QPixmap.fromImage(self.frame))
+    self.lbl2_RT.setPixmap(ft.QPixmap.fromImage(self.frameBW))
 
 def filterParticleSldr(self):
     frame, frameCrop = ft.checkEditing(self, self.frameNumber)
     getFilteredFrame(self, frameCrop)
-    self.lbl1_CT.setPixmap(ft.QPixmap.fromImage(self.frame))
-    self.lbl2_CT.setPixmap(ft.QPixmap.fromImage(self.frameBW))
-    self.filterParticleSldr_CT.setMaximum(int(self.particleSldrMax.text()))
+    self.lbl1_RT.setPixmap(ft.QPixmap.fromImage(self.frame))
+    self.lbl2_RT.setPixmap(ft.QPixmap.fromImage(self.frameBW))
+    self.filterParticleSldr_RT.setMaximum(int(self.particleSldrMax.text()))
 
 # def chooseFlameDirection(self, text):
 #     global flameDir
@@ -382,9 +392,9 @@ def saveChannelsBtn(self):
                 writer.writerow(['Green', str(self.greenMinSlider.value()), str(self.greenMaxSlider.value())])
                 writer.writerow(['Blue', str(self.blueMinSlider.value()), str(self.blueMaxSlider.value())])
                 writer.writerow([''])
-                writer.writerow(['Particle size', str(self.filterParticleSldr_CT.value())])
-                writer.writerow(['Moving average', str(self.movAvgIn_CT.text())])
-                writer.writerow(['Points LE', str(self.avgLEIn_CT.text())])
+                writer.writerow(['Particle size', str(self.filterParticleSldr_RT.value())])
+                writer.writerow(['Moving average', str(self.movAvgIn_RT.text())])
+                writer.writerow(['Points LE', str(self.avgLEIn_RT.text())])
                 writer.writerow(['Connectivity', self.connectivity])#Box.currentText()])
             self.msgLabel.setText('Channel values saved.')
         except:
@@ -407,13 +417,13 @@ def loadChannelsBtn(self):
                     self.blueMinSlider.setValue(int(row[1]))
                     self.blueMaxSlider.setValue(int(row[2]))
                 elif 'Particle size' in row:
-                    self.filterParticleSldr_CT.setMaximum(int(row[1]))
-                    self.filterParticleSldr_CT.setValue(int(row[1]))
+                    self.filterParticleSldr_RT.setMaximum(int(row[1]))
+                    self.filterParticleSldr_RT.setValue(int(row[1]))
                     self.particleSldrMax.setText(row[1])
                 elif 'Moving average' in row:
-                    self.movAvgIn_CT.setText(row[1])
+                    self.movAvgIn_RT.setText(row[1])
                 elif 'Points LE' in row:
-                    self.avgLEIn_CT.setText(row[1])
+                    self.avgLEIn_RT.setText(row[1])
 
         self.msgLabel.setText('Channel values loaded.')
     except:
@@ -460,22 +470,22 @@ def absValBtn(self):
     self.xRight_mm = abs_xRight_mm
     self.xLeft_mm = abs_xLeft_mm
 
-    self.lbl1_CT.clear()
-    self.lbl2_CT.clear()
+    self.lbl1_RT.clear()
+    self.lbl2_RT.clear()
 
     xPlot1, yRight1, yLeft1 = selectAxes(self, xAxis_lbl1, yAxis_lbl1)
     xPlot2, yRight2, yLeft2 = selectAxes(self, xAxis_lbl2, yAxis_lbl2)
 
     if yAxis_lbl1 == 'Flame length [mm]':
-        colorTrackingPlot(self.lbl1_CT, xPlot1, yRight1, 'flame length', 'o', 'b')
+        colorTrackingPlot(self.lbl1_RT, xPlot1, yRight1, 'flame length', 'o', 'b')
     else:
-        colorTrackingPlot(self.lbl1_CT, xPlot1, yRight1, 'right edge', 'o', 'b')
-        colorTrackingPlot(self.lbl1_CT, xPlot1, yLeft1, 'left edge', 't', 'r')
+        colorTrackingPlot(self.lbl1_RT, xPlot1, yRight1, 'right edge', 'o', 'b')
+        colorTrackingPlot(self.lbl1_RT, xPlot1, yLeft1, 'left edge', 't', 'r')
     if yAxis_lbl2 == 'Flame length [mm]':
-        colorTrackingPlot(self.lbl2_CT, xPlot2, yRight2, 'flame length', 'o', 'b')
+        colorTrackingPlot(self.lbl2_RT, xPlot2, yRight2, 'flame length', 'o', 'b')
     else:
-        colorTrackingPlot(self.lbl2_CT, xPlot2, yRight2, 'right edge', 'o', 'b')
-        colorTrackingPlot(self.lbl2_CT, xPlot2, yLeft2, 'left edge', 't', 'r')
+        colorTrackingPlot(self.lbl2_RT, xPlot2, yRight2, 'right edge', 'o', 'b')
+        colorTrackingPlot(self.lbl2_RT, xPlot2, yLeft2, 'left edge', 't', 'r')
 
     # colorTrackingPlot(self.lbl1_CT, self.timeCount, self.xRight_mm, '', 'o', 'b')
     # colorTrackingPlot(self.lbl1_CT, self.timeCount, self.xLeft_mm, '','t', 'r')
@@ -488,7 +498,7 @@ def saveBtn(self):
     if not fileName[-4:] == '.csv':
         fileName = fileName + '.csv'
 
-    fileInfo = ['Name', self.fNameLbl.text(), 'Scale [px/mm]', self.scaleIn.text(), 'Color Tracking', 'Flame dir.:', self.directionBox.currentText(), 'Moving avg', self.movAvgIn_CT.text(), 'Points LE', self.avgLEIn_CT.text()]
+    fileInfo = ['Name', self.fNameLbl.text(), 'Scale [px/mm]', self.scaleIn.text(), 'RGB Tracking', 'Flame dir.:', self.directionBox.currentText(), 'Moving avg', self.movAvgIn_RT.text(), 'Points LE', self.avgLEIn_RT.text()]
     if self.refPoint != []:
         fileInfo = fileInfo + ['Ref. point (abs)', [self.refPoint[0], self.refPoint[1]]]
     fileInfo = fileInfo + ['Code version', str(self.FTversion)]
@@ -513,9 +523,9 @@ def saveBtn(self):
 
 def showFrameLarge(self):
     ft.cv2.namedWindow(('Frame (RGB): ' + self.frameIn.text()), ft.cv2.WINDOW_AUTOSIZE)
-    ft.cv2.imshow(('Frame (RGB): ' + self.frameIn.text()), self.currentFrameRGB_CT)
+    ft.cv2.imshow(('Frame (RGB): ' + self.frameIn.text()), self.currentFrameRGB_RT)
     ft.cv2.namedWindow(('Frame (black/white): ' + self.frameIn.text()), ft.cv2.WINDOW_AUTOSIZE)
-    ft.cv2.imshow(('Frame (black/white): ' + self.frameIn.text()), self.currentFrameBW_CT)
+    ft.cv2.imshow(('Frame (black/white): ' + self.frameIn.text()), self.currentFrameBW_RT)
     while True:
         if ft.cv2.waitKey(1) == 27: #ord('Esc')
             ft.cv2.destroyAllWindows()
@@ -523,9 +533,9 @@ def showFrameLarge(self):
 
 def lightROIBtn(self):
     frame, frameCrop = ft.checkEditing(self, self.frameNumber)
-    self.lightROI_CT = ft.cv2.selectROI(frame)
+    self.lightROI_RT = ft.cv2.selectROI(frame)
     ft.cv2.destroyAllWindows()
-    self.lightROI_CT_recorded = True
+    self.lightROI_RT_recorded = True
 
 def redMinLeftBtn(self):
     currentValue = self.redMinSlider.value()
@@ -603,39 +613,39 @@ def updateGraphsBtn(self):
         yAxis_lbl1 = self.yAxis_lbl1.currentText()
         xAxis_lbl2 = self.xAxis_lbl2.currentText()
         yAxis_lbl2 = self.yAxis_lbl2.currentText()
-        self.lbl1_CT.clear()
-        self.lbl2_CT.clear()
-        self.lbl1_CT.addLegend(offset = [1, 0.1])
-        self.lbl2_CT.addLegend(offset = [1, 0.1])
+        self.lbl1_RT.clear()
+        self.lbl2_RT.clear()
+        self.lbl1_RT.addLegend(offset = [1, 0.1])
+        self.lbl2_RT.addLegend(offset = [1, 0.1])
 
         xPlot1, yRight1, yLeft1 = selectAxes(self, xAxis_lbl1, yAxis_lbl1)
         xPlot2, yRight2, yLeft2 = selectAxes(self, xAxis_lbl2, yAxis_lbl2)
 
-        self.lbl1_CT.setLabel('left', str(yAxis_lbl1), color='black', size=14)
-        self.lbl1_CT.setLabel('bottom', str(xAxis_lbl1), color='black', size=14)
-        self.lbl2_CT.setLabel('left', str(yAxis_lbl2), color='black', size=14)
-        self.lbl2_CT.setLabel('bottom', str(xAxis_lbl2), color='black', size=14)
+        self.lbl1_RT.setLabel('left', str(yAxis_lbl1), color='black', size=14)
+        self.lbl1_RT.setLabel('bottom', str(xAxis_lbl1), color='black', size=14)
+        self.lbl2_RT.setLabel('left', str(yAxis_lbl2), color='black', size=14)
+        self.lbl2_RT.setLabel('bottom', str(xAxis_lbl2), color='black', size=14)
 
         if yAxis_lbl1 == 'Flame length [mm]':
-            colorTrackingPlot(self.lbl1_CT, xPlot1, yRight1, 'flame length', 'o', 'b')
+            colorTrackingPlot(self.lbl1_RT, xPlot1, yRight1, 'flame length', 'o', 'b')
         else:
-            colorTrackingPlot(self.lbl1_CT, xPlot1, yRight1, 'right edge', 'o', 'b')
-            colorTrackingPlot(self.lbl1_CT, xPlot1, yLeft1, 'left edge', 't', 'r')
+            colorTrackingPlot(self.lbl1_RT, xPlot1, yRight1, 'right edge', 'o', 'b')
+            colorTrackingPlot(self.lbl1_RT, xPlot1, yLeft1, 'left edge', 't', 'r')
         if yAxis_lbl2 == 'Flame length [mm]':
-            colorTrackingPlot(self.lbl2_CT, xPlot2, yRight2, 'flame length', 'o', 'b')
+            colorTrackingPlot(self.lbl2_RT, xPlot2, yRight2, 'flame length', 'o', 'b')
         else:
-            colorTrackingPlot(self.lbl2_CT, xPlot2, yRight2, 'right edge', 'o', 'b')
-            colorTrackingPlot(self.lbl2_CT, xPlot2, yLeft2, 'left edge', 't', 'r')
+            colorTrackingPlot(self.lbl2_RT, xPlot2, yRight2, 'right edge', 'o', 'b')
+            colorTrackingPlot(self.lbl2_RT, xPlot2, yLeft2, 'left edge', 't', 'r')
 
-        self.lbl1_CT.show()
-        self.lbl2_CT.show()
+        self.lbl1_RT.show()
+        self.lbl2_RT.show()
     except:
         print('Unexpected error:', ft.sys.exc_info())
         self.msgLabel.setText('Error: the graphs could not be updated.')
 
 def helpBtn(self):
     msg = ft.QMessageBox(self)
-    msg.setText("""Color Tracking allows you to track a flame in an automatic way by considering the color intensity of each pixel in the ROI.
+    msg.setText("""RGB Tracking allows you to track a flame in an automatic way by considering the color intensity of each pixel in the ROI.
 
     The flame region is identified by isolating the pixels in the image/frame ROI with the minimum and maximum intensity for each RGB channel in the range specified with the sliders. The channel values vary between 0 and 255, and can be saved or loaded by clicking on the 'Save RGB values' and 'Load RGB values'. The resulting image is shown on the left window when the slider in the 'Preview box' is used, while the corresponding binary image is shown on the right. The left and right edges of the flame region are calculated as maximum and minimum locations of the binary image. '#px to locate edges' controls the number of pixels considered to calculate these locations.
 

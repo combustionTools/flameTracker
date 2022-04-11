@@ -273,28 +273,33 @@ def lumaTracking(self):
         self.spreadRateLeft = ft.np.round(self.spreadRateLeft, 3)
         self.spreadRateLeft = self.spreadRateLeft.tolist()
 
-        self.lbl1_LT = ft.pg.PlotWidget(self.lumaTrackingBox)
-        self.lbl2_LT = ft.pg.PlotWidget(self.lumaTrackingBox)
+        # self.lbl1_LT = ft.pg.PlotWidget(self.lumaTrackingBox)
+        # self.lbl2_LT = ft.pg.PlotWidget(self.lumaTrackingBox)
+        self.lbl1_LT.deleteLater()
+        self.lbl2_LT.deleteLater()
+        self.lbl1_LT = ft.pg.PlotWidget()
+        self.lbl2_LT = ft.pg.PlotWidget()
 
-        if ft.sys.platform == 'darwin':
-            # lbl1 = [190, 25, 420, 300]
-            # lbl2 = [620, 25, 420, 300]
-            lbl1 = [250, 25, 390, 270]
-            lbl2 = [650, 25, 390, 270]
-        elif ft.sys.platform == 'win32':
-            # lbl1 = [190, 15, 420, 300]
-            # lbl2 = [620, 15, 420, 300]
-            lbl1 = [250, 15, 390, 270]
-            lbl2 = [650, 15, 390, 270]
-        elif ft.sys.platform == 'linux':
-            # lbl1 = [190, 25, 420, 300]
-            # lbl2 = [620, 25, 420, 300]
-            lbl1 = [250, 25, 390, 270]
-            lbl2 = [650, 25, 390, 270]
-
-        self.lbl1_LT.setGeometry(lbl1[0], lbl1[1], lbl1[2], lbl1[3])
-        self.lbl2_LT.setGeometry(lbl2[0], lbl2[1], lbl2[2], lbl2[3])
-
+        # if ft.sys.platform == 'darwin':
+        #     # lbl1 = [190, 25, 420, 300]
+        #     # lbl2 = [620, 25, 420, 300]
+        #     lbl1 = [250, 25, 390, 270]
+        #     lbl2 = [650, 25, 390, 270]
+        # elif ft.sys.platform == 'win32':
+        #     # lbl1 = [190, 15, 420, 300]
+        #     # lbl2 = [620, 15, 420, 300]
+        #     lbl1 = [250, 15, 390, 270]
+        #     lbl2 = [650, 15, 390, 270]
+        # elif ft.sys.platform == 'linux':
+        #     # lbl1 = [190, 25, 420, 300]
+        #     # lbl2 = [620, 25, 420, 300]
+        #     lbl1 = [250, 25, 390, 270]
+        #     lbl2 = [650, 25, 390, 270]
+        #
+        # self.lbl1_LT.setGeometry(lbl1[0], lbl1[1], lbl1[2], lbl1[3])
+        # self.lbl2_LT.setGeometry(lbl2[0], lbl2[1], lbl2[2], lbl2[3])
+        self.box_layout.addWidget(self.lbl1_LT, 0, 3, 8, 4)
+        self.box_layout.addWidget(self.lbl2_LT, 0, 8, 8, 4)
         self.lbl1_LT.setBackground('w')
         # self.lbl1_LT.setLabel('left', 'Position [mm]', color='black', size=14)
         self.lbl1_LT.setLabel('left', str(yAxis_lbl1), color='black', size=14)

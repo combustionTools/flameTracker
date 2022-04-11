@@ -70,6 +70,7 @@ def initVars(self): # define initial variables
     colorTrackingValue = False
     HSVTrackingValue = False
     editFrame = False
+    self.trackingMethod = None
     if QT_VERSION_STR[0] == '5':
         self.pyqtVer = '5'
         print('NOTE: You are using the package "PyQt5" for running the Flame Tracker. You should consider upgrading to "PyQt6" for improving compatibility with MacOS 12.1')
@@ -231,13 +232,13 @@ class FlameTrackerWindow(QMainWindow): #QWidget
         helpMT = QAction('Manual tracking', self)
         helpMT.triggered.connect(self.helpMT_click)
         helpLT = QAction('Luma tracking', self)
-        helpCT = QAction('Color tracking', self)
+        helpRT = QAction('RGB tracking', self)
         helpHT = QAction('HSV tracking', self)
         helpMenu = self.menu.addMenu("&Help")
         helpMenu.addAction(helpFT)
         helpMenu.addAction(helpMT)
         helpMenu.addAction(helpLT)
-        helpMenu.addAction(helpCT)
+        helpMenu.addAction(helpRT)
         helpMenu.addAction(helpHT)
         #this function contains all the initial variables to declare
         initVars(self)
@@ -1188,53 +1189,53 @@ class FlameTrackerWindow(QMainWindow): #QWidget
     ### Color tracking methods (defined in colorTracking.py)
     def singleColorSlider_released(self):
         ct.colorSlider_released(self)
-    def redMinLeftBtn_CT_clicked(self):
+    def redMinLeftBtn_RT_clicked(self):
         ct.redMinLeftBtn(self)
-    def redMinRightBtn_CT_clicked(self):
+    def redMinRightBtn_RT_clicked(self):
         ct.redMinRightBtn(self)
-    def redMaxLeftBtn_CT_clicked(self):
+    def redMaxLeftBtn_RT_clicked(self):
         ct.redMaxLeftBtn(self)
-    def redMaxRightBtn_CT_clicked(self):
+    def redMaxRightBtn_RT_clicked(self):
         ct.redMaxRightBtn(self)
-    def greenMinLeftBtn_CT_clicked(self):
+    def greenMinLeftBtn_RT_clicked(self):
         ct.greenMinLeftBtn(self)
-    def greenMinRightBtn_CT_clicked(self):
+    def greenMinRightBtn_RT_clicked(self):
         ct.greenMinRightBtn(self)
-    def greenMaxLeftBtn_CT_clicked(self):
+    def greenMaxLeftBtn_RT_clicked(self):
         ct.greenMaxLeftBtn(self)
-    def greenMaxRightBtn_CT_clicked(self):
+    def greenMaxRightBtn_RT_clicked(self):
         ct.greenMaxRightBtn(self)
-    def blueMinLeftBtn_CT_clicked(self):
+    def blueMinLeftBtn_RT_clicked(self):
         ct.blueMinLeftBtn(self)
-    def blueMinRightBtn_CT_clicked(self):
+    def blueMinRightBtn_RT_clicked(self):
         ct.blueMinRightBtn(self)
-    def blueMaxLeftBtn_CT_clicked(self):
+    def blueMaxLeftBtn_RT_clicked(self):
         ct.blueMaxLeftBtn(self)
-    def blueMaxRightBtn_CT_clicked(self):
+    def blueMaxRightBtn_RT_clicked(self):
         ct.blueMaxRightBtn(self)
-    def filterParticleSldr_CT_released(self):
+    def filterParticleSldr_RT_released(self):
         ct.filterParticleSldr(self)
-    def lightROIBtn_CT_clicked(self):
+    def lightROIBtn_RT_clicked(self):
         ct.lightROIBtn(self)
     # def directionCT_clicked(self, text):
     #     ct.chooseFlameDirection(self, text)
     # def connectivityBoxCT_clicked(self, text):
     #     ct.connectivityBox(self, text)
-    def saveChannelsBtn_CT_clicked(self):
+    def saveChannelsBtn_RT_clicked(self):
         ct.saveChannelsBtn(self)
-    def loadChannelsBtn_CT_clicked(self):
+    def loadChannelsBtn_RT_clicked(self):
         ct.loadChannelsBtn(self)
     def colorTrackingBtn_clicked(self):
         ct.colorTracking(self)
-    def absValBtn_CT_clicked(self):
+    def absValBtn_RT_clicked(self):
         ct.absValBtn(self)
-    def saveBtn_CT_clicked(self):
+    def saveBtn_RT_clicked(self):
         ct.saveBtn(self)
-    def showFrameLargeBtn_CT_clicked(self):
+    def showFrameLargeBtn_RT_clicked(self):
         ct.showFrameLarge(self)
-    def helpBtn_CT_clicked(self):
+    def helpBtn_RT_clicked(self):
         ct.helpBtn(self)
-    def updateGraphsBtn_CT_clicked(self):
+    def updateGraphsBtn_RT_clicked(self):
         ct.updateGraphsBtn(self)
 
     ### HSV tracking methods (defined in HSVTracking.py)
@@ -1308,10 +1309,10 @@ class FlameTrackerWindow(QMainWindow): #QWidget
 
         Contact: flametrackercontact@gmail.com
         ''')
-        if self.pyqtVer == '5':
-            msg.exec_()
-        elif self.pyqtVer == '6':
-            msg.exec()
+        # if self.pyqtVer == '5':
+        #     msg.exec_()
+        # elif self.pyqtVer == '6':
+        msg.exec()
 
     def exportVideo_click(self):
         # Open pop-up window to ask about frame rate, codec and format
@@ -1365,23 +1366,23 @@ class FlameTrackerWindow(QMainWindow): #QWidget
 
 
 def removeExistingMethod(self):
-    try:
-        print('existing method', self.trackingMethod)
-        if self.trackingMethod == 'Manual tracking':
-            self.MTmenu.clear()
-            print('menu bar MT removed')
-        if self.trackingMethod == 'Luma tracking':
-            self.LTmenu.clear()
-            print('menu bar LT removed')
-        if self.trackingMethod == 'RGB tracking':
-            self.CTmenu.clear()
-            print('menu bar CT removed')
-        if self.trackingMethod == 'HSV tracking':
-            self.HTmenu.clear()
-            print('menu bar HT removed')
-    except:
-        print('passed removeExistingMethod')
-        pass
+    # try:
+    # print('existing method', self.trackingMethod)
+    if self.trackingMethod == 'Manual tracking':
+        self.MTmenu.clear()
+        # print('menu bar MT removed')
+    if self.trackingMethod == 'Luma tracking':
+        self.LTmenu.clear()
+        # print('menu bar LT removed')
+    if self.trackingMethod == 'RGB tracking':
+        self.RTmenu.clear()
+        # print('menu bar RT removed')
+    if self.trackingMethod == 'HSV tracking':
+        self.HTmenu.clear()
+        # print('menu bar HT removed')
+    # except:
+    #     print('passed removeExistingMethod')
+    #     pass
     methodSelected = self.trackingGroup.checkedAction()
     methodSelected = methodSelected.text()
     self.trackingMethod = methodSelected
@@ -1459,23 +1460,25 @@ def showFrame(self, frameNumber):
     cv2.rectangle(frame, firstPoint, secondPoint, (255, 255, 255), 3)
     if self.grayscale.isChecked() == True:
         bytes = frame.shape[1]
-        if self.pyqtVer == '5':
-            self.image = QImage(frame.data, frame.shape[1], frame.shape[0], bytes, QImage.Format_Grayscale8)
-        elif self.pyqtVer == '6':
-            self.image = QImage(frame.data, frame.shape[1], frame.shape[0], bytes, QImage.Format.Format_Grayscale8)
+        # if self.pyqtVer == '5':
+        #     self.image = QImage(frame.data, frame.shape[1], frame.shape[0], bytes, QImage.Format_Grayscale8)
+        # elif self.pyqtVer == '6':
+        self.image = QImage(frame.data, frame.shape[1], frame.shape[0], bytes, QImage.Format.Format_Grayscale8)
     else:
         bytes = 3 * frame.shape[1] #bytes per line, necessary to avoid distortion in the opened file
-        if self.pyqtVer == '5':
-            self.image = QImage(frame.data, frame.shape[1], frame.shape[0], bytes, QImage.Format_RGB888).rgbSwapped()
-        elif self.pyqtVer == '6':
-            self.image = QImage(frame.data, frame.shape[1], frame.shape[0], bytes, QImage.Format.Format_RGB888).rgbSwapped()
+        # if self.pyqtVer == '5':
+        #     self.image = QImage(frame.data, frame.shape[1], frame.shape[0], bytes, QImage.Format_RGB888).rgbSwapped()
+        # elif self.pyqtVer == '6':
+        self.image = QImage(frame.data, frame.shape[1], frame.shape[0], bytes, QImage.Format.Format_RGB888).rgbSwapped()
 
     self.currentFrame = frame
-    if self.pyqtVer == '5':
-        self.image = self.image.scaled(self.win1.size(), Qt.KeepAspectRatio, Qt.SmoothTransformation)
-    elif self.pyqtVer == '6':
-        self.image = self.image.scaled(self.win1.size(), Qt.AspectRatioMode.KeepAspectRatio, Qt.TransformationMode.SmoothTransformation)
+    # if self.pyqtVer == '5':
+    #     self.image = self.image.scaled(self.win1.size(), Qt.KeepAspectRatio, Qt.SmoothTransformation)
+    # elif self.pyqtVer == '6':
+    self.image = self.image.scaled(self.win1.size(), Qt.AspectRatioMode.KeepAspectRatio, Qt.TransformationMode.SmoothTransformation)
     self.win1.setPixmap(QPixmap.fromImage(self.image))
+    print('win1 image', self.win1.size())
+
 
 def perspectiveCorrection(self, frame):
     # M is the matrix transformation calculated with the size of the sample (calculated from user input), and the sampleMod from the user clicks
@@ -1560,16 +1563,16 @@ def checkAnalysisBox(self, frameNumber):
         # elif sys.platform == 'linux':
         #     # lbl1 = [190, 25, 420, 300]
         #     lbl1 = [250, 25, 390, 270]
-        testSize = self.lbl1_MT.size()
-        print('size lbl1 before', testSize[0] )
 
         # label 1 might have become a plot widget, so we need to update them again
+        self.lbl1_MT.deleteLater()
         self.lbl1_MT = QLabel()
         self.box_layout.addWidget(self.lbl1_MT, 0, 3, 8, 4)
-        print('size lbl1 label', self.lbl1_MT.size() )
+
+        # print('size lbl1 label', self.lbl1_MT.size() )
         #self.lbl1_MT = QLabel(self.manualTrackingBox)
         # self.lbl1_MT.setGeometry(lbl1[0], lbl1[1], lbl1[2], lbl1[3])
-        self.lbl1_MT.setStyleSheet('background-color: white')
+        # self.lbl1_MT.setStyleSheet('background-color: white')
 
         frame, frameCrop = checkEditing(self, frameNumber)
         # create the ROI rectangle and show it in label1
@@ -1587,34 +1590,43 @@ def checkAnalysisBox(self, frameNumber):
         # elif self.pyqtVer == '6':
         image1 = QImage(frame.data, frame.shape[1], frame.shape[0], bytes1, QImage.Format.Format_RGB888).rgbSwapped()
         image1 = image1.scaled(self.lbl1_MT.size(), Qt.AspectRatioMode.KeepAspectRatio, Qt.TransformationMode.SmoothTransformation)
-
+        print('scaling image', self.lbl1_MT.size())
+        print('scaling image', image1.size())
         self.lbl1_MT.setPixmap(QPixmap.fromImage(image1)) # this line was added (again?) in v1.1.7 to show the preview frame in the analysis box
         self.lbl1_MT.show()
+        print('new image', self.lbl1_MT.size())
 
-    if lumaTrackingValue == True:
-        if sys.platform == 'darwin':
-            # lbl1 = [190, 25, 420, 300]
-            # lbl2 = [620, 25, 420, 300]
-            lbl1 = [250, 25, 390, 270]
-            lbl2 = [650, 25, 390, 270]
 
-        elif sys.platform == 'win32':
-            # lbl1 = [190, 15, 420, 300]
-            # lbl2 = [620, 15, 420, 300]
-            lbl1 = [250, 15, 390, 270]
-            lbl2 = [650, 15, 390, 270]
-        elif sys.platform == 'linux':
-            # lbl1 = [190, 25, 420, 300]
-            # lbl2 = [620, 25, 420, 300]
-            lbl1 = [250, 25, 390, 270]
-            lbl2 = [650, 25, 390, 270]
-        # the labels might have become plot widgets, so we need to update them again
-        self.lbl1_LT = QLabel(self.lumaTrackingBox)
-        self.lbl2_LT = QLabel(self.lumaTrackingBox)
-        self.lbl1_LT.setGeometry(lbl1[0], lbl1[1], lbl1[2], lbl1[3])
-        self.lbl2_LT.setGeometry(lbl2[0], lbl2[1], lbl2[2], lbl2[3])
-        self.lbl1_LT.setStyleSheet('background-color: white')
-        self.lbl2_LT.setStyleSheet('background-color: white')
+    # if lumaTrackingValue == True:
+    #     if sys.platform == 'darwin':
+    #         # lbl1 = [190, 25, 420, 300]
+    #         # lbl2 = [620, 25, 420, 300]
+    #         lbl1 = [250, 25, 390, 270]
+    #         lbl2 = [650, 25, 390, 270]
+    #
+    #     elif sys.platform == 'win32':
+    #         # lbl1 = [190, 15, 420, 300]
+    #         # lbl2 = [620, 15, 420, 300]
+    #         lbl1 = [250, 15, 390, 270]
+    #         lbl2 = [650, 15, 390, 270]
+    #     elif sys.platform == 'linux':
+    #         # lbl1 = [190, 25, 420, 300]
+    #         # lbl2 = [620, 25, 420, 300]
+    #         lbl1 = [250, 25, 390, 270]
+    #         lbl2 = [650, 25, 390, 270]
+    # # the labels might have become plot widgets, so we need to update them again
+    # self.lbl1_LT = QLabel(self.lumaTrackingBox)
+    # self.lbl2_LT = QLabel(self.lumaTrackingBox)
+    # self.lbl1_LT.setGeometry(lbl1[0], lbl1[1], lbl1[2], lbl1[3])
+    # self.lbl2_LT.setGeometry(lbl2[0], lbl2[1], lbl2[2], lbl2[3])
+    if self.trackingMethod == 'Luma tracking':
+        # the labels might have become plot widgets, so we need to create them again
+        self.lbl1_LT.deleteLater()
+        self.lbl2_LT.deleteLater()
+        self.lbl1_LT = QLabel()
+        self.lbl2_LT = QLabel()
+        self.box_layout.addWidget(self.lbl1_LT, 0, 3, 8, 4)
+        self.box_layout.addWidget(self.lbl2_LT, 0, 8, 8, 4)
 
         if self.grayscale.isChecked() == True:
             self.msgLabel.setText('Grayscale images not supported with this feature')
@@ -1625,50 +1637,66 @@ def checkAnalysisBox(self, frameNumber):
         self.lbl1_LT.show()
         self.lbl2_LT.show()
 
-    if colorTrackingValue == True:
-        if sys.platform == 'darwin':
-            lbl1 = [370, 25, 330, 250]
-            lbl2 = [710, 25, 330, 250]
-        elif sys.platform == 'win32':
-            lbl1 = [370, 15, 330, 250]
-            lbl2 = [710, 15, 330, 250]
-        elif sys.platform == 'linux':
-            lbl1 = [370, 25, 330, 250]
-            lbl2 = [710, 25, 330, 250]
+    # if colorTrackingValue == True:
+    #     if sys.platform == 'darwin':
+    #         lbl1 = [370, 25, 330, 250]
+    #         lbl2 = [710, 25, 330, 250]
+    #     elif sys.platform == 'win32':
+    #         lbl1 = [370, 15, 330, 250]
+    #         lbl2 = [710, 15, 330, 250]
+    #     elif sys.platform == 'linux':
+    #         lbl1 = [370, 25, 330, 250]
+    #         lbl2 = [710, 25, 330, 250]
+    #
+    #     self.lbl1_CT = QLabel(self.colorTrackingBox)
+    #     self.lbl2_CT = QLabel(self.colorTrackingBox)
+    #
+    #     self.lbl1_CT.setGeometry(lbl1[0], lbl1[1], lbl1[2], lbl1[3])
+    #     self.lbl2_CT.setGeometry(lbl2[0], lbl2[1], lbl2[2], lbl2[3])
+    if self.trackingMethod == 'RGB tracking':
+        # the labels might have become plot widgets, so we need to create them again
+        self.lbl1_RT.deleteLater()
+        self.lbl2_RT.deleteLater()
+        self.lbl1_RT = QLabel()
+        self.lbl2_RT = QLabel()
+        self.box_layout.addWidget(self.lbl1_RT, 0, 9, 8, 3)
+        self.box_layout.addWidget(self.lbl2_RT, 0, 12, 8, 3)
 
-        self.lbl1_CT = QLabel(self.colorTrackingBox)
-        self.lbl2_CT = QLabel(self.colorTrackingBox)
-
-        self.lbl1_CT.setGeometry(lbl1[0], lbl1[1], lbl1[2], lbl1[3])
-        self.lbl2_CT.setGeometry(lbl2[0], lbl2[1], lbl2[2], lbl2[3])
-
-        self.lbl1_CT.setStyleSheet('background-color: white')
-        self.lbl2_CT.setStyleSheet('background-color: white')
+        self.lbl1_RT.setStyleSheet('background-color: white')
+        self.lbl2_RT.setStyleSheet('background-color: white')
         if self.grayscale.isChecked() == True:
-            self.msgLabel.setText('Grayscale images not supported with this feature')
+            self.msgLabel.setText('Grayscale images are not supported for the RGB tracking method')
         frame, frameCrop = checkEditing(self, frameNumber)
         ct.getFilteredFrame(self, frameCrop)
-        self.lbl1_CT.setPixmap(QPixmap.fromImage(self.frame))
-        self.lbl2_CT.setPixmap(QPixmap.fromImage(self.frameBW))
-        self.lbl1_CT.show()
-        self.lbl2_CT.show()
+        self.lbl1_RT.setPixmap(QPixmap.fromImage(self.frame))
+        self.lbl2_RT.setPixmap(QPixmap.fromImage(self.frameBW))
+        self.lbl1_RT.show()
+        self.lbl2_RT.show()
 
-    if HSVTrackingValue == True:
-        if sys.platform == 'darwin':
-            lbl1 = [370, 25, 670, 125]
-            lbl2 = [370, 150, 670, 125]
-        elif sys.platform == 'win32':
-            lbl1 = [370, 15, 330, 250]
-            lbl2 = [370, 150, 670, 125]
-        elif sys.platform == 'linux':
-            lbl1 = [370, 25, 670, 125]
-            lbl2 = [370, 150, 670, 125]
-
-        self.lbl1_HT = QLabel(self.HSVTrackingBox)
-        self.lbl2_HT = QLabel(self.HSVTrackingBox)
-
-        self.lbl1_HT.setGeometry(lbl1[0], lbl1[1], lbl1[2], lbl1[3])
-        self.lbl2_HT.setGeometry(lbl2[0], lbl2[1], lbl2[2], lbl2[3])
+    # if HSVTrackingValue == True:
+    #     if sys.platform == 'darwin':
+    #         lbl1 = [370, 25, 670, 125]
+    #         lbl2 = [370, 150, 670, 125]
+    #     elif sys.platform == 'win32':
+    #         lbl1 = [370, 15, 330, 250]
+    #         lbl2 = [370, 150, 670, 125]
+    #     elif sys.platform == 'linux':
+    #         lbl1 = [370, 25, 670, 125]
+    #         lbl2 = [370, 150, 670, 125]
+    #
+    #     self.lbl1_HT = QLabel(self.HSVTrackingBox)
+    #     self.lbl2_HT = QLabel(self.HSVTrackingBox)
+    #
+    #     self.lbl1_HT.setGeometry(lbl1[0], lbl1[1], lbl1[2], lbl1[3])
+    #     self.lbl2_HT.setGeometry(lbl2[0], lbl2[1], lbl2[2], lbl2[3])
+    if self.trackingMethod == 'HSV tracking':
+        # the labels might have become plot widgets, so we need to create them again
+        self.lbl1_HT.deleteLater()
+        self.lbl2_HT.deleteLater()
+        self.lbl1_HT = QLabel()
+        self.lbl2_HT = QLabel()
+        self.box_layout.addWidget(self.lbl1_HT, 0, 9, 4, 6)
+        self.box_layout.addWidget(self.lbl2_HT, 4, 9, 4, 6)
 
         self.lbl1_HT.setStyleSheet('background-color: white')
         self.lbl2_HT.setStyleSheet('background-color: white')
