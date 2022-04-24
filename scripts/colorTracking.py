@@ -89,24 +89,24 @@ def getFilteredFrame(self, frame):
     totalBytes = frame.nbytes
     # divide by the number of rows
     bytesPerLine = int(totalBytes/frame.shape[0]) #I had to introduce it to avoid distortion in the opened file for some of the videos
-    if self.pyqtVer == '5':
-        self.frame = ft.QImage(frame.data, frame.shape[1], frame.shape[0], bytesPerLine, ft.QImage.Format_BGR888)#.rgbSwapped() #shape[0] = height, [1] = width QImage.Format_Indexed8 BGR888
-        self.frame = self.frame.scaled(self.lbl1_RT.size(), ft.Qt.KeepAspectRatio, ft.Qt.SmoothTransformation)
-    elif self.pyqtVer == '6':
-        self.frame = ft.QImage(frame.data, frame.shape[1], frame.shape[0], bytesPerLine, ft.QImage.Format.Format_BGR888)#.rgbSwapped() #shape[0] = height, [1] = width QImage.Format_Indexed8 BGR888
-        self.frame = self.frame.scaled(self.lbl1_RT.size(), ft.Qt.AspectRatioMode.KeepAspectRatio, ft.Qt.TransformationMode.SmoothTransformation)
+    # if self.pyqtVer == '5':
+    #     self.frame = ft.QImage(frame.data, frame.shape[1], frame.shape[0], bytesPerLine, ft.QImage.Format_BGR888)#.rgbSwapped() #shape[0] = height, [1] = width QImage.Format_Indexed8 BGR888
+    #     self.frame = self.frame.scaled(self.lbl1_RT.size(), ft.Qt.KeepAspectRatio, ft.Qt.SmoothTransformation)
+    # elif self.pyqtVer == '6':
+    self.frame = ft.QImage(frame.data, frame.shape[1], frame.shape[0], bytesPerLine, ft.QImage.Format.Format_BGR888)#.rgbSwapped() #shape[0] = height, [1] = width QImage.Format_Indexed8 BGR888
+    self.frame = self.frame.scaled(self.lbl1_RT.size(), ft.Qt.AspectRatioMode.KeepAspectRatio, ft.Qt.TransformationMode.SmoothTransformation)
 
     self.currentFrameBW_RT = frameBW
     # calculate the total number of bytes in the frame for lbl2
     totalBytesBW = frameBW.nbytes
     # divide by the number of rows
     bytesPerLineBW = int(totalBytesBW/frameBW.shape[0]) #I had to introduce it to avoid distortion in the opened file for some of the videos
-    if self.pyqtVer == '5':
-        self.frameBW = ft.QImage(frameBW.data, frameBW.shape[1], frameBW.shape[0], bytesPerLineBW, ft.QImage.Format_Grayscale8)#.rgbSwapped() #shape[0] = height, [1] = width QImage.Format_Indexed8 or Grayscale8 BGR888
-        self.frameBW = self.frameBW.scaled(self.lbl1_RT.size(), ft.Qt.KeepAspectRatio, ft.Qt.SmoothTransformation)
-    elif self.pyqtVer == '6':
-        self.frameBW = ft.QImage(frameBW.data, frameBW.shape[1], frameBW.shape[0], bytesPerLineBW, ft.QImage.Format.Format_Grayscale8)#.rgbSwapped() #shape[0] = height, [1] = width QImage.Format_Indexed8 or Grayscale8 BGR888
-        self.frameBW = self.frameBW.scaled(self.lbl1_RT.size(), ft.Qt.AspectRatioMode.KeepAspectRatio, ft.Qt.TransformationMode.SmoothTransformation)
+    # if self.pyqtVer == '5':
+    #     self.frameBW = ft.QImage(frameBW.data, frameBW.shape[1], frameBW.shape[0], bytesPerLineBW, ft.QImage.Format_Grayscale8)#.rgbSwapped() #shape[0] = height, [1] = width QImage.Format_Indexed8 or Grayscale8 BGR888
+    #     self.frameBW = self.frameBW.scaled(self.lbl1_RT.size(), ft.Qt.KeepAspectRatio, ft.Qt.SmoothTransformation)
+    # elif self.pyqtVer == '6':
+    self.frameBW = ft.QImage(frameBW.data, frameBW.shape[1], frameBW.shape[0], bytesPerLineBW, ft.QImage.Format.Format_Grayscale8)#.rgbSwapped() #shape[0] = height, [1] = width QImage.Format_Indexed8 or Grayscale8 BGR888
+    self.frameBW = self.frameBW.scaled(self.lbl1_RT.size(), ft.Qt.AspectRatioMode.KeepAspectRatio, ft.Qt.TransformationMode.SmoothTransformation)
 
 def findFlameEdges(self, frameBW, flamePx):
     self.flameArea = len(flamePx[0])
@@ -141,10 +141,10 @@ def colorTracking(self):
         scale = False
         msg = ft.QMessageBox(self)
         msg.setText('The scale [px/mm] has not been specified')
-        if self.pyqtVer == '5':
-            msg.exec_()
-        elif self.pyqtVer == '6':
-            msg.exec()
+        # if self.pyqtVer == '5':
+        #     msg.exec_()
+        # elif self.pyqtVer == '6':
+        msg.exec()
 
     firstFrame = int(self.firstFrameIn.text())
     lastFrame = int(self.lastFrameIn.text())
@@ -196,10 +196,10 @@ def colorTracking(self):
                 else:
                     msg = ft.QMessageBox(self)
                     msg.setText('Before the tracking, please click on "Pick a bright region" to select a region where the light is visible.')
-                    if self.pyqtVer == '5':
-                        msg.exec_()
-                    elif self.pyqtVer == '6':
-                        msg.exec()
+                    # if self.pyqtVer == '5':
+                    #     msg.exec_()
+                    # elif self.pyqtVer == '6':
+                    msg.exec()
                     break
 
                 if len(flamePx_light[0]) < 0.5 * area_lightROI: #if the bright area is larger than the ROI area
@@ -295,52 +295,58 @@ def colorTracking(self):
         # self.lbl1_RT.setGeometry(lbl1[0], lbl1[1], lbl1[2], lbl1[3])
         # self.lbl2_RT.setGeometry(lbl2[0], lbl2[1], lbl2[2], lbl2[3])
 
-        self.lbl1_RT.deleteLater()
-        self.lbl2_RT.deleteLater()
-        self.lbl1_RT = ft.pg.PlotWidget()
-        self.lbl2_RT = ft.pg.PlotWidget()
-        self.box_layout.addWidget(self.lbl1_RT, 0, 9, 8, 3)
-        self.box_layout.addWidget(self.lbl2_RT, 0, 12, 8, 3)
+        # self.lbl1_RT.deleteLater()
+        # self.lbl2_RT.deleteLater()
+        # self.lbl1_RT = ft.pg.PlotWidget()
+        # self.lbl2_RT = ft.pg.PlotWidget()
+        # self.box_layout.addWidget(self.lbl1_RT, 0, 9, 8, 3)
+        # self.box_layout.addWidget(self.lbl2_RT, 0, 12, 8, 3)
 
-        self.lbl1_RT.setBackground('w')
+        # self.lbl1_RT.setBackground('w')
         # self.lbl1_RT.setLabel('left', 'Position [mm]', color='black', size=14)
         # self.lbl1_RT.setLabel('bottom', 'Time [s]', color='black', size=14)
-        self.lbl1_RT.setLabel('left', str(yAxis_lbl1), color='black', size=14)
-        self.lbl1_RT.setLabel('bottom', str(xAxis_lbl1), color='black', size=14)
-        self.lbl1_RT.getAxis('bottom').setPen(color=(0, 0, 0))
-        self.lbl1_RT.getAxis('left').setPen(color=(0, 0, 0))
-        self.lbl1_RT.addLegend(offset = [1, 0.1]) # background color modified in line 122 and 123 of Versions/3.7/lib/python3.7/site-packages/pyqtgraph/graphicsItems
-        self.lbl2_RT.setBackground('w')
+        self.plot1_RT.setLabel('left', str(yAxis_lbl1), color='black', size=14)
+        self.plot1_RT.setLabel('bottom', str(xAxis_lbl1), color='black', size=14)
+        self.plot1_RT.getAxis('bottom').setPen(color=(0, 0, 0))
+        self.plot1_RT.getAxis('left').setPen(color=(0, 0, 0))
+        self.plot1_RT.addLegend(offset = [1, 0.1])
+        # self.lbl2_RT.setBackground('w')
         # self.lbl2_CT.setLabel('left', 'Spread Rate [mm/s]', color='black', size=14)
         # self.lbl2_CT.setLabel('bottom', 'Time [s]', color='black', size=14)
-        self.lbl2_RT.setLabel('left', str(yAxis_lbl2), color='black', size=14)
-        self.lbl2_RT.setLabel('bottom', str(xAxis_lbl2), color='black', size=14)
-        self.lbl2_RT.getAxis('bottom').setPen(color=(0, 0, 0))
-        self.lbl2_RT.getAxis('left').setPen(color=(0, 0, 0))
-        self.lbl2_RT.addLegend(offset = [1, 0.1]) # background color modified in line 122 and 123 of Versions/3.7/lib/python3.7/site-packages/pyqtgraph/graphicsItems
+        self.plot2_RT.setLabel('left', str(yAxis_lbl2), color='black', size=14)
+        self.plot2_RT.setLabel('bottom', str(xAxis_lbl2), color='black', size=14)
+        self.plot2_RT.getAxis('bottom').setPen(color=(0, 0, 0))
+        self.plot2_RT.getAxis('left').setPen(color=(0, 0, 0))
+        self.plot2_RT.addLegend(offset = [1, 0.1])
 
         xPlot1, yRight1, yLeft1 = selectAxes(self, xAxis_lbl1, yAxis_lbl1)
         xPlot2, yRight2, yLeft2 = selectAxes(self, xAxis_lbl2, yAxis_lbl2)
 
         if yAxis_lbl1 == 'Flame length [mm]':
-            colorTrackingPlot(self.lbl1_RT, xPlot1, yRight1, 'flame length', 'o', 'b')
+            colorTrackingPlot(self.plot1_RT, xPlot1, yRight1, 'flame length', 'o', 'b')
+        elif yAxis_lbl1 == 'Flame area [mm2]':
+            colorTrackingPlot(self.plot1_RT, xPlot1, yRight1, 'flame area', 'o', 'b')
         else:
-            colorTrackingPlot(self.lbl1_RT, xPlot1, yRight1, 'right edge', 'o', 'b')
-            colorTrackingPlot(self.lbl1_RT, xPlot1, yLeft1, 'left edge', 't', 'r')
+            colorTrackingPlot(self.plot1_RT, xPlot1, yRight1, 'right edge', 'o', 'b')
+            colorTrackingPlot(self.plot1_RT, xPlot1, yLeft1, 'left edge', 't', 'r')
 
         if yAxis_lbl2 == 'Flame length [mm]':
-            colorTrackingPlot(self.lbl2_RT, xPlot2, yRight2, 'flame length', 'o', 'b')
+            colorTrackingPlot(self.plot2_RT, xPlot2, yRight2, 'flame length', 'o', 'b')
+        elif yAxis_lbl2 == 'Flame area [mm2]':
+            colorTrackingPlot(self.plot2_RT, xPlot2, yRight2, 'flame area', 'o', 'b')
         else:
-            colorTrackingPlot(self.lbl2_RT, xPlot2, yRight2, 'right edge', 'o', 'b')
-            colorTrackingPlot(self.lbl2_RT, xPlot2, yLeft2, 'left edge', 't', 'r')
+            colorTrackingPlot(self.plot2_RT, xPlot2, yRight2, 'right edge', 'o', 'b')
+            colorTrackingPlot(self.plot2_RT, xPlot2, yLeft2, 'left edge', 't', 'r')
 
         # colorTrackingPlot(self.lbl1_CT, self.timeCount, self.xRight_mm, 'right edge', 'o', 'b')
         # colorTrackingPlot(self.lbl1_CT, self.timeCount, self.xLeft_mm, 'left edge', 't', 'r')
         # colorTrackingPlot(self.lbl2_CT, self.timeCount, self.spreadRateRight, 'right edge', 'o', 'b')
         # colorTrackingPlot(self.lbl2_CT, self.timeCount, self.spreadRateLeft, 'left edge', 't', 'r')
+        self.win1_RT.setCurrentIndex(1) #to activate the preview tab in the analysis box
+        self.win2_RT.setCurrentIndex(1)
 
-        self.lbl1_RT.show()
-        self.lbl2_RT.show()
+        # self.lbl1_RT.show()
+        # self.lbl2_RT.show()
 
 def colorTrackingPlot(label, x, y, name, symbol, color):
     pen = ft.pg.mkPen(color)
@@ -470,22 +476,30 @@ def absValBtn(self):
     self.xRight_mm = abs_xRight_mm
     self.xLeft_mm = abs_xLeft_mm
 
-    self.lbl1_RT.clear()
-    self.lbl2_RT.clear()
+    self.plot1_RT.clear()
+    self.plot2_RT.clear()
 
     xPlot1, yRight1, yLeft1 = selectAxes(self, xAxis_lbl1, yAxis_lbl1)
     xPlot2, yRight2, yLeft2 = selectAxes(self, xAxis_lbl2, yAxis_lbl2)
 
     if yAxis_lbl1 == 'Flame length [mm]':
-        colorTrackingPlot(self.lbl1_RT, xPlot1, yRight1, 'flame length', 'o', 'b')
+        colorTrackingPlot(self.plot1_RT, xPlot1, yRight1, 'flame length', 'o', 'b')
+    elif yAxis_lbl1 == 'Flame area [mm2]':
+        colorTrackingPlot(self.plot1_RT, xPlot1, yRight1, 'flame area', 'o', 'b')
     else:
-        colorTrackingPlot(self.lbl1_RT, xPlot1, yRight1, 'right edge', 'o', 'b')
-        colorTrackingPlot(self.lbl1_RT, xPlot1, yLeft1, 'left edge', 't', 'r')
+        colorTrackingPlot(self.plot1_RT, xPlot1, yRight1, 'right edge', 'o', 'b')
+        colorTrackingPlot(self.plot1_RT, xPlot1, yLeft1, 'left edge', 't', 'r')
     if yAxis_lbl2 == 'Flame length [mm]':
-        colorTrackingPlot(self.lbl2_RT, xPlot2, yRight2, 'flame length', 'o', 'b')
+        colorTrackingPlot(self.plot2_RT, xPlot2, yRight2, 'flame length', 'o', 'b')
+    elif yAxis_lbl2 == 'Flame area [mm2]':
+        colorTrackingPlot(self.plot2_RT, xPlot2, yRight2, 'flame area', 'o', 'b')
     else:
-        colorTrackingPlot(self.lbl2_RT, xPlot2, yRight2, 'right edge', 'o', 'b')
-        colorTrackingPlot(self.lbl2_RT, xPlot2, yLeft2, 'left edge', 't', 'r')
+        colorTrackingPlot(self.plot2_RT, xPlot2, yRight2, 'right edge', 'o', 'b')
+        colorTrackingPlot(self.plot2_RT, xPlot2, yLeft2, 'left edge', 't', 'r')
+
+    self.win1_RT.setCurrentIndex(1) #to activate the preview tab in the analysis box
+    self.win2_RT.setCurrentIndex(1)
+
 
     # colorTrackingPlot(self.lbl1_CT, self.timeCount, self.xRight_mm, '', 'o', 'b')
     # colorTrackingPlot(self.lbl1_CT, self.timeCount, self.xLeft_mm, '','t', 'r')
@@ -604,6 +618,9 @@ def selectAxes(self, xAxis_lbl, yAxis_lbl):
     elif yAxis_lbl == 'Spread rate [mm/s]':
         yRight = self.spreadRateRight
         yLeft = self.spreadRateLeft
+    elif yAxis_lbl == 'Flame area [mm2]':
+        yRight = self.flameArea
+        yLeft = 0
 
     return(xPlot, yRight, yLeft)
 
@@ -613,56 +630,63 @@ def updateGraphsBtn(self):
         yAxis_lbl1 = self.yAxis_lbl1.currentText()
         xAxis_lbl2 = self.xAxis_lbl2.currentText()
         yAxis_lbl2 = self.yAxis_lbl2.currentText()
-        self.lbl1_RT.clear()
-        self.lbl2_RT.clear()
-        self.lbl1_RT.addLegend(offset = [1, 0.1])
-        self.lbl2_RT.addLegend(offset = [1, 0.1])
+        self.plot1_RT.clear()
+        self.plot2_RT.clear()
+        self.plot1_RT.addLegend(offset = [1, 0.1])
+        self.plot2_RT.addLegend(offset = [1, 0.1])
 
         xPlot1, yRight1, yLeft1 = selectAxes(self, xAxis_lbl1, yAxis_lbl1)
         xPlot2, yRight2, yLeft2 = selectAxes(self, xAxis_lbl2, yAxis_lbl2)
 
-        self.lbl1_RT.setLabel('left', str(yAxis_lbl1), color='black', size=14)
-        self.lbl1_RT.setLabel('bottom', str(xAxis_lbl1), color='black', size=14)
-        self.lbl2_RT.setLabel('left', str(yAxis_lbl2), color='black', size=14)
-        self.lbl2_RT.setLabel('bottom', str(xAxis_lbl2), color='black', size=14)
+        self.plot1_RT.setLabel('left', str(yAxis_lbl1), color='black', size=14)
+        self.plot1_RT.setLabel('bottom', str(xAxis_lbl1), color='black', size=14)
+        self.plot2_RT.setLabel('left', str(yAxis_lbl2), color='black', size=14)
+        self.plot2_RT.setLabel('bottom', str(xAxis_lbl2), color='black', size=14)
 
         if yAxis_lbl1 == 'Flame length [mm]':
-            colorTrackingPlot(self.lbl1_RT, xPlot1, yRight1, 'flame length', 'o', 'b')
+            colorTrackingPlot(self.plot1_RT, xPlot1, yRight1, 'flame length', 'o', 'b')
+        elif yAxis_lbl1 == 'Flame area [mm2]':
+            colorTrackingPlot(self.plot1_RT, xPlot1, yRight1, 'flame area', 'o', 'b')
         else:
-            colorTrackingPlot(self.lbl1_RT, xPlot1, yRight1, 'right edge', 'o', 'b')
-            colorTrackingPlot(self.lbl1_RT, xPlot1, yLeft1, 'left edge', 't', 'r')
+            colorTrackingPlot(self.plot1_RT, xPlot1, yRight1, 'right edge', 'o', 'b')
+            colorTrackingPlot(self.plot1_RT, xPlot1, yLeft1, 'left edge', 't', 'r')
         if yAxis_lbl2 == 'Flame length [mm]':
-            colorTrackingPlot(self.lbl2_RT, xPlot2, yRight2, 'flame length', 'o', 'b')
+            colorTrackingPlot(self.plot2_RT, xPlot2, yRight2, 'flame length', 'o', 'b')
+        elif yAxis_lbl2 == 'Flame area [mm2]':
+            colorTrackingPlot(self.plot2_RT, xPlot2, yRight2, 'flame area', 'o', 'b')
         else:
-            colorTrackingPlot(self.lbl2_RT, xPlot2, yRight2, 'right edge', 'o', 'b')
-            colorTrackingPlot(self.lbl2_RT, xPlot2, yLeft2, 'left edge', 't', 'r')
+            colorTrackingPlot(self.plot2_RT, xPlot2, yRight2, 'right edge', 'o', 'b')
+            colorTrackingPlot(self.plot2_RT, xPlot2, yLeft2, 'left edge', 't', 'r')
 
-        self.lbl1_RT.show()
-        self.lbl2_RT.show()
+        # self.lbl1_RT.show()
+        # self.lbl2_RT.show()
+        self.win1_RT.setCurrentIndex(1) #to activate the preview tab in the analysis box
+        self.win2_RT.setCurrentIndex(1)
+
     except:
         print('Unexpected error:', ft.sys.exc_info())
         self.msgLabel.setText('Error: the graphs could not be updated.')
 
-def helpBtn(self):
-    msg = ft.QMessageBox(self)
-    msg.setText("""RGB Tracking allows you to track a flame in an automatic way by considering the color intensity of each pixel in the ROI.
-
-    The flame region is identified by isolating the pixels in the image/frame ROI with the minimum and maximum intensity for each RGB channel in the range specified with the sliders. The channel values vary between 0 and 255, and can be saved or loaded by clicking on the 'Save RGB values' and 'Load RGB values'. The resulting image is shown on the left window when the slider in the 'Preview box' is used, while the corresponding binary image is shown on the right. The left and right edges of the flame region are calculated as maximum and minimum locations of the binary image. '#px to locate edges' controls the number of pixels considered to calculate these locations.
-
-    Small bright regions can be filtered out with the 'Filter particles' slider. The value of the slider indicates the area (in px^2) of the regions to remove from the image/frame, and you can change the maximum value by typing a number in the text box next to 'Filter particles'.
-
-    If there is a flashing or strobe light in the recorded video, you can click on 'Pick bright region' to choose a rectangular region (in the same way that the ROI is selected) that is illuminated when the light is on and dark when it is off (this region is independent from the ROI specified in the 'Preview box'). The frames where the light is on can be discarded during the analysis by checking the 'Ignore flashing light' box.
-
-    Flame position and spread rates are calculated automatically after clicking on 'Start Tracking' (the Flame Tracker interface will not be responsive during the analysis, but the progress can be monitored in the terminal window). The instantaneous spread rates are averaged with a moving average (with a number of points specified by the 'Moving avg points' text box. Note that this value is doubled for the calculation of the spread rate, i.e. 'Moving avg points' = 2 considers two points before and two points after an instantaneous value). The 'Flame direction' determines the positive increment of the flame location along the horizontal coordinate.
-
-    By clicking on 'Absolute values', the x-axis of the tracked data will be shifted to the origin.
-
-    Click on 'Save data' to export a csv file with all the tracking results (position of left and right edges, their spread rates and their distance variation in time, as well as the area of the flame region).
-
-    If 'Video output' is checked, the filtered frames are exported as a new video, which could be used to visually check the tracking accuracy.
-
-    """)
-    if self.pyqtVer == '5':
-        msg.exec_()
-    elif self.pyqtVer == '6':
-        msg.exec()
+# def helpRT_click(self):
+#     msg = ft.QMessageBox(self)
+#     msg.setText("""RGB Tracking allows you to track a flame in an automatic way by considering the color intensity of each pixel in the ROI.
+#
+#     The flame region is identified by isolating the pixels in the image/frame ROI with the minimum and maximum intensity for each RGB channel in the range specified with the sliders. The channel values vary between 0 and 255, and can be saved or loaded by clicking on the 'Save RGB values' and 'Load RGB values'. The resulting image is shown on the left window when the slider in the 'Preview box' is used, while the corresponding binary image is shown on the right. The left and right edges of the flame region are calculated as maximum and minimum locations of the binary image. '#px to locate edges' controls the number of pixels considered to calculate these locations.
+#
+#     Small bright regions can be filtered out with the 'Filter particles' slider. The value of the slider indicates the area (in px^2) of the regions to remove from the image/frame, and you can change the maximum value by typing a number in the text box next to 'Filter particles'.
+#
+#     If there is a flashing or strobe light in the recorded video, you can click on 'Pick bright region' to choose a rectangular region (in the same way that the ROI is selected) that is illuminated when the light is on and dark when it is off (this region is independent from the ROI specified in the 'Preview box'). The frames where the light is on can be discarded during the analysis by checking the 'Ignore flashing light' box.
+#
+#     Flame position and spread rates are calculated automatically after clicking on 'Start Tracking' (the Flame Tracker interface will not be responsive during the analysis, but the progress can be monitored in the terminal window). The instantaneous spread rates are averaged with a moving average (with a number of points specified by the 'Moving avg points' text box. Note that this value is doubled for the calculation of the spread rate, i.e. 'Moving avg points' = 2 considers two points before and two points after an instantaneous value). The 'Flame direction' determines the positive increment of the flame location along the horizontal coordinate.
+#
+#     By clicking on 'Absolute values', the x-axis of the tracked data will be shifted to the origin.
+#
+#     Click on 'Save data' to export a csv file with all the tracking results (position of left and right edges, their spread rates and their distance variation in time, as well as the area of the flame region).
+#
+#     If 'Video output' is checked, the filtered frames are exported as a new video, which could be used to visually check the tracking accuracy.
+#
+#     """)
+#     # if self.pyqtVer == '5':
+#     #     msg.exec_()
+#     # elif self.pyqtVer == '6':
+#     msg.exec()

@@ -60,20 +60,21 @@ def startTracking(self):
     #     yAxis_lbl2 = 'Spread rate [mm/s]'
 
     # transforming the first label into a plot
-    self.lbl1_MT.deleteLater()
-    self.lbl1_MT = ft.pg.PlotWidget()
-    self.box_layout.addWidget(self.lbl1_MT, 0, 3, 8, 4)
+    # self.lbl1_MT.deleteLater()
+    # self.lbl1_MT = ft.pg.PlotWidget()
+    # self.box_layout.addWidget(self.lbl1_MT, 0, 3, 8, 4)
 
 #    self.lbl1_MT = ft.pg.PlotWidget(self.manualTrackingBox)
     # self.lbl1_MT.setGeometry(250, 25, 390, 270)
-    self.lbl1_MT.setBackground('w')
-    self.lbl1_MT.setLabel('left', str(yAxis_lbl1), color='black', size=14)
+    # self.lbl1_MT.setBackground('w')
+    self.plot1_MT.clear()
+    self.plot1_MT.setLabel('left', str(yAxis_lbl1), color='black', size=14)
     # self.lbl1_MT.setLabel('bottom', 'Time [s]', color='black', size=14)
-    self.lbl1_MT.setLabel('bottom', str(xAxis_lbl1), color='black', size=14)
-    self.lbl1_MT.getAxis('bottom').setPen(color=(0, 0, 0))
-    self.lbl1_MT.getAxis('left').setPen(color=(0, 0, 0))
+    self.plot1_MT.setLabel('bottom', str(xAxis_lbl1), color='black', size=14)
+    self.plot1_MT.getAxis('bottom').setPen(color=(0, 0, 0))
+    self.plot1_MT.getAxis('left').setPen(color=(0, 0, 0))
     # For versions before v1.1.4: background color modified in line 122 and 123 of Versions/3.7/lib/python3.7/site-packages/pyqtgraph/graphicsItems
-    self.lbl1_MT.addLegend(offset = [1, 0.1])
+    self.plot1_MT.addLegend(offset = [1, 0.1])
 
     firstFrame = int(self.firstFrameIn.text())
     lastFrame = int(self.lastFrameIn.text())
@@ -105,10 +106,10 @@ def startTracking(self):
             scale = False
             msg = ft.QMessageBox(self)
             msg.setText('The scale [px/mm] has not been specified')
-            if self.pyqtVer == '5':
-                msg.exec_()
-            elif self.pyqtVer == '6':
-                msg.exec()
+            # if self.pyqtVer == '5':
+            #     msg.exec_()
+            # elif self.pyqtVer == '6':
+            msg.exec()
             break
 
         frame, frameCrop = ft.checkEditing(self, currentFrame)
@@ -151,7 +152,7 @@ def startTracking(self):
         #if currentFrame > firstFrame:
         if len(posY) > 0:
             for n in range(nClicks):
-                if self.showEdges_MT.isChecked() == True:
+                if self.showLines_MT.isChecked() == True:
                     ft.cv2.line(frameCrop, (0, int(posY[str(n+1)][0])),(int(self.roiThreeIn.text()), int(posY[str(n+1)][0])), (0, 245, 184), 2)
 
         ft.cv2.imshow('manualTracking', frameCrop)
@@ -201,10 +202,10 @@ def startTracking(self):
     if len(timeCount) == 0:
         msg = ft.QMessageBox(self)
         msg.setText('No frames were detected, please check ROI size and light settings.')
-        if self.pyqtVer == '5':
-            msg.exec_()
-        elif self.pyqtVer == '6':
-            msg.exec()
+        # if self.pyqtVer == '5':
+        #     msg.exec_()
+        # elif self.pyqtVer == '6':
+        msg.exec()
 
     ft.cv2.destroyAllWindows()
 
@@ -261,11 +262,12 @@ def startTracking(self):
             # elif yAxis_lbl2 == 'Spread rate [mm/s]':
             #     yPlot2 = self.spreadRate[str(n+1)]
             # manualTrackingPlot(self.lbl1_MT, self.time_plot['1'], self.posX_plot[str(n+1)], name, 'o', clr)
-            manualTrackingPlot(self.lbl1_MT, xPlot1, yPlot1, name, 'o', clr)
+            manualTrackingPlot(self.plot1_MT, xPlot1, yPlot1, name, 'o', clr)
             # manualTrackingPlot(self.lbl2_MT, self.time_plot['1'], self.spreadRate[str(n+1)], name, 'o', clr)
             manualTrackingPlot(self.lbl2_MT, xPlot2, yPlot2, name, 'o', clr)
 
-        self.lbl1_MT.show()
+        self.plot1_MT.show()
+        self.win1_MT.setCurrentIndex(1)#self.win1_MT.findChild(QWidget, tabname))
 
 # this function waits for the next mouse click
 def click(event, x, y, flags, param):
@@ -304,7 +306,7 @@ def absValue(self):
       self.frames_plot.update({'1': abs_frame})
       self.time_plot.update({'1': abs_time})
 
-      self.lbl1_MT.clear()
+      self.plot1_MT.clear()
       self.lbl2_MT.clear()
       color = ['b', 'r', 'k', 'g', 'c', 'y']
       for n in range(nClicks):
@@ -322,7 +324,7 @@ def absValue(self):
           xPlot2, yPlot2 = selectAxes(self, xAxis_lbl2, yAxis_lbl2, n)
           # manualTrackingPlot(self.lbl1_MT, self.time_plot['1'], self.posX_plot[str(n+1)], '', 'o', clr)
           # manualTrackingPlot(self.lbl2_MT, self.time_plot['1'], self.spreadRate[str(n+1)], '', 'o', clr)
-          manualTrackingPlot(self.lbl1_MT, xPlot1, yPlot1, '', 'o', clr)
+          manualTrackingPlot(self.plot1_MT, xPlot1, yPlot1, '', 'o', clr)
           manualTrackingPlot(self.lbl2_MT, xPlot2, yPlot2, '', 'o', clr)
 
 # def chooseFlameDirection(self):
@@ -390,14 +392,16 @@ def saveData(self):
             print('Unexpected error:', ft.sys.exc_info())
 
 def updateGraphsBtn(self):
+    print('xAxis', self.xAxis_lbl1)
+
     try:
         xAxis_lbl1 = self.xAxis_lbl1.currentText()
         yAxis_lbl1 = self.yAxis_lbl1.currentText()
         xAxis_lbl2 = self.xAxis_lbl2.currentText()
         yAxis_lbl2 = self.yAxis_lbl2.currentText()
-        self.lbl1_MT.clear()
+        self.plot1_MT.clear()
         self.lbl2_MT.clear()
-        self.lbl1_MT.addLegend(offset = [1, 0.1])
+        self.plot1_MT.addLegend(offset = [1, 0.1])
         self.lbl2_MT.addLegend(offset = [1, 0.1])
         color = ['b', 'r', 'k', 'g', 'c', 'y']
         for n in range(nClicks):
@@ -411,14 +415,14 @@ def updateGraphsBtn(self):
             xPlot1, yPlot1 = selectAxes(self, xAxis_lbl1, yAxis_lbl1, n)
             xPlot2, yPlot2 = selectAxes(self, xAxis_lbl2, yAxis_lbl2, n)
 
-            self.lbl1_MT.setLabel('left', str(yAxis_lbl1), color='black', size=14)
-            self.lbl1_MT.setLabel('bottom', str(xAxis_lbl1), color='black', size=14)
+            self.plot1_MT.setLabel('left', str(yAxis_lbl1), color='black', size=14)
+            self.plot1_MT.setLabel('bottom', str(xAxis_lbl1), color='black', size=14)
             self.lbl2_MT.setLabel('left', str(yAxis_lbl2), color='black', size=14)
             self.lbl2_MT.setLabel('bottom', str(xAxis_lbl2), color='black', size=14)
-            manualTrackingPlot(self.lbl1_MT, xPlot1, yPlot1, name, 'o', clr)
+            manualTrackingPlot(self.plot1_MT, xPlot1, yPlot1, name, 'o', clr)
             manualTrackingPlot(self.lbl2_MT, xPlot2, yPlot2, name, 'o', clr)
 
-        self.lbl1_MT.show()
+        self.plot1_MT.show()
         self.lbl2_MT.show()
     except:
         print('Unexpected error:', ft.sys.exc_info())
@@ -452,7 +456,7 @@ def helpBtn(self):
 
     Click on 'Save data' to export a csv file with all the tracking results (position in pixel and mm for each point tracked, and their corresponding spread rate).
     """)
-    if self.pyqtVer == '5':
-        msg.exec_()
-    elif self.pyqtVer == '6':
-        msg.exec()
+    # if self.pyqtVer == '5':
+    #     msg.exec_()
+    # elif self.pyqtVer == '6':
+    msg.exec()

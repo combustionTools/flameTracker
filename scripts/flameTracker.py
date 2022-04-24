@@ -21,16 +21,16 @@ Original Author: Luca Carmignani, PhD
 Collaborator/Contributor: Charles Scudiere, PhD
 Contact: flameTrackerContact@gmail.com
 """
-try:
-    from PyQt6 import QtGui
-    from PyQt6.QtGui import *
-    from PyQt6.QtWidgets import *
-    from PyQt6.QtCore import *
-except:
-    from PyQt5 import QtGui
-    from PyQt5.QtGui import *
-    from PyQt5.QtWidgets import *
-    from PyQt5.QtCore import *
+# try:
+from PyQt6 import QtGui
+from PyQt6.QtGui import *
+from PyQt6.QtWidgets import *
+from PyQt6.QtCore import *
+# except:
+#     from PyQt5 import QtGui
+#     from PyQt5.QtGui import *
+#     from PyQt5.QtWidgets import *
+#     from PyQt5.QtCore import *
 
 from itertools import zip_longest
 import cv2
@@ -71,11 +71,11 @@ def initVars(self): # define initial variables
     HSVTrackingValue = False
     editFrame = False
     self.trackingMethod = None
-    if QT_VERSION_STR[0] == '5':
-        self.pyqtVer = '5'
-        print('NOTE: You are using the package "PyQt5" for running the Flame Tracker. You should consider upgrading to "PyQt6" for improving compatibility with MacOS 12.1')
-    elif QT_VERSION_STR[0] == '6':
-        self.pyqtVer = '6'
+    # if QT_VERSION_STR[0] == '5':
+    #     self.pyqtVer = '5'
+    #     print('NOTE: You are using the package "PyQt5" for running the Flame Tracker. You should consider upgrading to "PyQt6" for improving compatibility with MacOS 12.1')
+    # elif QT_VERSION_STR[0] == '6':
+    #     self.pyqtVer = '6'
 
 class FlameTrackerWindow(QMainWindow): #QWidget
     def __init__(self, parent=None):
@@ -97,7 +97,7 @@ class FlameTrackerWindow(QMainWindow): #QWidget
         toolbar.setIconSize(QSize(16, 16))
         self.addToolBar(toolbar)
 
-        # list of actions available (used both in toolbar and menubar)
+        # list of actions available (used for both the toolbar and menubar)
         openV_ico = QStyle.StandardPixmap.SP_DialogOpenButton
         openV_ico = self.style().standardIcon(openV_ico)
         openVideo = QAction(openV_ico, 'Open video', self)
@@ -133,7 +133,7 @@ class FlameTrackerWindow(QMainWindow): #QWidget
         HTselection.triggered.connect(self.showHSVTracking)
 
         showFrame = QAction('Show frame in new window', self)
-        showFrame.triggered.connect(self.showFrameLargeBtn_clicked)
+        showFrame.triggered.connect(self.showFrameLarge_clicked)
 
         # self.figSize = QCheckBox('Half-size figure')
         self.figSize = QAction('Reduced-size windows', self)
@@ -185,7 +185,7 @@ class FlameTrackerWindow(QMainWindow): #QWidget
         toolbar.addSeparator()
 
         showFrameBtn = QPushButton('Frame')
-        showFrameBtn.clicked.connect(self.showFrameLargeBtn_clicked)
+        showFrameBtn.clicked.connect(self.showFrameLarge_clicked)
         toolbar.addWidget(showFrameBtn)
 
         ## creating the menu bar
@@ -227,13 +227,16 @@ class FlameTrackerWindow(QMainWindow): #QWidget
         frameMenu.addAction(self.figSize)
         # trackingMenu.addAction(figSize)
 
-        helpFT = QAction('Video editing', self)
+        helpFT = QAction('Flame Tracker', self)
         helpFT.triggered.connect(self.helpFT_click)
         helpMT = QAction('Manual tracking', self)
         helpMT.triggered.connect(self.helpMT_click)
         helpLT = QAction('Luma tracking', self)
+        helpLT.triggered.connect(self.helpLT_click)
         helpRT = QAction('RGB tracking', self)
+        helpRT.triggered.connect(self.helpRT_click)
         helpHT = QAction('HSV tracking', self)
+        helpHT.triggered.connect(self.helpHT_click)
         helpMenu = self.menu.addMenu("&Help")
         helpMenu.addAction(helpFT)
         helpMenu.addAction(helpMT)
@@ -410,43 +413,50 @@ class FlameTrackerWindow(QMainWindow): #QWidget
 
     def helpFT_click(self):
         msg = QMessageBox(self)
-        msg.setText('''Flame Tracker is an image analysis program to detect and track a flame (or a luminous object) in images or videos.
+        msg.setText('''The Flame Tracker is an image analysis program designed to detect and track a flame (or a luminous object) in images or videos.
 
-        Click on the 'Open' button to open a video. For images, select the option 'Image(s) from the dropdown menu before clicking on 'Open' (when opening more than one image a pop-up message will ask you for the corresponding frame rate).
-
-        First column - information of the opened file such as size, duration, etc.
-
-        Second column -  only the selected frame range will show in the preview window on the right. Click on 'Measure scale' and then on two reference points in the pop-up window to measure the scale of the image/frame in px/mm. Note that the scale has to be specified before running any anlyses. A Region of Interest (ROI) can also be selected by dragging a rectangle in the pop-up window after clicking on the button 'Select ROI'. Press 'Esc' to close any pop-up window.
-
-        Third column - optional adjustments: rotation, brightness and contrast. If the image/frame perspective has to be corrected, the actual values of two reference lengths have to be specified ('Horizontal' and 'Vertical'). Then, by clicking on 'Correct perspective' the four corners of the object to correct can be selected in the pop-up window. These corrections can be deleted by clicking on 'Restore original'.
-
-        Fourth column - choose the type of analysis (specific instructions are available for each selection), and save/load parameters. Furthermore, it is possible to export the edited video (note that only the ROI will be exported). Click on '?' for suggestions on how to select the frame rate for the new video.
-
-        More information are available on GitHub: https://github.com/combustionTools/flameTracker/wiki
+        Instructions are available on GitHub: https://github.com/combustionTools/flameTracker/wiki
 
         Contact: flametrackercontact@gmail.com
         ''')
-        if self.pyqtVer == '5':
-            msg.exec_()
-        elif self.pyqtVer == '6':
-            msg.exec()
+        msg.exec()
 
     def helpMT_click(self):
         msg = QMessageBox(self)
-        msg.setText("""Manual Tracking allows you to track a flame with a point-and-click method.
+        msg.setText('''Manual Tracking allows you to track a flame with a point-and-click method.
 
-        'Tracking points #' defines the number of mouse clicks to record for each frame before moving to the next one (the default is one click per frame). By clicking on 'Start tracking', a pop-up window will show the first frame (press 'Esc' to exit at any time, but note that the progress will be lost). The following frames will show the horizontal lines corresponding to the points clicked. These lines can be hidden by unchecking 'Show tracking lines' before starting the analysis. After the tracking, the position vs time and spread rate vs time values will be shown in the windows in the 'Analysis box' when the slider in the 'Preview box' is used. The 'Flame direction' determines the positive increment of the flame location along the horizontal coordinate.
+        Instructions are available on GitHub: https://github.com/combustionTools/flameTracker/wiki/3.-Manual-tracking
+        ''')
+        msg.exec()
 
-        If there is a flashing or strobe light in the recorded video, you can click on 'Pick bright region' to choose a rectangular region (in the same way that the ROI is selected) that is illuminated when the light is on and dark when it is off. Note that this region is independent from the ROI specified in the 'Preview box', and will show up of the left window in the 'Analysis box'. From the dropdown menu, select the option 'Frames light on' to consider only the frames where the light is on, or 'Frames light off' to consider only the frames without the light. By default all the frames are considered.
+    def helpLT_click(self):
+        msg = QMessageBox(self)
+        msg.setText("""Luma Tracking allows you to track a flame in an automatic way by considering the luminance intensity of each pixel in the ROI.
 
-        By clicking on 'Absolute values', the x-axis of the tracked data will be shifted to the origin.
-
-        Click on 'Save data' to export a csv file with all the tracking results (position in pixel and mm for each point tracked, and their corresponding spread rate).
+        Instructions are available on GitHub: https://github.com/combustionTools/flameTracker/wiki/4.-Luma-Tracking
         """)
-        if self.pyqtVer == '5':
-            msg.exec_()
-        elif self.pyqtVer == '6':
-            msg.exec()
+        msg.exec()
+
+    def helpRT_click(self):
+        msg = QMessageBox(self)
+        msg.setText('''RGB Tracking allows you to track a flame in an automatic way by considering the color intensity of each pixel in the ROI.
+
+        Instructions are available on GitHub: https://github.com/combustionTools/flameTracker/wiki/5.-Color-Tracking
+        ''')
+        msg.exec()
+
+    def helpHT_click(self):
+        msg = QMessageBox(self)
+        msg.setText("""HSV Tracking allows you to track a flame in an automatic way by considering the intensity in the HSV space of each pixel in the ROI.
+
+        The flame region can be identified by choosing appropriate values of the HSV parameters (and particle size filtering). The HSV values vary depending on the colorspace of the frame/image - current implementation uses a hue from 0-180 (since 0-360 deg hue is stored as H/2 for 8-bit), value and saturation are set from 0 to 255.
+        The code will consider the range between minimum and maximum of each of the HSV channels as adjusted with the sliders. Small particles can be filtered out. The value of the slider indicates the area (in px^2) of the regions to remove from the image/frame, and you can change the maximum value by typing a number in the text box next to 'Filter particles'.
+
+        The preview box on the left shows the RGB image resulting from the filtering, while the preview box on the right shows the binary image with the particle filtering applied. The edges of the flame region are calculated as maximum and minimum locations.
+
+        If there is a flashing or strobe light in the recorded video, you can click on 'Pick bright region' to choose a rectangular region (in the same way that the ROI is selected) that is illuminated when the light is on and dark when it is off (this region is independent from the ROI specified in the 'Preview box'). The frames where the light is on can be discarded during the analysis by checking the 'Ignore flashing light' box.
+        """)
+        msg.exec()
 
     def openSelection_click(self, text):
         selection = self.openSelectionBox.currentText()
@@ -604,20 +614,20 @@ class FlameTrackerWindow(QMainWindow): #QWidget
         if self.sLengthIn.text() == '-' or self.sWidthIn.text() == '-':
             msg = QMessageBox(self)
             msg.setText('The reference length and width need to be specified')
-            if self.pyqtVer == '5':
-                msg.exec_()
-            elif self.pyqtVer == '6':
-                msg.exec()
+            # if self.pyqtVer == '5':
+            #     msg.exec_()
+            # elif self.pyqtVer == '6':
+            msg.exec()
 
         self.msgLabel.setText('1) top right, 2) bottom right, 3) bottom left, 4) top left')
 
         try:
             msg = QMessageBox(self)
             msg.setText('The click order is: 1) top right, 2) bottom right, 3) bottom left, 4) top left.')
-            if self.pyqtVer == '5':
-                msg.exec_()
-            elif self.pyqtVer == '6':
-                msg.exec()
+            # if self.pyqtVer == '5':
+            #     msg.exec_()
+            # elif self.pyqtVer == '6':
+            msg.exec()
 
             roiOne = int(self.roiOneIn.text())
             roiTwo = int(self.roiTwoIn.text())
@@ -856,56 +866,56 @@ class FlameTrackerWindow(QMainWindow): #QWidget
             print('Unexpected error:', sys.exc_info())
 
     # selection connected to the specific file, getting rid of what was showing before
-    def analysis_click(self, text):
-        global manualTrackingValue, lumaTrackingValue, colorTrackingValue, HSVTrackingValue
-        selection = self.analysisSelectionBox.currentText()
-        if selection == 'Choose analysis':
-            for children in self.analysisGroupBox.findChildren(QGroupBox):
-                children.setParent(None)
-            manualTrackingValue = False
-            lumaTrackingValue = False
-            colorTrackingValue = False
-            HSVTrackingValue = False
-        elif selection == 'Manual tracking':
-            for children in self.analysisGroupBox.findChildren(QGroupBox):
-                children.setParent(None)
-            gui.manualTrackingBox(self)
-            mt.initVars(self)
-            self.manualTrackingBox.show()
-            manualTrackingValue = True
-            lumaTrackingValue = False
-            colorTrackingValue = False
-            HSVTrackingValue = False
-        elif selection == 'Luma tracking':
-            for children in self.analysisGroupBox.findChildren(QGroupBox):
-                children.setParent(None)
-            gui.lumaTrackingBox(self)
-            # lt.initVars(self)
-            self.lumaTrackingBox.show()
-            manualTrackingValue = False
-            lumaTrackingValue = True
-            colorTrackingValue = False
-            HSVTrackingValue = False
-        elif selection == 'Color tracking':
-            for children in self.analysisGroupBox.findChildren(QGroupBox):
-                children.setParent(None)
-            gui.colorTrackingBox(self)
-            ct.initVars(self)
-            self.colorTrackingBox.show()
-            manualTrackingValue = False
-            lumaTrackingValue = False
-            colorTrackingValue = True
-            HSVTrackingValue = False
-        elif selection == 'HSV tracking':
-            for children in self.analysisGroupBox.findChildren(QGroupBox):
-                children.setParent(None)
-            gui.HSVTrackingBox(self)
-            ht.initVars(self) # include default variables in this function
-            self.HSVTrackingBox.show()
-            lumaTrackingValue = False
-            manualTrackingValue = False
-            colorTrackingValue = False
-            HSVTrackingValue = True
+    # def analysis_click(self, text):
+    #     global manualTrackingValue, lumaTrackingValue, colorTrackingValue, HSVTrackingValue
+    #     selection = self.analysisSelectionBox.currentText()
+    #     if selection == 'Choose analysis':
+    #         for children in self.analysisGroupBox.findChildren(QGroupBox):
+    #             children.setParent(None)
+    #         manualTrackingValue = False
+    #         lumaTrackingValue = False
+    #         colorTrackingValue = False
+    #         HSVTrackingValue = False
+    #     elif selection == 'Manual tracking':
+    #         for children in self.analysisGroupBox.findChildren(QGroupBox):
+    #             children.setParent(None)
+    #         gui.manualTrackingBox(self)
+    #         mt.initVars(self)
+    #         self.manualTrackingBox.show()
+    #         manualTrackingValue = True
+    #         lumaTrackingValue = False
+    #         colorTrackingValue = False
+    #         HSVTrackingValue = False
+    #     elif selection == 'Luma tracking':
+    #         for children in self.analysisGroupBox.findChildren(QGroupBox):
+    #             children.setParent(None)
+    #         gui.lumaTrackingBox(self)
+    #         # lt.initVars(self)
+    #         self.lumaTrackingBox.show()
+    #         manualTrackingValue = False
+    #         lumaTrackingValue = True
+    #         colorTrackingValue = False
+    #         HSVTrackingValue = False
+    #     elif selection == 'Color tracking':
+    #         for children in self.analysisGroupBox.findChildren(QGroupBox):
+    #             children.setParent(None)
+    #         gui.colorTrackingBox(self)
+    #         ct.initVars(self)
+    #         self.colorTrackingBox.show()
+    #         manualTrackingValue = False
+    #         lumaTrackingValue = False
+    #         colorTrackingValue = True
+    #         HSVTrackingValue = False
+    #     elif selection == 'HSV tracking':
+    #         for children in self.analysisGroupBox.findChildren(QGroupBox):
+    #             children.setParent(None)
+    #         gui.HSVTrackingBox(self)
+    #         ht.initVars(self) # include default variables in this function
+    #         self.HSVTrackingBox.show()
+    #         lumaTrackingValue = False
+    #         manualTrackingValue = False
+    #         colorTrackingValue = False
+    #         HSVTrackingValue = True
 
     def measureScaleBtn_clicked(self, text):
         global clk
@@ -1126,12 +1136,12 @@ class FlameTrackerWindow(QMainWindow): #QWidget
         fps(new) = fps(original)/(skipframes + 1)
 
         'Format' and 'Codec' depend on your operating system and the avaiable codecs (the best combination might require some trial and error).''')
-        if self.pyqtVer == '5':
-            msg.exec_()
-        elif self.pyqtVer == '6':
-            msg.exec()
+        # if self.pyqtVer == '5':
+        #     msg.exec_()
+        # elif self.pyqtVer == '6':
+        msg.exec()
 
-    def showFrameLargeBtn_clicked(self):
+    def showFrameLarge_clicked(self):
         cv2.namedWindow(('Frame: ' + str(self.frameNumber)), cv2.WINDOW_AUTOSIZE)
         if self.figSize.isChecked() == True:
             newWidth = int(self.currentFrame.shape[1] / 2) #original width divided by 2
@@ -1161,8 +1171,8 @@ class FlameTrackerWindow(QMainWindow): #QWidget
         mt.lightROIBtn(self)
     # def xAxisBoxMT_clicked(self, text):
     #     mt.xAxisSel(self)
-    def helpBtn_MT_clicked(self):
-        mt.helpBtn(self)
+    # def helpBtn_MT_clicked(self):
+    #     mt.helpBtn(self)
     def updateGraphsBtn_MT_clicked(self):
         mt.updateGraphsBtn(self)
 
@@ -1181,8 +1191,8 @@ class FlameTrackerWindow(QMainWindow): #QWidget
         lt.lightROIBtn(self)
     def showFrameLargeBtn_LT_clicked(self):
         lt.showFrameLarge(self)
-    def helpBtn_LT_clicked(self):
-        lt.helpBtn(self)
+    # def helpBtn_LT_clicked(self):
+    #     lt.helpBtn(self)
     def updateGraphsBtn_LT_clicked(self):
         lt.updateGraphsBtn(self)
 
@@ -1233,8 +1243,8 @@ class FlameTrackerWindow(QMainWindow): #QWidget
         ct.saveBtn(self)
     def showFrameLargeBtn_RT_clicked(self):
         ct.showFrameLarge(self)
-    def helpBtn_RT_clicked(self):
-        ct.helpBtn(self)
+    # def helpBtn_RT_clicked(self):
+    #     ct.helpBtn(self)
     def updateGraphsBtn_RT_clicked(self):
         ct.updateGraphsBtn(self)
 
@@ -1285,34 +1295,24 @@ class FlameTrackerWindow(QMainWindow): #QWidget
         ht.saveBtn(self)
     def showFrameLargeBtn_HT_clicked(self):
         ht.showFrameLarge(self)
-    def helpBtn_HT_clicked(self):
-        ht.helpBtn(self)
+    # def helpBtn_HT_clicked(self):
+    #     ht.helpBtn(self)
     def updateGraphsBtn_HT_clicked(self):
         ht.updateGraphsBtn(self)
 
 
-    def helpBtn_clicked(self):
-        msg = QMessageBox(self)
-        msg.setText('''Flame Tracker is an image analysis program to detect and track a flame (or a luminous object) in images or videos.
-
-        Click on the 'Open' button to open a video. For images, select the option 'Image(s) from the dropdown menu before clicking on 'Open' (when opening more than one image a pop-up message will ask you for the corresponding frame rate).
-
-        First column - information of the opened file such as size, duration, etc.
-
-        Second column -  only the selected frame range will show in the preview window on the right. Click on 'Measure scale' and then on two reference points in the pop-up window to measure the scale of the image/frame in px/mm. Note that the scale has to be specified before running any anlyses. A Region of Interest (ROI) can also be selected by dragging a rectangle in the pop-up window after clicking on the button 'Select ROI'. Press 'Esc' to close any pop-up window.
-
-        Third column - optional adjustments: rotation, brightness and contrast. If the image/frame perspective has to be corrected, the actual values of two reference lengths have to be specified ('Horizontal' and 'Vertical'). Then, by clicking on 'Correct perspective' the four corners of the object to correct can be selected in the pop-up window. These corrections can be deleted by clicking on 'Restore original'.
-
-        Fourth column - choose the type of analysis (specific instructions are available for each selection), and save/load parameters. Furthermore, it is possible to export the edited video (note that only the ROI will be exported). Click on '?' for suggestions on how to select the frame rate for the new video.
-
-        More information are available on GitHub: https://github.com/combustionTools/flameTracker/wiki
-
-        Contact: flametrackercontact@gmail.com
-        ''')
-        # if self.pyqtVer == '5':
-        #     msg.exec_()
-        # elif self.pyqtVer == '6':
-        msg.exec()
+    # def helpBtn_clicked(self):
+    #     msg = QMessageBox(self)
+    #     msg.setText('''The Flame Tracker is an image analysis program designed to detect and track a flame (or a luminous object) in images or videos.
+    #
+    #     Instructions are available on GitHub: https://github.com/combustionTools/flameTracker/wiki
+    #
+    #     Contact: flametrackercontact@gmail.com
+    #     ''')
+    #     # if self.pyqtVer == '5':
+    #     #     msg.exec_()
+    #     # elif self.pyqtVer == '6':
+    #     msg.exec()
 
     def exportVideo_click(self):
         # Open pop-up window to ask about frame rate, codec and format
@@ -1477,7 +1477,7 @@ def showFrame(self, frameNumber):
     # elif self.pyqtVer == '6':
     self.image = self.image.scaled(self.win1.size(), Qt.AspectRatioMode.KeepAspectRatio, Qt.TransformationMode.SmoothTransformation)
     self.win1.setPixmap(QPixmap.fromImage(self.image))
-    print('win1 image', self.win1.size())
+    print('previewBar clicked')
 
 
 def perspectiveCorrection(self, frame):
@@ -1565,9 +1565,9 @@ def checkAnalysisBox(self, frameNumber):
         #     lbl1 = [250, 25, 390, 270]
 
         # label 1 might have become a plot widget, so we need to update them again
-        self.lbl1_MT.deleteLater()
-        self.lbl1_MT = QLabel()
-        self.box_layout.addWidget(self.lbl1_MT, 0, 3, 8, 4)
+        # self.lbl1_MT.deleteLater()
+        # self.lbl1_MT = QLabel()
+        # self.box_layout.addWidget(self.lbl1_MT, 0, 3, 8, 4)
 
         # print('size lbl1 label', self.lbl1_MT.size() )
         #self.lbl1_MT = QLabel(self.manualTrackingBox)
@@ -1590,11 +1590,12 @@ def checkAnalysisBox(self, frameNumber):
         # elif self.pyqtVer == '6':
         image1 = QImage(frame.data, frame.shape[1], frame.shape[0], bytes1, QImage.Format.Format_RGB888).rgbSwapped()
         image1 = image1.scaled(self.lbl1_MT.size(), Qt.AspectRatioMode.KeepAspectRatio, Qt.TransformationMode.SmoothTransformation)
-        print('scaling image', self.lbl1_MT.size())
-        print('scaling image', image1.size())
+        # print('scaling image', self.lbl1_MT.size())
         self.lbl1_MT.setPixmap(QPixmap.fromImage(image1)) # this line was added (again?) in v1.1.7 to show the preview frame in the analysis box
-        self.lbl1_MT.show()
-        print('new image', self.lbl1_MT.size())
+        # self.lbl1_MT.show()
+        self.win1_MT.setCurrentIndex(0) #to activate the preview tab in the analysis box
+
+        # print('new image', self.lbl1_MT.size())
 
 
     # if lumaTrackingValue == True:
@@ -1621,12 +1622,12 @@ def checkAnalysisBox(self, frameNumber):
     # self.lbl2_LT.setGeometry(lbl2[0], lbl2[1], lbl2[2], lbl2[3])
     if self.trackingMethod == 'Luma tracking':
         # the labels might have become plot widgets, so we need to create them again
-        self.lbl1_LT.deleteLater()
-        self.lbl2_LT.deleteLater()
-        self.lbl1_LT = QLabel()
-        self.lbl2_LT = QLabel()
-        self.box_layout.addWidget(self.lbl1_LT, 0, 3, 8, 4)
-        self.box_layout.addWidget(self.lbl2_LT, 0, 8, 8, 4)
+        # self.lbl1_LT.deleteLater()
+        # self.lbl2_LT.deleteLater()
+        # self.lbl1_LT = QLabel()
+        # self.lbl2_LT = QLabel()
+        # self.box_layout.addWidget(self.lbl1_LT, 0, 3, 8, 4)
+        # self.box_layout.addWidget(self.lbl2_LT, 0, 8, 8, 4)
 
         if self.grayscale.isChecked() == True:
             self.msgLabel.setText('Grayscale images not supported with this feature')
@@ -1634,8 +1635,10 @@ def checkAnalysisBox(self, frameNumber):
         lt.getFilteredFrame(self, frameCrop)
         self.lbl1_LT.setPixmap(QPixmap.fromImage(self.frameY))
         self.lbl2_LT.setPixmap(QPixmap.fromImage(self.frameBW))
-        self.lbl1_LT.show()
-        self.lbl2_LT.show()
+        # self.lbl1_LT.show()
+        # self.lbl2_LT.show()
+        self.win1_LT.setCurrentIndex(0) #to activate the preview tab in the analysis box
+        self.win2_LT.setCurrentIndex(0)
 
     # if colorTrackingValue == True:
     #     if sys.platform == 'darwin':
@@ -1655,12 +1658,12 @@ def checkAnalysisBox(self, frameNumber):
     #     self.lbl2_CT.setGeometry(lbl2[0], lbl2[1], lbl2[2], lbl2[3])
     if self.trackingMethod == 'RGB tracking':
         # the labels might have become plot widgets, so we need to create them again
-        self.lbl1_RT.deleteLater()
-        self.lbl2_RT.deleteLater()
-        self.lbl1_RT = QLabel()
-        self.lbl2_RT = QLabel()
-        self.box_layout.addWidget(self.lbl1_RT, 0, 9, 8, 3)
-        self.box_layout.addWidget(self.lbl2_RT, 0, 12, 8, 3)
+        # self.lbl1_RT.deleteLater()
+        # self.lbl2_RT.deleteLater()
+        # self.lbl1_RT = QLabel()
+        # self.lbl2_RT = QLabel()
+        # self.box_layout.addWidget(self.lbl1_RT, 0, 9, 8, 3)
+        # self.box_layout.addWidget(self.lbl2_RT, 0, 12, 8, 3)
 
         self.lbl1_RT.setStyleSheet('background-color: white')
         self.lbl2_RT.setStyleSheet('background-color: white')
@@ -1670,8 +1673,12 @@ def checkAnalysisBox(self, frameNumber):
         ct.getFilteredFrame(self, frameCrop)
         self.lbl1_RT.setPixmap(QPixmap.fromImage(self.frame))
         self.lbl2_RT.setPixmap(QPixmap.fromImage(self.frameBW))
-        self.lbl1_RT.show()
-        self.lbl2_RT.show()
+        # self.lbl1_RT.show()
+        # self.lbl2_RT.show()
+
+        self.win1_RT.setCurrentIndex(0) #to activate the preview tab in the analysis box
+        self.win2_RT.setCurrentIndex(0)
+
 
     # if HSVTrackingValue == True:
     #     if sys.platform == 'darwin':
@@ -1691,23 +1698,25 @@ def checkAnalysisBox(self, frameNumber):
     #     self.lbl2_HT.setGeometry(lbl2[0], lbl2[1], lbl2[2], lbl2[3])
     if self.trackingMethod == 'HSV tracking':
         # the labels might have become plot widgets, so we need to create them again
-        self.lbl1_HT.deleteLater()
-        self.lbl2_HT.deleteLater()
-        self.lbl1_HT = QLabel()
-        self.lbl2_HT = QLabel()
-        self.box_layout.addWidget(self.lbl1_HT, 0, 9, 4, 6)
-        self.box_layout.addWidget(self.lbl2_HT, 4, 9, 4, 6)
-
-        self.lbl1_HT.setStyleSheet('background-color: white')
-        self.lbl2_HT.setStyleSheet('background-color: white')
+        # self.lbl1_HT.deleteLater()
+        # self.lbl2_HT.deleteLater()
+        # self.lbl1_HT = QLabel()
+        # self.lbl2_HT = QLabel()
+        # self.box_layout.addWidget(self.lbl1_HT, 0, 9, 4, 6)
+        # self.box_layout.addWidget(self.lbl2_HT, 4, 9, 4, 6)
+        #
+        # self.lbl1_HT.setStyleSheet('background-color: white')
+        # self.lbl2_HT.setStyleSheet('background-color: white')
         if self.grayscale.isChecked() == True:
             self.msgLabel.setText('Grayscale images not supported with this feature')
         frame, frameCrop = checkEditing(self, frameNumber)
         ht.getFilteredFrame(self, frameCrop)
         self.lbl1_HT.setPixmap(QPixmap.fromImage(self.frame))
         self.lbl2_HT.setPixmap(QPixmap.fromImage(self.frameBW))
-        self.lbl1_HT.show()
-        self.lbl2_HT.show()
+        # self.lbl1_HT.show()
+        # self.lbl2_HT.show()
+        self.win1_HT.setCurrentIndex(0) #to activate the preview tab in the analysis box
+        self.win2_HT.setCurrentIndex(0)
 
 
 class MyPopup(QWidget):
