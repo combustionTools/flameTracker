@@ -37,27 +37,13 @@ The values are then converted to the destination data type:
     32-bit images: H, S, and V are left as is
 """
 
-# from PyQt5 import QtGui
-# from PyQt5.QtGui import *
-# from PyQt5.QtWidgets import *
-# from PyQt5.QtCore import *
-# from itertools import zip_longest
-
 import flameTracker as ft
 import boxesGUI_OS as gui
-# import csv
-# import cv2
-# import pyqtgraph as pg
-# import numpy as np
-# import sys
 
 def initVars(self): # define initial variables
-    # global flameDir
-    # flameDir = 'toRight'
-    # Add time/frame plotting toggle - CAS
-    # self.isPlotTimevsFrame = False #True
-    # self.connectivity_HT = 4
     self.lightROI_HT_recorded = False
+    self.connectivity = self.connectivityGroup.checkedAction()
+    self.connectivity = self.connectivity.text()
 
 def getFilteredFrame(self, frame):
     # Filter here: #CAS Modified for HSV tracking instead of color tracking
@@ -77,7 +63,7 @@ def getFilteredFrame(self, frame):
     (threshold, frameBW) = ft.cv2.threshold(grayFrame, 0, 255, ft.cv2.THRESH_BINARY)
 
     # Find all the connected components (8 means in the four directions and diagonals)
-    componentNum, componentLbl, stats, centroids = ft.cv2.connectedComponentsWithStats(frameBW, connectivity = int(self.connectivityBox.currentText())) # self.connectivity_HT)
+    componentNum, componentLbl, stats, centroids = ft.cv2.connectedComponentsWithStats(frameBW, connectivity = int(self.connectivity)) # self.connectivity_HT) Box.currentText()
     ### 1 = number of labels; 2 = array; 3 = [[x location (left), y location (top), width, height, area]] for each label; 4 = [centroid of each label, x and y]. Note: the background is the first component
 
     # minimum area (measured in px) for filtering the components
@@ -95,7 +81,7 @@ def getFilteredFrame(self, frame):
 
     findFlameEdges(self, frameBW, flamePx)
 
-    if self.showEdges.isChecked() == True:
+    if self.showEdges_HT.isChecked() == True:
         ft.cv2.line(frame, (self.xMax, 0),(self.xMax, int(self.roiFourIn.text())), (255, 255, 255), 2)
         ft.cv2.line(frame, (self.xMin, 0),(self.xMin, int(self.roiFourIn.text())), (255, 255, 255), 2)
         ft.cv2.line(frameBW, (self.xMax, 0),(self.xMax, int(self.roiFourIn.text())), (255, 255, 255), 2)
@@ -106,24 +92,19 @@ def getFilteredFrame(self, frame):
     totalBytes = frame.nbytes
     # divide by the number of rows
     bytesPerLine = int(totalBytes/frame.shape[0]) #I had to introduce it to avoid distortion in the opened file for some of the videos
-    if self.pyqtVer == '5':
-        self.frame = ft.QImage(frame.data, frame.shape[1], frame.shape[0], bytesPerLine, ft.QImage.Format_BGR888)#.rgbSwapped() #shape[0] = height, [1] = width QImage.Format_Indexed8 BGR888
-        self.frame = self.frame.scaled(self.lbl1_HT.size(), ft.Qt.KeepAspectRatio, ft.Qt.SmoothTransformation)
-    elif self.pyqtVer == '6':
-        self.frame = ft.QImage(frame.data, frame.shape[1], frame.shape[0], bytesPerLine, ft.QImage.Format.Format_BGR888)#.rgbSwapped() #shape[0] = height, [1] = width QImage.Format_Indexed8 BGR888
-        self.frame = self.frame.scaled(self.lbl1_HT.size(), ft.Qt.AspectRatioMode.KeepAspectRatio, ft.Qt.TransformationMode.SmoothTransformation)
+    self.frame = ft.QImage(frame.data, frame.shape[1], frame.shape[0], bytesPerLine, ft.QImage.Format.Format_BGR888)#.rgbSwapped() #shape[0] = height, [1] = width QImage.Format_Indexed8 BGR888
+    self.frame = self.frame.scaled(self.lbl1_HT.size(), ft.Qt.AspectRatioMode.KeepAspectRatio, ft.Qt.TransformationMode.SmoothTransformation)
+
+    print('frame.self.lbl1_HT.size()[1]', self.lbl1_HT.size())
+    print('frame', self.frame.height())
 
     self.currentFrameBW_HT = frameBW
     # calculate the total number of bytes in the frame for lbl2
     totalBytesBW = frameBW.nbytes
     # divide by the number of rows
     bytesPerLineBW = int(totalBytesBW/frameBW.shape[0]) #I had to introduce it to avoid distortion in the opened file for some of the videos
-    if self.pyqtVer == '5':
-        self.frameBW = ft.QImage(frameBW.data, frameBW.shape[1], frameBW.shape[0], bytesPerLineBW, ft.QImage.Format_Grayscale8)#.rgbSwapped() #shape[0] = height, [1] = width QImage.Format_Indexed8 or Grayscale8 BGR888
-        self.frameBW = self.frameBW.scaled(self.lbl1_HT.size(), ft.Qt.KeepAspectRatio, ft.Qt.SmoothTransformation)
-    elif self.pyqtVer == '6':
-        self.frameBW = ft.QImage(frameBW.data, frameBW.shape[1], frameBW.shape[0], bytesPerLineBW, ft.QImage.Format.Format_Grayscale8)#.rgbSwapped() #shape[0] = height, [1] = width QImage.Format_Indexed8 or Grayscale8 BGR888
-        self.frameBW = self.frameBW.scaled(self.lbl1_HT.size(), ft.Qt.AspectRatioMode.KeepAspectRatio, ft.Qt.TransformationMode.SmoothTransformation)
+    self.frameBW = ft.QImage(frameBW.data, frameBW.shape[1], frameBW.shape[0], bytesPerLineBW, ft.QImage.Format.Format_Grayscale8)#.rgbSwapped() #shape[0] = height, [1] = width QImage.Format_Indexed8 or Grayscale8 BGR888
+    self.frameBW = self.frameBW.scaled(self.lbl1_HT.size(), ft.Qt.AspectRatioMode.KeepAspectRatio, ft.Qt.TransformationMode.SmoothTransformation)
 
 def findFlameEdges(self, frameBW, flamePx):
     # global flameDir
@@ -161,13 +142,15 @@ def HSVTracking(self):
         scale = False
         msg = ft.QMessageBox(self)
         msg.setText('The scale [px/mm] has not been specified')
-        if self.pyqtVer == '5':
-            msg.exec_()
-        elif self.pyqtVer == '6':
-            msg.exec()
+        # if self.pyqtVer == '5':
+        #     msg.exec_()
+        # elif self.pyqtVer == '6':
+        msg.exec()
 
     firstFrame = int(self.firstFrameIn.text())
     lastFrame = int(self.lastFrameIn.text())
+    self.connectivity = self.connectivityGroup.checkedAction()
+    self.connectivity = self.connectivity.text()
     currentFrame = firstFrame
     self.xRight_px = list()
     self.xLeft_px = list()
@@ -177,12 +160,10 @@ def HSVTracking(self):
     self.frameCount = list()
     flameArea = list()
 
-    if self.exportEdges_HT.isChecked() or self.exportTrackOverlay_HT.isChecked():
-        fps = (float(self.vFpsLbl.text()))/(int(self.skipFrameIn.text()) + 1) #fps(new) = fps(original)/(skipframes + 1)
-        codec = str(self.codecIn.text())
-        vFormat = str(self.formatIn.text())
-        vName = self.fPath + '-trackedVideo.' + str(vFormat) # alternative: 'output.{}'.format(vFormat);   self.fNameLbl.text()
-        fourcc = ft.cv2.VideoWriter_fourcc(*codec)
+    if self.exportVideo_HT.isChecked() or self.exportTrackOverlay_HT.isChecked():
+        fps = (float(self.vFps))/(int(self.skipFrameIn.text()) + 1)
+        vName = self.fPath + '-trackedVideo.' + str(self.vFormat) # alternative: 'output.{}'.format(vFormat);   self.fNameLbl.text()
+        fourcc = ft.cv2.VideoWriter_fourcc(*self.codec)
         size = (int(self.roiThreeIn.text()), int(self.roiFourIn.text()))
         # open and set properties
         vout = ft.cv2.VideoWriter()
@@ -214,10 +195,10 @@ def HSVTracking(self):
                 else:
                     msg = ft.QMessageBox(self)
                     msg.setText('Before the tracking, please click on "Pick a bright region" to select a region where the light is visible.')
-                    if self.pyqtVer == '5':
-                        msg.exec_()
-                    elif self.pyqtVer == '6':
-                        msg.exec()
+                    # if self.pyqtVer == '5':
+                    #     msg.exec_()
+                    # elif self.pyqtVer == '6':
+                    msg.exec()
                     break
 
                 if len(flamePx_light[0]) < 0.5 * area_lightROI: #if the bright area is larger than the ROI area
@@ -236,7 +217,7 @@ def HSVTracking(self):
             self.xLeft_mm.append(self.xLeft / float(self.scaleIn.text()))
             flameArea.append(self.flameArea)
             self.frameCount.append(currentFrame)
-            if self.exportEdges_HT.isChecked() and not self.exportTrackOverlay_HT.isChecked():
+            if self.exportVideo_HT.isChecked() and not self.exportTrackOverlay_HT.isChecked():
                 vout.write(self.currentFrameRGB_HT)
             elif self.exportTrackOverlay_HT.isChecked():
                 #CAS Add Track lines over cropped video
@@ -280,7 +261,7 @@ def HSVTracking(self):
         print('Progress: 100 % - Tracking completed')
         self.msgLabel.setText('Tracking completed')
 
-        if self.exportEdges_HT.isChecked() or self.exportTrackOverlay_HT.isChecked():
+        if self.exportVideo_HT.isChecked() or self.exportTrackOverlay_HT.isChecked():
             vout.release()
             self.msgLabel.setText('Tracking completed and video created.')
 
@@ -321,78 +302,41 @@ def HSVTracking(self):
         self.spreadRateLeft = ft.np.round(self.spreadRateLeft, 3)
         self.spreadRateLeft = self.spreadRateLeft.tolist()
 
-        self.lbl1_HT = ft.pg.PlotWidget(self.HSVTrackingBox)
-        if ft.sys.platform == 'darwin' or ft.sys.platform == 'linux':
-            lbl1 = [370,  25, 670, 125]
-            lbl2 = [370, 150, 670, 125]
-        elif ft.sys.platform == 'win32':
-            lbl1 = [370,  15, 670, 125]
-            lbl2 = [370, 150, 670, 125]
+        self.plot1_HT.setLabel('left', str(yAxis_lbl1), color='black', size=14)
+        self.plot1_HT.setLabel('bottom', str(xAxis_lbl1), color='black', size=14)
 
-        self.lbl1_HT.setGeometry(lbl1[0], lbl1[1], lbl1[2], lbl1[3]) # Changed geometry as removed BW image display
-        self.lbl1_HT.setBackground('w')
-        # self.lbl1_HT.setLabel('left', 'Position [mm]', color='black', size=14)
-        self.lbl1_HT.setLabel('left', str(yAxis_lbl1), color='black', size=14)
-        self.lbl1_HT.setLabel('bottom', str(xAxis_lbl1), color='black', size=14)
-        # if self.isPlotTimevsFrame:
-        #     ## Plot in terms of time
-        #     self.lbl1_HT.setLabel('bottom', 'Time [s]', color='black', size=14)
-        # else:
-        #     ## CAS Plot in terms of frame:
-        #     self.lbl1_HT.setLabel('bottom', 'Frame', color='black', size=14)
+        self.plot1_HT.getAxis('bottom').setPen(color=(0, 0, 0))
+        self.plot1_HT.getAxis('left').setPen(color=(0, 0, 0))
+        self.plot1_HT.addLegend(offset = [1, 0.1]) # background color modified in line 122 and 123 of Versions/3.7/lib/python3.7/site-packages/pyqtgraph/graphicsItems
+        self.plot2_HT.setLabel('left', str(yAxis_lbl2), color='black', size=14)
+        self.plot2_HT.setLabel('bottom', str(xAxis_lbl2), color='black', size=14)
 
-        self.lbl1_HT.getAxis('bottom').setPen(color=(0, 0, 0))
-        self.lbl1_HT.getAxis('left').setPen(color=(0, 0, 0))
-        self.lbl1_HT.addLegend(offset = [1, 0.1]) # background color modified in line 122 and 123 of Versions/3.7/lib/python3.7/site-packages/pyqtgraph/graphicsItems
-        self.lbl2_HT = ft.pg.PlotWidget(self.HSVTrackingBox)
-        self.lbl2_HT.setGeometry(lbl2[0], lbl2[1], lbl2[2], lbl2[3])
-        #print('\nView rect=', self.lbl2_HT.viewRect() )
-        #print('\nGeometry set to', self.lbl2_HT.viewGeometry())
-        self.lbl2_HT.setBackground('w')
-        # self.lbl2_HT.setLabel('left', 'Spread Rate [mm/s]', color='black', size=14)
-        self.lbl2_HT.setLabel('left', str(yAxis_lbl2), color='black', size=14)
-        self.lbl2_HT.setLabel('bottom', str(xAxis_lbl2), color='black', size=14)
-        # if self.isPlotTimevsFrame:
-        #     ## Plot in terms of time
-        #     self.lbl2_HT.setLabel('bottom', 'Time [s]', color='black', size=14)
-        # else:
-        #     ## CAS Plot in terms of frame:
-        #     self.lbl2_HT.setLabel('bottom', 'Frame', color='black', size=14)
+        self.plot2_HT.getAxis('bottom').setPen(color=(0, 0, 0))
+        self.plot2_HT.getAxis('left').setPen(color=(0, 0, 0))
+        self.plot2_HT.addLegend(offset = [1, 0.1]) # background color modified in line 122 and 123 of Versions/3.7/lib/python3.7/site-packages/pyqtgraph/graphicsItems
 
-        self.lbl2_HT.getAxis('bottom').setPen(color=(0, 0, 0))
-        self.lbl2_HT.getAxis('left').setPen(color=(0, 0, 0))
-        self.lbl2_HT.addLegend(offset = [1, 0.1]) # background color modified in line 122 and 123 of Versions/3.7/lib/python3.7/site-packages/pyqtgraph/graphicsItems
-
-        # if self.isPlotTimevsFrame:
-        #     ## Plot in terms of time
-        #     HSVTrackingPlot(self.lbl1_HT, self.timeCount, self.xRight_mm, 'right edge', 'o', 'b')
-        #     HSVTrackingPlot(self.lbl1_HT, self.timeCount, self.xLeft_mm, 'left edge', 't', 'r')
-        #     HSVTrackingPlot(self.lbl2_HT, self.timeCount, self.spreadRateRight, 'right edge', 'o', 'b')
-        #     HSVTrackingPlot(self.lbl2_HT, self.timeCount, self.spreadRateLeft, 'left edge', 't', 'r')
-        # else:
-        #     ## CAS Plot in terms of frame:
-        #     HSVTrackingPlot(self.lbl1_HT, self.frameCount, self.xRight_mm, 'right edge', 'o', 'b')
-        #     HSVTrackingPlot(self.lbl1_HT, self.frameCount, self.xLeft_mm, 'left edge', 't', 'r')
-        #     HSVTrackingPlot(self.lbl2_HT, self.frameCount, self.spreadRateRight, 'right edge', 'o', 'b')
-        #     HSVTrackingPlot(self.lbl2_HT, self.frameCount, self.spreadRateLeft, 'left edge', 't', 'r')
         xPlot1, yRight1, yLeft1 = selectAxes(self, xAxis_lbl1, yAxis_lbl1)
         xPlot2, yRight2, yLeft2 = selectAxes(self, xAxis_lbl2, yAxis_lbl2)
 
         if yAxis_lbl1 == 'Flame length [mm]':
-            HSVTrackingPlot(self.lbl1_HT, xPlot1, yRight1, 'flame length', 'o', 'b')
+            HSVTrackingPlot(self.plot1_HT, xPlot1, yRight1, 'flame length', 'o', 'b')
+        elif yAxis_lbl1 == 'Flame area [mm2]':
+            HSVTrackingPlot(self.plot1_HT, xPlot1, yRight1, 'flame area', 'o', 'b')
         else:
-            HSVTrackingPlot(self.lbl1_HT, xPlot1, yRight1, 'right edge', 'o', 'b')
-            HSVTrackingPlot(self.lbl1_HT, xPlot1, yLeft1, 'left edge', 't', 'r')
+            HSVTrackingPlot(self.plot1_HT, xPlot1, yRight1, 'right edge', 'o', 'b')
+            HSVTrackingPlot(self.plot1_HT, xPlot1, yLeft1, 'left edge', 't', 'r')
 
         if yAxis_lbl2 == 'Flame length [mm]':
-            HSVTrackingPlot(self.lbl2_HT, xPlot2, yRight2, 'flame length', 'o', 'b')
+            HSVTrackingPlot(self.plot2_HT, xPlot2, yRight2, 'flame length', 'o', 'b')
+        elif yAxis_lbl2 == 'Flame area [mm2]':
+            HSVTrackingPlot(self.plot2_HT, xPlot2, yRight2, 'flame area', 'o', 'b')
         else:
-            HSVTrackingPlot(self.lbl2_HT, xPlot2, yRight2, 'right edge', 'o', 'b')
-            HSVTrackingPlot(self.lbl2_HT, xPlot2, yLeft2, 'left edge', 't', 'r')
+            HSVTrackingPlot(self.plot2_HT, xPlot2, yRight2, 'right edge', 'o', 'b')
+            HSVTrackingPlot(self.plot2_HT, xPlot2, yLeft2, 'left edge', 't', 'r')
 
-        # print('Showing!')
-        self.lbl1_HT.show()
-        self.lbl2_HT.show()
+        self.win1_HT.setCurrentIndex(1) #to activate the preview tab in the analysis box
+        self.win2_HT.setCurrentIndex(1)
+
 
 def HSVTrackingPlot(label, x, y, name, symbol, color):
     pen = ft.pg.mkPen(color)
@@ -409,21 +353,6 @@ def filterParticleSldr(self):
     getFilteredFrame(self, frameCrop)
     self.lbl1_HT.setPixmap(ft.QPixmap.fromImage(self.frame))
     self.lbl2_HT.setPixmap(ft.QPixmap.fromImage(self.frameBW))
-
-# def chooseFlameDirection(self, text):
-#     global flameDir
-#     selection = self.directionBox.currentText()
-#     if selection == 'Left to right':
-#         flameDir = 'toRight'
-#     elif selection == 'Right to left':
-#         flameDir = 'toLeft'
-
-# def connectivityBox(self, text):
-#     selection = self.connectivityBox.currentText()
-#     if selection == '4':
-#         self.connectivity_HT = 4
-#     elif selection == '8':
-#         self.connectivity_HT = 8
 
 def saveChannelsBtn(self):
     name = ft.QFileDialog.getSaveFileName(self, 'Save channel values')
@@ -447,7 +376,7 @@ def saveChannelsBtn(self):
                 writer.writerow(['Moving average', str(self.movAvgIn_HT.text())])
                 writer.writerow(['Points LE', str(self.avgLEIn_HT.text())])
                 # writer.writerow(['Connectivity', str(self.connectivity_HT)])
-                writer.writerow(['Connectivity', self.connectivityBox.currentText()])
+                writer.writerow(['Connectivity', self.connectivity]) #Box.currentText()
             self.msgLabel.setText('Channel values saved.')
         except:
             self.msgLabel.setText('Ops! The values were not saved.')
@@ -523,35 +452,30 @@ def absValBtn(self):
     self.xRight_mm = abs_xRight_mm
     self.xLeft_mm = abs_xLeft_mm
 
-    self.lbl1_HT.clear()
-    self.lbl2_HT.clear()
-
-    ## Plot in terms of time:
-    #HSVTrackingPlot(self.lbl1_HT, self.timeCount, self.xRight_mm, '', 'o', 'b')
-    #HSVTrackingPlot(self.lbl1_HT, self.timeCount, self.xLeft_mm, '','t', 'r')
-    #HSVTrackingPlot(self.lbl2_HT, self.timeCount, self.spreadRateRight, '', 'o', 'b')
-    #HSVTrackingPlot(self.lbl2_HT, self.timeCount, self.spreadRateLeft, '','t', 'r')
-
-    ## CAS Plot in terms of frame:
-    # HSVTrackingPlot(self.lbl1_HT, self.frameCount, self.xRight_mm, '', 'o', 'b')
-    # HSVTrackingPlot(self.lbl1_HT, self.frameCount, self.xLeft_mm, '','t', 'r')
-    # HSVTrackingPlot(self.lbl2_HT, self.frameCount, self.spreadRateRight, '', 'o', 'b')
-    # HSVTrackingPlot(self.lbl2_HT, self.frameCount, self.spreadRateLeft, '','t', 'r')
+    self.plot1_HT.clear()
+    self.plot2_HT.clear()
 
     xPlot1, yRight1, yLeft1 = selectAxes(self, xAxis_lbl1, yAxis_lbl1)
     xPlot2, yRight2, yLeft2 = selectAxes(self, xAxis_lbl2, yAxis_lbl2)
 
     if yAxis_lbl1 == 'Flame length [mm]':
-        HSVTrackingPlot(self.lbl1_HT, xPlot1, yRight1, 'flame length', 'o', 'b')
+        HSVTrackingPlot(self.plot1_HT, xPlot1, yRight1, 'flame length', 'o', 'b')
+    elif yAxis_lbl1 == 'Flame area [mm2]':
+        HSVTrackingPlot(self.plot1_HT, xPlot1, yRight1, 'flame area', 'o', 'b')
     else:
-        HSVTrackingPlot(self.lbl1_HT, xPlot1, yRight1, 'right edge', 'o', 'b')
-        HSVTrackingPlot(self.lbl1_HT, xPlot1, yLeft1, 'left edge', 't', 'r')
+        HSVTrackingPlot(self.plot1_HT, xPlot1, yRight1, 'right edge', 'o', 'b')
+        HSVTrackingPlot(self.plot1_HT, xPlot1, yLeft1, 'left edge', 't', 'r')
 
     if yAxis_lbl2 == 'Flame length [mm]':
-        HSVTrackingPlot(self.lbl2_HT, xPlot2, yRight2, 'flame length', 'o', 'b')
+        HSVTrackingPlot(self.plot2_HT, xPlot2, yRight2, 'flame length', 'o', 'b')
+    elif yAxis_lbl2 == 'Flame area [mm2]':
+        HSVTrackingPlot(self.plot2_HT, xPlot2, yRight2, 'flame area', 'o', 'b')
     else:
-        HSVTrackingPlot(self.lbl2_HT, xPlot2, yRight2, 'right edge', 'o', 'b')
-        HSVTrackingPlot(self.lbl2_HT, xPlot2, yLeft2, 'left edge', 't', 'r')
+        HSVTrackingPlot(self.plot2_HT, xPlot2, yRight2, 'right edge', 'o', 'b')
+        HSVTrackingPlot(self.plot2_HT, xPlot2, yLeft2, 'left edge', 't', 'r')
+
+    self.win1_HT.setCurrentIndex(1)
+    self.win2_HT.setCurrentIndex(1)
 
 def saveBtn(self):
     fileName = ft.QFileDialog.getSaveFileName(self, 'Save tracking data')
@@ -559,7 +483,7 @@ def saveBtn(self):
     if not fileName[-4:] == '.csv':
         fileName = fileName + '.csv'
 
-    fileInfo = ['Name', self.fNameLbl.text(), 'Scale [px/mm]', self.scaleIn.text(), 'Moving avg', self.movAvgIn_HT.text(), 'Points LE', self.avgLEIn_HT.text(), 'Flame dir.:', self.directionBox.currentText(), 'code version', str(self.FTversion)]
+    fileInfo = ['Name', self.fNameLbl.text(), 'Scale [px/mm]', self.scaleIn.text(), 'Moving avg', self.movAvgIn_HT.text(), 'Points LE', self.avgLEIn_HT.text(), 'Flame dir.:', self.directionBox.currentText(), 'code version', str(self.version_FT)]
     lbl = ['File info', 'Frame', 'Time [s]', 'Right Edge [mm]', 'Left Edge [mm]', 'Length [mm]', 'Spread Rate RE [mm/s]', 'Spread Rate LE [mm/s]', 'Area [mm^2]']
     clms = [fileInfo, self.frameCount, self.timeCount, self.xRight_mm, self.xLeft_mm, self.flameLength_mm, self.spreadRateRight, self.spreadRateLeft, self.flameArea]
     clms_zip = ft.zip_longest(*clms)
@@ -600,30 +524,6 @@ def lightROIBtn(self):
     self.lightROI_HT = ft.cv2.selectROI(frame)
     ft.cv2.destroyAllWindows()
     self.lightROI_HT_recorded = True
-
-def helpBtn(self):
-    msg = ft.QMessageBox(self)
-    msg.setText("""HSV Tracking allows you to track a flame in an automatic way by considering the intensity in the HSV space of each pixel in the ROI.
-
-    The flame region can be identified by choosing appropriate values of the HSV parameters (and particle size filtering). The HSV values vary depending on the colorspace of the frame/image - current implementation uses a hue from 0-180 (since 0-360 deg hue is stored as H/2 for 8-bit), value and saturation are set from 0 to 255.
-    The code will consider the range between minimum and maximum of each of the HSV channels as adjusted with the sliders. Small particles can be filtered out. The value of the slider indicates the area (in px^2) of the regions to remove from the image/frame, and you can change the maximum value by typing a number in the text box next to 'Filter particles'.
-
-    The preview box on the left shows the RGB image resulting from the filtering, while the preview box on the right shows the binary image with the particle filtering applied. The edges of the flame region are calculated as maximum and minimum locations.
-
-    If there is a flashing or strobe light in the recorded video, you can click on 'Pick bright region' to choose a rectangular region (in the same way that the ROI is selected) that is illuminated when the light is on and dark when it is off (this region is independent from the ROI specified in the 'Preview box'). The frames where the light is on can be discarded during the analysis by checking the 'Ignore flashing light' box.
-
-    Flame position and spread rates are calculated automatically once 'Start tracking' is clicked. The instantaneous spread rates are averaged according to the number of points specified by the user ('Moving Avg'). Note that the 'Moving Avg points' value is doubled for the calculation of the spread rate (i.e. 'Moving Avg points' = 2 considers two points before and two points after the instantaneous value).
-
-    By clicking on 'Absolute values', the x-axis of the tracked data will be shifted to the origin.
-
-    Click on 'Save data' to export a csv file with all the tracking results (position of left and right edges, their spread rates and their distance variation in time, as well as the area of the flame region).
-
-    If 'Video output' is checked, the filtered frames are exported as a new video, which could be used to visually check the tracking accuracy.
-    """)
-    if self.pyqtVer == '5':
-        msg.exec_()
-    elif self.pyqtVer == '6':
-        msg.exec()
 
 def hueMinLeftBtn(self):
     currentValue = self.hueMinSlider.value()
@@ -692,6 +592,9 @@ def selectAxes(self, xAxis_lbl, yAxis_lbl):
     elif yAxis_lbl == 'Spread rate [mm/s]':
         yRight = self.spreadRateRight
         yLeft = self.spreadRateLeft
+    elif yAxis_lbl == 'Flame area [mm2]':
+        yRight = self.flameArea
+        yLeft = 0
 
     return(xPlot, yRight, yLeft)
 
@@ -701,33 +604,38 @@ def updateGraphsBtn(self):
         yAxis_lbl1 = self.yAxis_lbl1.currentText()
         xAxis_lbl2 = self.xAxis_lbl2.currentText()
         yAxis_lbl2 = self.yAxis_lbl2.currentText()
-        self.lbl1_HT.clear()
-        self.lbl2_HT.clear()
-        self.lbl1_HT.addLegend(offset = [1, 0.1])
-        self.lbl2_HT.addLegend(offset = [1, 0.1])
+        self.plot1_HT.clear()
+        self.plot2_HT.clear()
+        self.plot1_HT.addLegend(offset = [1, 0.1])
+        self.plot2_HT.addLegend(offset = [1, 0.1])
 
         xPlot1, yRight1, yLeft1 = selectAxes(self, xAxis_lbl1, yAxis_lbl1)
         xPlot2, yRight2, yLeft2 = selectAxes(self, xAxis_lbl2, yAxis_lbl2)
 
-        self.lbl1_HT.setLabel('left', str(yAxis_lbl1), color='black', size=14)
-        self.lbl1_HT.setLabel('bottom', str(xAxis_lbl1), color='black', size=14)
-        self.lbl2_HT.setLabel('left', str(yAxis_lbl2), color='black', size=14)
-        self.lbl2_HT.setLabel('bottom', str(xAxis_lbl2), color='black', size=14)
+        self.plot1_HT.setLabel('left', str(yAxis_lbl1), color='black', size=14)
+        self.plot1_HT.setLabel('bottom', str(xAxis_lbl1), color='black', size=14)
+        self.plot2_HT.setLabel('left', str(yAxis_lbl2), color='black', size=14)
+        self.plot2_HT.setLabel('bottom', str(xAxis_lbl2), color='black', size=14)
 
         if yAxis_lbl1 == 'Flame length [mm]':
-            HSVTrackingPlot(self.lbl1_HT, xPlot1, yRight1, 'flame length', 'o', 'b')
+            HSVTrackingPlot(self.plot1_HT, xPlot1, yRight1, 'flame length', 'o', 'b')
+        elif yAxis_lbl1 == 'Flame area [mm2]':
+            HSVTrackingPlot(self.plot1_HT, xPlot1, yRight1, 'flame area', 'o', 'b')
         else:
-            HSVTrackingPlot(self.lbl1_HT, xPlot1, yRight1, 'right edge', 'o', 'b')
-            HSVTrackingPlot(self.lbl1_HT, xPlot1, yLeft1, 'left edge', 't', 'r')
+            HSVTrackingPlot(self.plot1_HT, xPlot1, yRight1, 'right edge', 'o', 'b')
+            HSVTrackingPlot(self.plot1_HT, xPlot1, yLeft1, 'left edge', 't', 'r')
 
         if yAxis_lbl2 == 'Flame length [mm]':
-            HSVTrackingPlot(self.lbl2_HT, xPlot2, yRight2, 'flame length', 'o', 'b')
+            HSVTrackingPlot(self.plot2_HT, xPlot2, yRight2, 'flame length', 'o', 'b')
+        elif yAxis_lbl2 == 'Flame area [mm2]':
+            HSVTrackingPlot(self.plot2_HT, xPlot2, yRight2, 'flame area', 'o', 'b')
         else:
-            HSVTrackingPlot(self.lbl2_HT, xPlot2, yRight2, 'right edge', 'o', 'b')
-            HSVTrackingPlot(self.lbl2_HT, xPlot2, yLeft2, 'left edge', 't', 'r')
+            HSVTrackingPlot(self.plot2_HT, xPlot2, yRight2, 'right edge', 'o', 'b')
+            HSVTrackingPlot(self.plot2_HT, xPlot2, yLeft2, 'left edge', 't', 'r')
 
-        self.lbl1_HT.show()
-        self.lbl2_HT.show()
+        self.win1_HT.setCurrentIndex(1)
+        self.win2_HT.setCurrentIndex(1)
+
     except:
         print('Unexpected error:', ft.sys.exc_info())
         self.msgLabel.setText('Error: the graphs could not be updated.')
