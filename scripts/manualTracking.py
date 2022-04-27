@@ -25,9 +25,6 @@ import flameTracker as ft
 import boxesGUI_OS as gui
 
 def initVars(self): # define initial variables
-    # global lightStatus #flameDir
-    # flameDir = 'toRight'
-    # lightStatus = 'None'
     self.lightROI_MT_recorded = False
 
 def startTracking(self):
@@ -37,49 +34,18 @@ def startTracking(self):
     yAxis_lbl1 = self.yAxis_lbl1.currentText()
     xAxis_lbl2 = self.xAxis_lbl2.currentText()
     yAxis_lbl2 = self.yAxis_lbl2.currentText()
-    # if xAxisSel_lbl1 == 'Time':
-    #     xAxis_lbl1 = 'Time [s]'
-    # elif xAxisSel_lbl1 == 'Frames':
-    #     xAxis_lbl1 = 'Frame #'
-    # if yAxisSel_lbl1 == 'Position [mm]':
-    #     yAxis_lbl1 = 'Position [mm]'
-    # elif yAxisSel_lbl1 == 'Position [px]':
-    #     yAxis_lbl1 = 'Position [px]'
-    # elif yAxisSel_lbl1 == 'Spread rate':
-    #     yAxis_lbl1 = 'Spread rate [mm/s]'
 
-    # if xAxisSel_lbl2 == 'Time':
-    #     xAxis_lbl2 = 'Time [s]'
-    # elif xAxisSel_lbl2 == 'Frames':
-    #     xAxis_lbl2 = 'Frame #'
-    # if yAxisSel_lbl2 == 'Position [mm]':
-    #     yAxis_lbl2 = 'Position [mm]'
-    # elif yAxisSel_lbl2 == 'Position [px]':
-    #     yAxis_lbl2 = 'Position [px]'
-    # elif yAxisSel_lbl2 == 'Spread rate':
-    #     yAxis_lbl2 = 'Spread rate [mm/s]'
-
-    # transforming the first label into a plot
-    # self.lbl1_MT.deleteLater()
-    # self.lbl1_MT = ft.pg.PlotWidget()
-    # self.box_layout.addWidget(self.lbl1_MT, 0, 3, 8, 4)
-
-#    self.lbl1_MT = ft.pg.PlotWidget(self.manualTrackingBox)
-    # self.lbl1_MT.setGeometry(250, 25, 390, 270)
-    # self.lbl1_MT.setBackground('w')
     self.plot1_MT.clear()
     self.plot1_MT.setLabel('left', str(yAxis_lbl1), color='black', size=14)
-    # self.lbl1_MT.setLabel('bottom', 'Time [s]', color='black', size=14)
     self.plot1_MT.setLabel('bottom', str(xAxis_lbl1), color='black', size=14)
     self.plot1_MT.getAxis('bottom').setPen(color=(0, 0, 0))
     self.plot1_MT.getAxis('left').setPen(color=(0, 0, 0))
-    # For versions before v1.1.4: background color modified in line 122 and 123 of Versions/3.7/lib/python3.7/site-packages/pyqtgraph/graphicsItems
     self.plot1_MT.addLegend(offset = [1, 0.1])
 
     firstFrame = int(self.firstFrameIn.text())
     lastFrame = int(self.lastFrameIn.text())
 
-    scale = True
+    # scale = True
 
     #Set up the first frame for analysis and clk for the mouse event
     currentFrame = firstFrame
@@ -103,12 +69,9 @@ def startTracking(self):
         print('Frame #:', currentFrame, end='\r')
 
         if not self.scaleIn.text():
-            scale = False
+            # scale = False
             msg = ft.QMessageBox(self)
             msg.setText('The scale [px/mm] has not been specified')
-            # if self.pyqtVer == '5':
-            #     msg.exec_()
-            # elif self.pyqtVer == '6':
             msg.exec()
             break
 
@@ -202,9 +165,6 @@ def startTracking(self):
     if len(timeCount) == 0:
         msg = ft.QMessageBox(self)
         msg.setText('No frames were detected, please check ROI size and light settings.')
-        # if self.pyqtVer == '5':
-        #     msg.exec_()
-        # elif self.pyqtVer == '6':
         msg.exec()
 
     ft.cv2.destroyAllWindows()
@@ -215,59 +175,38 @@ def startTracking(self):
     self.time_plot = timeCount
     # moving average of the spread rate values
     self.spreadRate = dict()
-    if scale:
-        for n in range(nClicks):
-            for i in range(len(timeCount['1'])-1):
-                xCoeff = ft.np.polyfit(timeCount['1'][(i):(i + 2)], posX_mm[str(n+1)][(i):(i + 2)], 1)
-                spreadRate = xCoeff[0]
-                if str(n+1) in self.spreadRate:
-                    self.spreadRate[str(n+1)].append(spreadRate)
-                else:
-                    self.spreadRate[str(n+1)] = [spreadRate]
-            #repeat the last value
-            self.spreadRate[str(n+1)].append(xCoeff[0])
+    # if scale:
+    for n in range(nClicks):
+        for i in range(len(timeCount['1'])-1):
+            xCoeff = ft.np.polyfit(timeCount['1'][(i):(i + 2)], posX_mm[str(n+1)][(i):(i + 2)], 1)
+            spreadRate = xCoeff[0]
+            if str(n+1) in self.spreadRate:
+                self.spreadRate[str(n+1)].append(spreadRate)
+            else:
+                self.spreadRate[str(n+1)] = [spreadRate]
+        #repeat the last value
+        self.spreadRate[str(n+1)].append(xCoeff[0])
 
-        self.lbl2_MT.clear()
-        self.lbl2_MT.addLegend(offset = [1, 0.1]) # background color modified in line 122 and 123 of python3.7/site-packages/pyqtgraph/graphicsItems
-        color = ['b', 'r', 'k', 'g', 'c', 'y']
-        for n in range(nClicks):
-            name = 'click{}'.format([n+1])
-            try:
-                clr = color[n]
-            except:
-                if n > len(color):
-                    self.msgLabel.setText('Not enough colors for plotting.')
+    self.lbl2_MT.clear()
+    self.lbl2_MT.addLegend(offset = [1, 0.1]) # background color modified in line 122 and 123 of python3.7/site-packages/pyqtgraph/graphicsItems
+    color = ['b', 'r', 'k', 'g', 'c', 'y']
+    for n in range(nClicks):
+        name = 'click{}'.format([n+1])
+        try:
+            clr = color[n]
+        except:
+            if n > len(color):
+                self.msgLabel.setText('Not enough colors for plotting.')
 
-            xPlot1, yPlot1 = selectAxes(self, xAxis_lbl1, yAxis_lbl1, n)
-            xPlot2, yPlot2 = selectAxes(self, xAxis_lbl2, yAxis_lbl2, n)
-            # if xAxis_lbl1 == 'Time [s]':
-            #     xPlot1 = self.time_plot['1']
-            # elif xAxis_lbl1 == 'Frame #':
-            #     xPlot1 = self.frames_plot['1']
-            # if yAxis_lbl1 == 'Position [mm]':
-            #     yPlot1 = self.posX_plot[str(n+1)]
-            # elif yAxis_lbl1 == 'Position [px]':
-            #     yPlot1 = self.posX_px[str(n+1)]
-            # elif yAxis_lbl1 == 'Spread rate [mm/s]':
-            #     yPlot1 = self.spreadRate[str(n+1)]
-            #
-            # if xAxis_lbl2 == 'Time [s]':
-            #     xPlot2 = self.time_plot['1']
-            # elif xAxis_lbl2 == 'Frame #':
-            #     xPlot2 = self.frames_plot['1']
-            # if yAxis_lbl2 == 'Position [mm]':
-            #     yPlot2 = self.posX_plot[str(n+1)]
-            # elif yAxis_lbl2 == 'Position [px]':
-            #     yPlot2 = self.posX_px[str(n+1)]
-            # elif yAxis_lbl2 == 'Spread rate [mm/s]':
-            #     yPlot2 = self.spreadRate[str(n+1)]
-            # manualTrackingPlot(self.lbl1_MT, self.time_plot['1'], self.posX_plot[str(n+1)], name, 'o', clr)
-            manualTrackingPlot(self.plot1_MT, xPlot1, yPlot1, name, 'o', clr)
-            # manualTrackingPlot(self.lbl2_MT, self.time_plot['1'], self.spreadRate[str(n+1)], name, 'o', clr)
-            manualTrackingPlot(self.lbl2_MT, xPlot2, yPlot2, name, 'o', clr)
+        xPlot1, yPlot1 = selectAxes(self, xAxis_lbl1, yAxis_lbl1, n)
+        xPlot2, yPlot2 = selectAxes(self, xAxis_lbl2, yAxis_lbl2, n)
+        # manualTrackingPlot(self.lbl1_MT, self.time_plot['1'], self.posX_plot[str(n+1)], name, 'o', clr)
+        manualTrackingPlot(self.plot1_MT, xPlot1, yPlot1, name, 'o', clr)
+        # manualTrackingPlot(self.lbl2_MT, self.time_plot['1'], self.spreadRate[str(n+1)], name, 'o', clr)
+        manualTrackingPlot(self.lbl2_MT, xPlot2, yPlot2, name, 'o', clr)
 
-        self.plot1_MT.show()
-        self.win1_MT.setCurrentIndex(1)#self.win1_MT.findChild(QWidget, tabname))
+    self.plot1_MT.show()
+    self.win1_MT.setCurrentIndex(1)
 
 # this function waits for the next mouse click
 def click(event, x, y, flags, param):
@@ -327,25 +266,6 @@ def absValue(self):
           manualTrackingPlot(self.plot1_MT, xPlot1, yPlot1, '', 'o', clr)
           manualTrackingPlot(self.lbl2_MT, xPlot2, yPlot2, '', 'o', clr)
 
-# def chooseFlameDirection(self):
-#     global flameDir
-#     selection = self.directionBox.currentText()
-#     if selection == 'Left to right':
-#         flameDir = 'toRight'
-#     elif selection == 'Right to left':
-#         flameDir = 'toLeft'
-
-
-# def chooseLightFilter(self):
-#     global lightStatus
-#     selection = self.filterLight_MT.currentText()
-#     if selection == 'Track every frame':
-#         lightStatus = 'None'
-#     elif selection == 'Frames light on':
-#         lightStatus = 'lightOn'
-#     elif selection == 'Frames light off':
-#         lightStatus = 'lightOff'
-
 def lightROIBtn(self):
     frame, frameCrop = ft.checkEditing(self, self.frameNumber)
     self.lightROI_MT = ft.cv2.selectROI(frame)
@@ -359,7 +279,7 @@ def saveData(self):
         fileName = fileName + '.csv'
 
     try:
-        fileInfo = ['Name', self.fNameLbl.text(), 'Scale [px/mm]', self.scaleIn.text(), 'Manual Tracking', 'Flame dir.:', self.directionBox.currentText(), 'code version', str(self.FTversion)]
+        fileInfo = ['Name', self.fNameLbl.text(), 'Scale [px/mm]', self.scaleIn.text(), 'Manual Tracking', 'Flame dir.:', self.directionBox.currentText(), 'code version', str(self.version_FT)]
         lbl = ['File info', 'Frame', 'Time [s]']
         clmns = [fileInfo, self.frames_plot['1'], self.time_plot['1']]
         for n in range(int(self.nClicksLbl.text())):
@@ -456,7 +376,4 @@ def helpBtn(self):
 
     Click on 'Save data' to export a csv file with all the tracking results (position in pixel and mm for each point tracked, and their corresponding spread rate).
     """)
-    # if self.pyqtVer == '5':
-    #     msg.exec_()
-    # elif self.pyqtVer == '6':
     msg.exec()
