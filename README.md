@@ -51,7 +51,7 @@ For more information about installing and running the Flame Tracker (with the sc
 For issues with the code and/or the analysis, please attach screenshots or other useful information related to you problem with your question at: flameTrackerContact@gmail.com.
 
 # Code overview
-As mentioned before, the Flame Tracker folder contains a number of Python files: flameTracker.py, manualTracking.py, lumaTracking.py, colorTracking.py, HSVTracking.py, boxesGUI_OS.py, and templateAddition.py. The Flame Tracker is conceptually divided in two categories, video editing and video analysis. Both the scripts and the GUI follow this conceptual scheme.
+As mentioned before, the Flame Tracker folder contains a number of Python files: flameTracker.py, manualTracking.py, lumaTracking.py, RGBTracking.py, HSVTracking.py, boxesGUI_OS.py, and templateAddition.py. The Flame Tracker is conceptually divided in two categories, video editing and video analysis. Both the scripts and the GUI follow this conceptual scheme.
 The objects and their locations in the GUI are listed in boxesGUI_OS.py, with specific values depending on the operating system of the user. The file flameTracker.py (the only one launched by the user) controls the video editing, while the analysis methods, ie. manualTracking.py, lumaTracking.py, colorTracking.py, HSVTracking.py, represent methods to be used for the video analysis.
 
 - flameTracker.py: this is the main code to run Flame Tracker. Only the functions related to the "Preview Box" in the GUI are written in
@@ -63,7 +63,7 @@ this file.
 
 - lumaTracking.py: this script is used to track a flame automatically based on the luma intensity value of each pixel.
 
-- colorTracking.py: this script is used to automatically track a flame based on the color intensity of each pixel.
+- RGBTracking.py: this script is used to automatically track a flame based on the color intensity of each pixel (RGB channels).
 
 - HSVTracking.py: this script is used to track a flame based on Hue-Saturation-Value color space thresholding. Similar to color tracking and luma tracking, it is an automatic method requriing limited user input.
 
