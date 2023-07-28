@@ -1,6 +1,6 @@
 """
 Flame Tracker. This program is designed to track flames or bright objects in videos or images.
-Copyright (C) 2020-2022  Luca Carmignani
+Copyright (C) 2020-2023  Luca Carmignani
 
 This file is part of Flame Tracker.
 
@@ -171,21 +171,29 @@ def startTracking(self):
 
     self.posX_px = posX
     self.posX_plot = posX_mm
+    self.posY_px = posY
+    self.posY_plot = posY_mm
     self.frames_plot = frameCount
     self.time_plot = timeCount
     # moving average of the spread rate values
-    self.spreadRate = dict()
+    self.spreadRateX = dict()
+    self.spreadRateY = dict()
     # if scale:
     for n in range(nClicks):
         for i in range(len(timeCount['1'])-1):
             xCoeff = ft.np.polyfit(timeCount['1'][(i):(i + 2)], posX_mm[str(n+1)][(i):(i + 2)], 1)
             spreadRate = xCoeff[0]
-            if str(n+1) in self.spreadRate:
-                self.spreadRate[str(n+1)].append(spreadRate)
+            yCoeff = ft.np.polyfit(timeCount['1'][(i):(i + 2)], posY_mm[str(n+1)][(i):(i + 2)], 1)
+            spreadRateY = yCoeff[0]
+            if str(n+1) in self.spreadRateX:
+                self.spreadRateX[str(n+1)].append(spreadRate)
+                self.spreadRateY[str(n+1)].append(spreadRateY)
             else:
-                self.spreadRate[str(n+1)] = [spreadRate]
+                self.spreadRateX[str(n+1)] = [spreadRate]
+                self.spreadRateY[str(n+1)] = [spreadRateY]
         #repeat the last value
-        self.spreadRate[str(n+1)].append(xCoeff[0])
+        self.spreadRateX[str(n+1)].append(xCoeff[0])
+        self.spreadRateY[str(n+1)].append(yCoeff[0])
 
     self.lbl2_MT.clear()
     self.lbl2_MT.addLegend(offset = [1, 0.1]) # background color modified in line 122 and 123 of python3.7/site-packages/pyqtgraph/graphicsItems
@@ -233,14 +241,20 @@ def absValue(self):
 
       for n in range(int(self.nClicksLbl.text())):
           abs_posX_px = list()
+          abs_posY_px = list()
           for i in self.posX_px[str(n+1)]:
               abs_posX_px.append(i - self.posX_px[str(n+1)][0])
+              abs_posY_px.append(i - self.posY_px[str(n+1)][0])
           self.posX_px.update({str(n+1): abs_posX_px})
+          self.posY_px.update({str(n+1): abs_posY_px})
 
           abs_posX = list()
+          abs_posY = list()
           for i in self.posX_plot[str(n+1)]:
               abs_posX.append(i - self.posX_plot[str(n+1)][0])
+              abs_posY.append(i - self.posY_plot[str(n+1)][0])
           self.posX_plot.update({str(n+1): abs_posX})
+          self.posY_plot.update({str(n+1): abs_posY})
 
       self.frames_plot.update({'1': abs_frame})
       self.time_plot.update({'1': abs_time})
@@ -283,12 +297,18 @@ def saveData(self):
         lbl = ['File info', 'Frame', 'Time [s]']
         clmns = [fileInfo, self.frames_plot['1'], self.time_plot['1']]
         for n in range(int(self.nClicksLbl.text())):
-            lbl.append('xPos_click{} [px]'.format([n+1]))
+            lbl.append('x_click{} [px]'.format([n+1]))
             clmns.append(self.posX_px[str(n+1)])
-            lbl.append('xPos_click{} [mm]'.format([n+1]))
+            lbl.append('x_click{} [mm]'.format([n+1]))
             clmns.append(ft.np.round((self.posX_plot[str(n+1)]), 2))
-            lbl.append('Vf_click{}'.format([n+1]))
-            clmns.append(self.spreadRate[str(n+1)])
+            lbl.append('y_click{} [px]'.format([n+1]))
+            clmns.append(self.posY_px[str(n+1)])
+            lbl.append('y_click{} [mm]'.format([n+1]))
+            clmns.append(ft.np.round((self.posY_plot[str(n+1)]), 2))
+            lbl.append('Vf,x_click{}'.format([n+1]))
+            clmns.append(self.spreadRateX[str(n+1)])
+            lbl.append('Vf,y_click{}'.format([n+1]))
+            clmns.append(self.spreadRateY[str(n+1)])
 
         clmns_zip = ft.zip_longest(*clmns)
     except:
@@ -354,12 +374,19 @@ def selectAxes(self, xAxis_lbl, yAxis_lbl, n):
         xPlot = self.time_plot['1']
     elif xAxis_lbl == 'Frame #':
         xPlot = self.frames_plot['1']
-    if yAxis_lbl == 'Position [mm]':
+    if yAxis_lbl == 'x coord. [mm]':
         yPlot = self.posX_plot[str(n+1)]
-    elif yAxis_lbl == 'Position [px]':
+        print('here')
+    elif yAxis_lbl == 'x coord. [px]':
         yPlot = self.posX_px[str(n+1)]
-    elif yAxis_lbl == 'Spread rate [mm/s]':
-        yPlot = self.spreadRate[str(n+1)]
+    elif yAxis_lbl == 'y coord. [mm]':
+        yPlot = self.posY_plot[str(n+1)]
+    elif yAxis_lbl == 'y coord. [px]':
+        yPlot = self.posY_px[str(n+1)]
+    elif yAxis_lbl == 'Spread rate, x [mm/s]':
+        yPlot = self.spreadRateX[str(n+1)]
+    elif yAxis_lbl == 'Spread rate, y [mm/s]':
+        yPlot = self.spreadRateY[str(n+1)]
 
     return(xPlot, yPlot)
 
@@ -372,7 +399,7 @@ def helpBtn(self):
 
     If there is a flashing or strobe light in the recorded video, you can click on 'Pick bright region' to choose a rectangular region (in the same way that the ROI is selected) that is illuminated when the light is on and dark when it is off. Note that this region is independent from the ROI specified in the 'Preview box', and will show up of the left window in the 'Analysis box'. From the dropdown menu, select the option 'Frames light on' to consider only the frames where the light is on, or 'Frames light off' to consider only the frames without the light. By default all the frames are considered.
 
-    By clicking on 'Absolute values', the x-axis of the tracked data will be shifted to the origin.
+    By clicking on 'Absolute values', the first point/frame will be used as the origin in the plots.
 
     Click on 'Save data' to export a csv file with all the tracking results (position in pixel and mm for each point tracked, and their corresponding spread rate).
     """)

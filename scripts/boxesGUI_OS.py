@@ -1,6 +1,6 @@
 """
 Flame Tracker. This program is designed to track flames or bright objects in videos or images.
-Copyright (C) 2020-2022  Luca Carmignani; 2021, 2022 Charles Scudiere
+Copyright (C) 2020-2023  Luca Carmignani; 2021-2023 Charles Scudiere
 
 This file is part of Flame Tracker.
 
@@ -290,18 +290,24 @@ def manualTrackingBox(self):
     self.xAxis_lbl1.addItem('Frame #')
     yAxisTxt_lbl1 = ft.QLabel('y axis:')#, self.manualTrackingBox)
     self.yAxis_lbl1 = ft.QComboBox()#self.manualTrackingBox)
-    self.yAxis_lbl1.addItem('Position [mm]')
-    self.yAxis_lbl1.addItem('Position [px]')
-    self.yAxis_lbl1.addItem('Spread rate [mm/s]')
+    self.yAxis_lbl1.addItem('x coord. [mm]')
+    self.yAxis_lbl1.addItem('x coord. [px]')
+    self.yAxis_lbl1.addItem('y coord. [mm]')
+    self.yAxis_lbl1.addItem('y coord. [px]')
+    self.yAxis_lbl1.addItem('Spread rate, x [mm/s]')
+    self.yAxis_lbl1.addItem('Spread rate, y [mm/s]')
     xAxisTxt_lbl2 = ft.QLabel('x axis:')#, self.manualTrackingBox)
     self.xAxis_lbl2 = ft.QComboBox()#self.manualTrackingBox)
     self.xAxis_lbl2.addItem('Time [s]')
     self.xAxis_lbl2.addItem('Frame #')
     yAxisTxt_lbl2 = ft.QLabel('y axis:')#, self.manualTrackingBox)
     self.yAxis_lbl2 = ft.QComboBox()#self.manualTrackingBox)
-    self.yAxis_lbl2.addItem('Spread rate [mm/s]')
-    self.yAxis_lbl2.addItem('Position [mm]')
-    self.yAxis_lbl2.addItem('Position [px]')
+    self.yAxis_lbl2.addItem('Spread rate, x [mm/s]')
+    self.yAxis_lbl2.addItem('Spread rate, y [mm/s]')
+    self.yAxis_lbl2.addItem('x coord. [mm]')
+    self.yAxis_lbl2.addItem('x coord. [px]')
+    self.yAxis_lbl2.addItem('y coord. [mm]')
+    self.yAxis_lbl2.addItem('y coord. [px]')
 
     # self.box_layout.addWidget(self.lbl1_MT, 0, 3, 8, 4)
     self.box_layout.addWidget(self.win1_MT, 0, 3, 8, 4)

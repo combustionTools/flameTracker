@@ -1,6 +1,6 @@
 """
 Flame Tracker. This program is designed to track flames or bright objects in videos or images.
-Copyright (C) 2021, 2022 Charles Scudiere; 2021, 2022  Luca Carmignani
+Copyright (C) 2021-2023 Charles Scudiere; 2021-2023  Luca Carmignani
 
 This file is part of Flame Tracker.
 
