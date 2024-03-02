@@ -1,6 +1,6 @@
 """
 Flame Tracker. This program is designed to track flames or bright objects in videos or images.
-Copyright (C) 2020-2023  Luca Carmignani; 2021-2023 Charles Scudiere
+Copyright (C) 2020-2024  Luca Carmignani; 2021-2024 Charles Scudiere
 
 This file is part of Flame Tracker.
 
@@ -65,7 +65,7 @@ class FlameTrackerWindow(QMainWindow): #QWidget
     def __init__(self, parent=None):
         super(FlameTrackerWindow, self).__init__(parent)
 
-        print('''Flame Tracker - Copyright (C) 2020-2023 Luca Carmignani; 2021-2023 Charles Scudiere
+        print('''Flame Tracker - Copyright (C) 2020-2024 Luca Carmignani; 2021-2024 Charles Scudiere
         This program comes with ABSOLUTELY NO WARRANTY; See the GNU General
         Public License for more details.
         This is free software, and you can redistribute it and/or modify
@@ -74,7 +74,7 @@ class FlameTrackerWindow(QMainWindow): #QWidget
         (at your option) any later version.''')
 
         # Flame Tracker version
-        self.version_FT = 'v1.2.1'
+        self.version_FT = 'v1.2.2'
 
         # creating the toolbar
         toolbar = QToolBar('FT toolbar')

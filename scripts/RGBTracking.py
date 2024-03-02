@@ -1,6 +1,6 @@
 """
 Flame Tracker. This program is designed to track flames or bright objects in videos or images.
-Copyright (C) 2020-2022  Luca Carmignani
+Copyright (C) 2020-2024  Luca Carmignani
 
 This file is part of Flame Tracker.
 
@@ -74,10 +74,9 @@ def getFilteredFrame(self, frame):
     bytesPerLine = int(totalBytes/frame.shape[0]) #I had to introduce it to avoid distortion in the opened file for some of the videos
     self.frame = ft.QImage(frame.data, frame.shape[1], frame.shape[0], bytesPerLine, ft.QImage.Format.Format_BGR888)#.rgbSwapped() #shape[0] = height, [1] = width QImage.Format_Indexed8 BGR888
     self.frame = self.frame.scaled(self.lbl1_RT.size(), ft.Qt.AspectRatioMode.KeepAspectRatio, ft.Qt.TransformationMode.SmoothTransformation)
+
     self.currentFrameBW_RT = frameBW
-    # calculate the total number of bytes in the frame for lbl2
     totalBytesBW = frameBW.nbytes
-    # divide by the number of rows
     bytesPerLineBW = int(totalBytesBW/frameBW.shape[0]) #I had to introduce it to avoid distortion in the opened file for some of the videos
     self.frameBW = ft.QImage(frameBW.data, frameBW.shape[1], frameBW.shape[0], bytesPerLineBW, ft.QImage.Format.Format_Grayscale8)#.rgbSwapped() #shape[0] = height, [1] = width QImage.Format_Indexed8 or Grayscale8 BGR888
     self.frameBW = self.frameBW.scaled(self.lbl1_RT.size(), ft.Qt.AspectRatioMode.KeepAspectRatio, ft.Qt.TransformationMode.SmoothTransformation)
@@ -99,6 +98,7 @@ def findFlameEdges(self, frameBW, flamePx):
 
         self.xMax = int(self.xMax/int(self.avgLEIn_RT.text()))
         self.xMin = int(self.xMin/int(self.avgLEIn_RT.text()))
+
         if self.directionBox.currentText() == 'Left to right':
             self.xRight = int(self.roiOneIn.text()) + self.xMax
             self.xLeft = int(self.roiOneIn.text()) + self.xMin
@@ -130,9 +130,18 @@ def RGBTracking(self):
     self.frameCount = list()
     flameArea = list()
 
+    if self.exportVideoBW_RT.isChecked(): # added in v1.2.2
+        fps = (float(self.vFps))/(int(self.skipFrameIn.text()) + 1)
+        vNameBW = self.fPath + '-videoBW.' + str(self.vFormat)
+        fourccBW = ft.cv2.VideoWriter_fourcc(*self.codec)
+        size = (int(self.roiThreeIn.text()), int(self.roiFourIn.text()))
+        # open and set properties
+        voutBW = ft.cv2.VideoWriter()
+        voutBW.open(vNameBW, fourccBW, fps, size, 0)
+
     if self.exportVideo_RT.isChecked():
         fps = (float(self.vFps))/(int(self.skipFrameIn.text()) + 1)
-        vName = self.fPath + '-trackedVideo.' + str(self.vFormat)
+        vName = self.fPath + '-videoRGB.' + str(self.vFormat)
         fourcc = ft.cv2.VideoWriter_fourcc(*self.codec)
         size = (int(self.roiThreeIn.text()), int(self.roiFourIn.text()))
         # open and set properties
@@ -181,6 +190,8 @@ def RGBTracking(self):
             self.xLeft_mm.append(self.xLeft / float(self.scaleIn.text()))
             flameArea.append(self.flameArea)
             self.frameCount.append(currentFrame)
+            if self.exportVideoBW_RT.isChecked():
+                voutBW.write(self.currentFrameBW_RT)
             if self.exportVideo_RT.isChecked():
                 vout.write(self.currentFrameRGB_RT)
             print('Progress: ', round((currentFrame - firstFrame)/(lastFrame - firstFrame) * 10000)/100, '%', '(Frame #: ', currentFrame, ')', end='\r')
@@ -202,9 +213,13 @@ def RGBTracking(self):
         print('Progress: 100 % - Tracking completed')
         self.msgLabel.setText('Tracking completed')
 
+        if self.exportVideoBW_RT.isChecked():
+            voutBW.release()
+            self.msgLabel.setText('Tracking completed and BW video created.')
+
         if self.exportVideo_RT.isChecked():
             vout.release()
-            self.msgLabel.setText('Tracking completed and video created.')
+            self.msgLabel.setText('Tracking completed and RGB video created.')
 
         # the following approach to calculate the spread rate is the same one used for lumaTracking
         movAvgPt = int(self.movAvgIn_RT.text()) #this number is half of the interval considered for the spread rate (movAvgPt = 2 means I am considering a total of 5 points (my point, 2 before and 2 after))

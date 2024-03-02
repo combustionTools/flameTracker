@@ -1,6 +1,6 @@
 """
 Flame Tracker. This program is designed to track flames or bright objects in videos or images.
-Copyright (C) 2020-2023  Luca Carmignani
+Copyright (C) 2020-2024  Luca Carmignani
 
 This file is part of Flame Tracker.
 
@@ -332,8 +332,6 @@ def saveData(self):
             print('Unexpected error:', ft.sys.exc_info())
 
 def updateGraphsBtn(self):
-    print('xAxis', self.xAxis_lbl1)
-
     try:
         xAxis_lbl1 = self.xAxis_lbl1.currentText()
         yAxis_lbl1 = self.yAxis_lbl1.currentText()
@@ -344,6 +342,7 @@ def updateGraphsBtn(self):
         self.plot1_MT.addLegend(offset = [1, 0.1])
         self.lbl2_MT.addLegend(offset = [1, 0.1])
         color = ['b', 'r', 'k', 'g', 'c', 'y']
+
         for n in range(nClicks):
             name = 'click{}'.format([n+1])
             try:
@@ -376,7 +375,6 @@ def selectAxes(self, xAxis_lbl, yAxis_lbl, n):
         xPlot = self.frames_plot['1']
     if yAxis_lbl == 'x coord. [mm]':
         yPlot = self.posX_plot[str(n+1)]
-        print('here')
     elif yAxis_lbl == 'x coord. [px]':
         yPlot = self.posX_px[str(n+1)]
     elif yAxis_lbl == 'y coord. [mm]':

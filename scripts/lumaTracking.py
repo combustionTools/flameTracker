@@ -1,6 +1,6 @@
 """
 Flame Tracker. This program is designed to track flames or bright objects in videos or images.
-Copyright (C) 2020-2023  Luca Carmignani
+Copyright (C) 2020-2024  Luca Carmignani
 
 This file is part of Flame Tracker.
 
@@ -54,6 +54,8 @@ def getFilteredFrame(self, frame):
     if self.showEdges_LT.isChecked() == True:
         ft.cv2.line(Y, (self.xMax, 0),(self.xMax, int(self.roiFourIn.text())), (255, 255, 255), 2)
         ft.cv2.line(Y, (self.xMin, 0),(self.xMin, int(self.roiFourIn.text())), (255, 255, 255), 2)
+        ft.cv2.line(frameBW, (self.xMax, 0),(self.xMax, int(self.roiFourIn.text())), (255, 255, 255), 2)
+        ft.cv2.line(frameBW, (self.xMin, 0),(self.xMin, int(self.roiFourIn.text())), (255, 255, 255), 2)
 
     self.currentFrameY_LT = Y
     # calculate the total number of bytes in the frame
@@ -62,6 +64,13 @@ def getFilteredFrame(self, frame):
     bytesPerLine = int(totalBytes/Y.shape[0]) #I had to introduce it to avoid distortion in the opened file for some of the videos
     self.frameY = ft.QImage(Y.data, Y.shape[1], Y.shape[0], bytesPerLine, ft.QImage.Format.Format_Grayscale8) #shape[0] = height, [1] = width
     self.frameY = self.frameY.scaled(self.lbl1_LT.size(), ft.Qt.AspectRatioMode.KeepAspectRatio, ft.Qt.TransformationMode.SmoothTransformation)
+
+    self.currentFrameBW_LT = frameBW
+    totalBytes = frameBW.nbytes
+    bytesPerLine = int(totalBytes/frameBW.shape[0])
+    self.frameBW = ft.QImage(frameBW.data, frameBW.shape[1], frameBW.shape[0], bytesPerLine, ft.QImage.Format.Format_Grayscale8)
+    self.frameBW = self.frameBW.scaled(self.lbl2_LT.size(), ft.Qt.AspectRatioMode.KeepAspectRatio, ft.Qt.TransformationMode.SmoothTransformation)
+
 
 def findFlameEdges(self, frameBW, flamePx):
     self.flameArea = len(flamePx[0])
@@ -77,28 +86,30 @@ def findFlameEdges(self, frameBW, flamePx):
             i = i + 1
             self.xMax = self.xMax + sortedBWx[-i]
             self.xMin = self.xMin + sortedBWx[i]
+
+        self.xMax = int(self.xMax/int(self.avgLEIn_LT.text()))
+        self.xMin = int(self.xMin/int(self.avgLEIn_LT.text()))
+
+        if self.directionBox.currentText() == 'Left to right':
+            self.xRight = int(self.roiOneIn.text()) + self.xMax
+            self.xLeft = int(self.roiOneIn.text()) + self.xMin
+        elif self.directionBox.currentText() == 'Right to left':
+            self.xRight = self.vWidth - int(self.roiOneIn.text()) - self.xMax
+            self.xLeft = self.vWidth - int(self.roiOneIn.text()) - self.xMin
     except:
-        pass
+        self.msgLabel.setText('Flame not found in some frames')
+        #pass
 
-    self.xMax = int(self.xMax/int(self.avgLEIn_LT.text()))
-    self.xMin = int(self.xMin/int(self.avgLEIn_LT.text()))
+    # moved in getFilteredFlame function in v1.2.2
+    # if self.showEdges_LT.isChecked() == True:
+    #     ft.cv2.line(frameBW, (self.xMax, 0),(self.xMax, int(self.roiFourIn.text())), (255, 255, 255), 2)
+    #     ft.cv2.line(frameBW, (self.xMin, 0),(self.xMin, int(self.roiFourIn.text())), (255, 255, 255), 2)
 
-    if self.directionBox.currentText() == 'Left to right':
-        self.xRight = int(self.roiOneIn.text()) + self.xMax
-        self.xLeft = int(self.roiOneIn.text()) + self.xMin
-    elif self.directionBox.currentText() == 'Right to left':
-        self.xRight = self.vWidth - int(self.roiOneIn.text()) - self.xMax
-        self.xLeft = self.vWidth - int(self.roiOneIn.text()) - self.xMin
-
-    if self.showEdges_LT.isChecked() == True:
-        ft.cv2.line(frameBW, (self.xMax, 0),(self.xMax, int(self.roiFourIn.text())), (255, 255, 255), 2)
-        ft.cv2.line(frameBW, (self.xMin, 0),(self.xMin, int(self.roiFourIn.text())), (255, 255, 255), 2)
-
-    self.currentFrameBW_LT = frameBW
-    totalBytes = frameBW.nbytes
-    bytesPerLine = int(totalBytes/frameBW.shape[0])
-    self.frameBW = ft.QImage(frameBW.data, frameBW.shape[1], frameBW.shape[0], bytesPerLine, ft.QImage.Format.Format_Grayscale8)
-    self.frameBW = self.frameBW.scaled(self.lbl2_LT.size(), ft.Qt.AspectRatioMode.KeepAspectRatio, ft.Qt.TransformationMode.SmoothTransformation)
+    # self.currentFrameBW_LT = frameBW
+    # totalBytes = frameBW.nbytes
+    # bytesPerLine = int(totalBytes/frameBW.shape[0])
+    # self.frameBW = ft.QImage(frameBW.data, frameBW.shape[1], frameBW.shape[0], bytesPerLine, ft.QImage.Format.Format_Grayscale8)
+    # self.frameBW = self.frameBW.scaled(self.lbl2_LT.size(), ft.Qt.AspectRatioMode.KeepAspectRatio, ft.Qt.TransformationMode.SmoothTransformation)
 
 def lumaTracking(self):
     scale = True
@@ -122,10 +133,18 @@ def lumaTracking(self):
     self.plot1_LT.clear()
     self.plot2_LT.clear()
 
+    if self.exportVideoBW_LT.isChecked(): # added in v1.2.2
+        fps = (float(self.vFps))/(int(self.skipFrameIn.text()) + 1)
+        vNameBW = self.fPath + '-videoBW.' + str(self.vFormat)
+        fourccBW = ft.cv2.VideoWriter_fourcc(*self.codec)
+        size = (int(self.roiThreeIn.text()), int(self.roiFourIn.text()))
+        # open and set properties
+        voutBW = ft.cv2.VideoWriter()
+        voutBW.open(vNameBW, fourccBW, fps, size, 0)
 
     if self.exportVideo_LT.isChecked():
         fps = (float(self.vFps))/(int(self.skipFrameIn.text()) + 1)
-        vName = self.fPath + '-YVideo.' + str(self.vFormat)
+        vName = self.fPath + '-videoLuma.' + str(self.vFormat)
         fourcc = ft.cv2.VideoWriter_fourcc(*self.codec)
         size = (int(self.roiThreeIn.text()), int(self.roiFourIn.text()))
         # open and set properties
@@ -175,6 +194,8 @@ def lumaTracking(self):
             self.xLeft_mm.append(self.xLeft / float(self.scaleIn.text()))
             flameArea.append(self.flameArea)
             self.frameCount.append(currentFrame)
+            if self.exportVideoBW_LT.isChecked():
+                voutBW.write(self.currentFrameBW_LT)
             if self.exportVideo_LT.isChecked():
                 vout.write(self.currentFrameY_LT)
             # print('Frame #:', currentFrame,  end='\r')
@@ -183,9 +204,12 @@ def lumaTracking(self):
 
         print('Progress: 100 % - Tracking completed')
         self.msgLabel.setText('Tracking completed')
+        if self.exportVideoBW_LT.isChecked():
+            voutBW.release()
+            self.msgLabel.setText('Tracking completed and BW video created.')
         if self.exportVideo_LT.isChecked():
             vout.release()
-            self.msgLabel.setText('Tracking completed and Y channel video created.')
+            self.msgLabel.setText('Tracking completed and Luma video created.')
 
         try:
             self.flameArea = [areaN / (float(self.scaleIn.text())**2) for areaN in flameArea]

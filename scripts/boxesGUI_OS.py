@@ -1,6 +1,6 @@
 """
 Flame Tracker. This program is designed to track flames or bright objects in videos or images.
-Copyright (C) 2020-2023  Luca Carmignani; 2021-2023 Charles Scudiere
+Copyright (C) 2020-2024  Luca Carmignani; 2021-2024 Charles Scudiere
 
 This file is part of Flame Tracker.
 
@@ -471,7 +471,10 @@ def lumaTrackingBox(self):
     self.showEdges_LT = ft.QAction('Show edge lines', self)
     self.showEdges_LT.setCheckable(True)
     self.showEdges_LT.setChecked(True)
-    self.exportVideo_LT = ft.QAction('Output video analysis', self)
+    self.exportVideoBW_LT = ft.QAction('Export BW video', self) # added in v1.2.2
+    self.exportVideoBW_LT.setCheckable(True)
+    self.exportVideoBW_LT.triggered.connect(self.getFormat_clicked)
+    self.exportVideo_LT = ft.QAction('Export Luma video', self)
     self.exportVideo_LT.setCheckable(True)
     self.exportVideo_LT.triggered.connect(self.getFormat_clicked)
 
@@ -481,6 +484,7 @@ def lumaTrackingBox(self):
     self.menu_LT.addAction(self.lightROIBtn_LT)
     self.menu_LT.addAction(self.absValBtn_LT)
     self.menu_LT.addAction(self.showEdges_LT)
+    self.menu_LT.addAction(self.exportVideoBW_LT)
     self.menu_LT.addAction(self.exportVideo_LT)
 
 
@@ -734,7 +738,10 @@ def RGBTrackingBox(self):
     self.showEdges_RT = ft.QAction('Show edge lines', self)
     self.showEdges_RT.setCheckable(True)
     self.showEdges_RT.setChecked(True)
-    self.exportVideo_RT = ft.QAction('Output video analysis', self)
+    self.exportVideoBW_RT = ft.QAction('Export BW video', self) # added in v1.2.2
+    self.exportVideoBW_RT.setCheckable(True)
+    self.exportVideoBW_RT.triggered.connect(self.getFormat_clicked)
+    self.exportVideo_RT = ft.QAction('Export RGB video', self)
     self.exportVideo_RT.setCheckable(True)
     self.exportVideo_RT.triggered.connect(self.getFormat_clicked)
 
@@ -753,6 +760,7 @@ def RGBTrackingBox(self):
     self.menu_RT.addAction(self.lightROIBtn_RT)
     self.menu_RT.addAction(self.absValBtn_RT)
     self.menu_RT.addAction(self.showEdges_RT)
+    self.menu_RT.addAction(self.exportVideoBW_RT)
     self.menu_RT.addAction(self.exportVideo_RT)
 
 
