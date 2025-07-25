@@ -34,11 +34,6 @@ The packages required to run the code are (they can be installed with pip or ana
 
 **Note:** Creating a virtual environment is recommended to make sure you are using the right packages.
 
-**Note:** for Flame Tracker versions before v1.1.3 and old versions of the PyQtgraph package (up to 0.11), one of the source codes in the PyQtgraph package (legendItem.py) related to the legend visualization was modified. You should replace the original LegendItem.py file in the package folder .../site-packages/pyqtgraph/graphicsItems/legendItem.py. In order to do that:
-- locate the path of the site-packages folder, which depends on where and how you installed python. If you don't know the location, you can type 'python -m site' in the Command Prompt (Windows) or in the Terminal (MacOS) to see the folder path. Note: Linux users might need to look for the "dist-packages" folder instead of "site-packages".
-- The path you're trying to access might be hidden by File Explorer (Windows) or in the Finder (MacOS); in that case make sure you check the 'Hidden items' box in Windows, and click on 'Go > Go to Folder...' on Mac
-- Once you find the right folder, replace the legendItem.py file with the one available in: combustionTools/flameTracker/scripts/other.
-
 # Additional information
 For more information about installing and running Flame Tracker (with the script and the Windows release), as well as the use of the software, refer to the Wiki page: https://github.com/combustionTools/flameTracker/wiki.
 
