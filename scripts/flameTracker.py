@@ -1,6 +1,6 @@
 """
 Flame Tracker. This program is designed to track flames or bright objects in videos or images.
-Copyright (C) 2020-2024  Luca Carmignani; 2021-2024 Charles Scudiere
+Copyright (C) 2020-2025  Luca Carmignani; 2021-2025 Charles Scudiere
 
 This file is part of Flame Tracker.
 
@@ -65,7 +65,7 @@ class FlameTrackerWindow(QMainWindow): #QWidget
     def __init__(self, parent=None):
         super(FlameTrackerWindow, self).__init__(parent)
 
-        print('''Flame Tracker - Copyright (C) 2020-2024 Luca Carmignani; 2021-2024 Charles Scudiere
+        print('''Flame Tracker - Copyright (C) 2020-2025 Luca Carmignani; 2021-2025 Charles Scudiere
         This program comes with ABSOLUTELY NO WARRANTY; See the GNU General
         Public License for more details.
         This is free software, and you can redistribute it and/or modify
@@ -74,7 +74,7 @@ class FlameTrackerWindow(QMainWindow): #QWidget
         (at your option) any later version.''')
 
         # Flame Tracker version
-        self.version_FT = 'v1.2.2'
+        self.version_FT = 'v1.3.0'
 
         # creating the toolbar
         toolbar = QToolBar('FT toolbar')
@@ -98,7 +98,7 @@ class FlameTrackerWindow(QMainWindow): #QWidget
         loadPar_ico = self.style().standardIcon(loadPar_ico)
         loadPar = QAction(loadPar_ico, 'Load parameters', self)
         loadPar.triggered.connect(self.loadParBtn_clicked)
-        measureScale = QAction('Scale (px/mm)', self)
+        measureScale = QAction('Scale (px/len)', self)
         measureScale.triggered.connect(self.measureScaleBtn_clicked)
         refPoint = QAction('Point coordinates', self)
         refPoint.triggered.connect(self.refPointBtn_clicked)
@@ -273,7 +273,8 @@ class FlameTrackerWindow(QMainWindow): #QWidget
                 fps = 1
             elif len(self.imagesList) > 1:
                 self.fName = re.findall('.*[/](.*)?', self.fPath[0])
-                self.fNameLbl.setText(str(self.fName[0] + ', ...'))
+                # self.fNameLbl.setText(str(self.fName[0] + ', ...'))
+                self.fNameLbl.setText(str(self.fName[0] + ' + [' + str(len(self.imagesList) - 1)) + ']')
                 fps, done1 = QInputDialog.getText(self, 'Input Dialog', 'Please specify frames per second:')
                 if not fps:
                     fps = 1
@@ -313,7 +314,7 @@ class FlameTrackerWindow(QMainWindow): #QWidget
 
     def help_FT_clicked(self):
         msg = QMessageBox(self)
-        msg.setText('''The Flame Tracker is an image analysis program designed to detect and track a flame (or a luminous object) in images or videos.
+        msg.setText('''Flame Tracker is an image analysis program designed to detect and track a flame (or a luminous object) in images or videos.
 
         Instructions available on GitHub: https://github.com/combustionTools/flameTracker/wiki
 
@@ -364,7 +365,65 @@ class FlameTrackerWindow(QMainWindow): #QWidget
             self.firstFrameIn.setText(str(self.frameNumber))
         elif self.frameNumber > int(self.lastFrameIn.text()):
             self.lastFrameIn.setText(str(self.frameNumber))
+                                     
+        self.timeIn.setText(str(np.round((self.frameNumber / float(self.vFps)), 3)))
+        self.previewSlider.setValue(int(self.frameNumber))
+        showFrame(self, self.frameNumber)
+        checkAnalysisMethod(self, self.frameNumber)
 
+    def goToTimeBtn_clicked(self):
+        selectedTime = float(self.timeIn.text())
+        self.frameNumber = int(selectedTime * float(self.vFps))
+        if self.frameNumber < int(self.firstFrameIn.text()):
+            self.firstFrameIn.setText(str(self.frameNumber))
+        elif self.frameNumber > int(self.lastFrameIn.text()):
+            self.lastFrameIn.setText(str(self.frameNumber))
+                                     
+        self.timeIn.setText(str(np.round((self.frameNumber / float(self.vFps)), 3)))
+        self.previewSlider.setValue(int(self.frameNumber))
+        showFrame(self, self.frameNumber)
+        checkAnalysisMethod(self, self.frameNumber)
+
+    def fastBwdFrameBtn_clicked(self):
+        self.frameNumber = int(self.frameIn.text()) - int(self.skipFrameIn.text())
+        if self.frameNumber < 0:
+            self.frameNumber = 0
+        # elif self.frameNumber > int(self.lastFrameIn.text()):
+        #     self.lastFrameIn.setText(str(self.frameNumber))
+                                     
+        self.timeIn.setText(str(np.round((self.frameNumber / float(self.vFps)), 3)))
+        self.previewSlider.setValue(int(self.frameNumber))
+        showFrame(self, self.frameNumber)
+        checkAnalysisMethod(self, self.frameNumber)
+
+    def bwdFrameBtn_clicked(self):
+        self.frameNumber = int(self.frameIn.text()) - 1
+        if self.frameNumber < 0:
+            self.frameNumber = 0
+        # elif self.frameNumber > int(self.lastFrameIn.text()):
+        #     self.lastFrameIn.setText(str(self.frameNumber))
+                                     
+        self.timeIn.setText(str(np.round((self.frameNumber / float(self.vFps)), 3)))
+        self.previewSlider.setValue(int(self.frameNumber))
+        showFrame(self, self.frameNumber)
+        checkAnalysisMethod(self, self.frameNumber)
+
+    def fwdFrameBtn_clicked(self):
+        self.frameNumber = int(self.frameIn.text()) + 1
+        if self.frameNumber > (self.vFrames - 1):
+            self.frameNumber = (self.vFrames - 1)
+                                     
+        self.timeIn.setText(str(np.round((self.frameNumber / float(self.vFps)), 3)))
+        self.previewSlider.setValue(int(self.frameNumber))
+        showFrame(self, self.frameNumber)
+        checkAnalysisMethod(self, self.frameNumber)
+
+    def fastFwdFrameBtn_clicked(self):
+        self.frameNumber = int(self.frameIn.text()) + int(self.skipFrameIn.text())
+        if self.frameNumber > (self.vFrames - 1):
+            self.frameNumber = (self.vFrames - 1)
+                                     
+        self.timeIn.setText(str(np.round((self.frameNumber / float(self.vFps)), 3)))
         self.previewSlider.setValue(int(self.frameNumber))
         showFrame(self, self.frameNumber)
         checkAnalysisMethod(self, self.frameNumber)
@@ -374,6 +433,7 @@ class FlameTrackerWindow(QMainWindow): #QWidget
         self.previewSlider.setMaximum(int(self.lastFrameIn.text()))
         self.frameNumber = self.previewSlider.value()
         self.frameIn.setText(str(self.frameNumber))
+        self.timeIn.setText(str(np.round((self.frameNumber / float(self.vFps)), 3)))
 
         showFrame(self, self.frameNumber)
         checkAnalysisMethod(self, self.frameNumber)
@@ -383,6 +443,7 @@ class FlameTrackerWindow(QMainWindow): #QWidget
         self.previewSlider.setMaximum(int(self.lastFrameIn.text()))
         self.frameNumber = self.previewSlider.value()
         self.frameIn.setText(str(self.frameNumber))
+        self.timeIn.setText(str(np.round((self.frameNumber / float(self.vFps)), 3)))
 
         showFrame(self, self.frameNumber)
 
@@ -546,7 +607,8 @@ class FlameTrackerWindow(QMainWindow): #QWidget
                     writer.writerow([self.firstFrameTxt.text(), str(self.firstFrameIn.text())])
                     writer.writerow([self.lastFrameTxt.text(), str(self.lastFrameIn.text())])
                     writer.writerow([self.skipFrameTxt.text(), str(self.skipFrameIn.text())])
-                    writer.writerow(['Scale (px/mm):', str(self.scaleIn.text())])
+                    # writer.writerow(['Scale (px/len):', str(self.scaleIn.text())])
+                    writer.writerow([f'Scale (px/{self.unitScale}):', str(self.scaleIn.text())])
                     writer.writerow([self.sLengthTxt.text(), str(self.sLengthIn.text())])
                     writer.writerow([self.sWidthTxt.text(), str(self.sWidthIn.text())])
                     writer.writerow([self.frameTxt.text(), str(self.frameIn.text())])
@@ -593,8 +655,20 @@ class FlameTrackerWindow(QMainWindow): #QWidget
                         self.firstFrameIn.setText(row[1])
                     if self.skipFrameTxt.text() in row:
                         self.skipFrameIn.setText(row[1])
-                    if 'Scale (px/mm):' in row:
+                    # Match "Scale (px/<unit>):"
+                    if re.match(r'scale \(px/[^)]+\):', row[0], re.IGNORECASE):
+                        scaleUnit = re.findall(r'scale \(px/([^)]+)\):', row[0], re.IGNORECASE)
+                        if scaleUnit:
+                            self.unitScale = scaleUnit[0]
+                            self.measureScaleTxt.setText(f'Scale px/{self.unitScale}:')
                         self.scaleIn.setText(row[1])
+                    # if 'Scale (px/len):' in row:
+                    #     scale = re.findall('/[(.+)]$', row[0])
+                    #     print('scale', scale)
+                    #     # self.unitScale = scale
+                    #     self.scaleIn.setText(row[1])
+                    # elif 'Scale (px/mm):' in row:
+                    #     self.scaleIn.setText(row[1])
                     if self.sLengthTxt.text() in row:
                         self.sLengthIn.setText(row[1])
                     if self.sWidthTxt.text() in row:
@@ -614,24 +688,32 @@ class FlameTrackerWindow(QMainWindow): #QWidget
                         self.perspectiveValue = True
                         self.sample = []
                         for i in range(1,5): #x,y are the pixel values for each corner
-                            points = re.findall('^\[(.+)\]$', row[i]) #this creates a list without '[]'
+                            # points = re.findall('^\[(.+)\]$', row[i]) #this creates a list without '[]'
+                            points = re.findall(r'^\[(.+)\]$', row[i]) #this creates a list without '[]' changed in v1.3.0
                             points = points[0].strip() #gets rid of white spaces
-                            x = re.findall('(^[0-9]+.[0-9]*\s)', points)
-                            y = re.findall('\s([0-9]+.[0-9]*$)', points)
+                            # x = re.findall('(^[0-9]+.[0-9]*\s)', points)
+                            x = re.findall(r'(^[0-9]+\.[0-9]*\s)', points) #v1.3.0
+                            # y = re.findall('\s([0-9]+.[0-9]*$)', points)
+                            y = re.findall(r'\s([0-9]+\.[0-9]*$)', points) #v1.3.0                 
                             self.sample.append([np.float32(x[0]), np.float32(y[0])])
                         self.sample = np.array(self.sample)
                     if 'sampleMod' in row:
                         self.sampleMod = []
                         for i in range(1,5):
-                            points = re.findall('^\[(.+)\]$', row[i]) #this creates a list without '[]'
+                            # points = re.findall('^\[(.+)\]$', row[i]) #this creates a list without '[]'
+                            points = re.findall(r'^\[(.+)\]$', row[i]) #this creates a list without '[]' changed in v1.3.0
                             points = points[0].strip() #gets rid of white spaces
-                            x = re.findall('(^[0-9]+.[0-9]*\s)', points)
-                            y = re.findall('\s([0-9]+.[0-9]*$)', points)
+                            # x = re.findall('(^[0-9]+.[0-9]*\s)', points)
+                            x = re.findall(r'(^[0-9]+\.[0-9]*\s)', points) #v1.3.0
+                            # y = re.findall('\s([0-9]+.[0-9]*$)', points)
+                            y = re.findall(r'\s([0-9]+\.[0-9]*$)', points) #v1.3.0   
                             self.sampleMod.append([np.float32(x[0]), np.float32(y[0])])
                         self.sampleMod = np.array(self.sampleMod)
                     if 'Ref. point (abs):' in row:
-                        x = re.findall('^\[(.+),', row[1])
-                        y = re.findall('^\[.+,\s(.+)\]$', row[1])
+                        # x = re.findall('^\[(.+),', row[1])
+                        x = re.findall(r'^\[(.+),', row[1])
+                        # y = re.findall('^\[.+,\s(.+)\]$', row[1])
+                        y = re.findall(r'^\[.+,\s(.+)\]$', row[1])
                         self.refPointIn.setText(f'{x[0]}, {y[0]}')
 
             self.previewSlider.setMinimum(int(self.firstFrameIn.text()))
@@ -690,18 +772,67 @@ class FlameTrackerWindow(QMainWindow): #QWidget
                     points.append(xPos)
                     points.append(yPos)
 
-            length_mm, done1 = QInputDialog.getText(self, 'Measure scale', 'Measured length in mm:')
-            length_px = ((points[3]-points[1])**2 + (points[2]-points[0])**2)**0.5
-            scale = length_px / float(length_mm)
-            scale = np.round(scale, 3)
+            dialog = QDialog(self)
+            dialog.setWindowTitle("Measure scale")
 
-            self.scaleIn.setText(str(scale))
-            self.msgLabel.setText('Scale succesfully measured')
+            length_input = QLineEdit()
+            unit_selector = QComboBox()
+            unit_selector.addItems(["mm", "cm", "m", "in", "ft"])
+
+            layout = QVBoxLayout()
+            row = QHBoxLayout()
+            row.addWidget(QLabel("Length:"))
+            row.addWidget(length_input)
+            row.addWidget(unit_selector)
+            layout.addLayout(row)
+
+            buttons = QDialogButtonBox(QDialogButtonBox.StandardButton.Ok | QDialogButtonBox.StandardButton.Cancel)
+            layout.addWidget(buttons)
+            dialog.setLayout(layout)
+
+            buttons.accepted.connect(dialog.accept)
+            buttons.rejected.connect(dialog.reject)
+
+            if dialog.exec():
+                try:
+                    length_val = float(length_input.text())
+                    self.unitScale = unit_selector.currentText()
+
+                    # # Convert all units to mm
+                    # unit_factors = {
+                    #     "mm": 1,
+                    #     "cm": 10,
+                    #     "m": 1000,
+                    #     "in": 25.4,
+                    #     "ft": 304.8
+                    # }
+                    # length_mm = length_val * unit_factors[unit]
+
+                    length_px = ((points[3]-points[1])**2 + (points[2]-points[0])**2)**0.5
+                    scale = length_px / length_val
+                    scale = np.round(scale, 3)
+
+                    self.scaleIn.setText(str(scale))
+                    # self.measureScaleTxt
+                    self.measureScaleTxt.setText(f'Scale px/{self.unitScale}:')
+                    self.msgLabel.setText(f'Scale in px/{self.unitScale} successfully measured')
+                except ValueError:
+                    self.msgLabel.setText('Invalid length input.')
+            else:
+                self.msgLabel.setText('Measurement cancelled.')
+            #### Old code for measuring the scale (changed 7/3/25)
+            # length_mm, done1 = QInputDialog.getText(self, 'Measure scale', 'Measured length in mm:')
+            # length_px = ((points[3]-points[1])**2 + (points[2]-points[0])**2)**0.5
+            # scale = length_px / float(length_mm)
+            # scale = np.round(scale, 3)
+
+            # self.scaleIn.setText(str(scale))
+            # self.msgLabel.setText('Scale succesfully measured')
             cv2.destroyAllWindows()
         except:
             print('Unexpected error:', sys.exc_info())
             self.msgLabel.setText('Something went wrong and the scale was not measured.')
-
+ 
     def refPointBtn_clicked(self):
         global clk
         clk = False # False unless the mouse is clicked
@@ -795,11 +926,14 @@ class FlameTrackerWindow(QMainWindow): #QWidget
             length_px = ((points[3]-points[1])**2 + (points[2]-points[0])**2)**0.5
             length_px = np.round(length_px, 3)
             if str(self.scaleIn.text()):
-                length_mm = length_px / float(self.scaleIn.text())
-                length_mm = np.round(length_mm, 3)
-                self.msgLabel.setText(f'Measured length: {length_px} px; {length_mm} mm')
+                # length_mm = length_px / float(self.scaleIn.text())
+                # length_mm = np.round(length_mm, 3)
+                length_unit = length_px / float(self.scaleIn.text())
+                length_unit = np.round(length_unit, 3)
+                # self.msgLabel.setText(f'Measured length: {length_px} px; {length_mm} mm')
+                self.msgLabel.setText(f'Measured length: {length_px} px; {length_unit} {self.unitScale}')
             else:
-                self.msgLabel.setText(f'Measured length: {length_px} px; insert scale for mm')
+                self.msgLabel.setText(f'Measured length: {length_px} px; insert scale for length conversion')
 
             cv2.destroyAllWindows()
         except:
@@ -1064,13 +1198,25 @@ def showFrame(self, frameNumber):
     self.win1.setPixmap(QPixmap.fromImage(self.image))
 
 def perspectiveCorrection(self, frame):
-    # M is the matrix transformation calculated with the size of the sample (calculated from user input), and the sampleMod from the user clicks
-    M = cv2.getPerspectiveTransform(self.sample, self.sampleMod)
+    ### added in v1.3.0 to make sure the points are numpy arrays (generated issues during Mac executable with PyInstaller)
+    # Force both to float32 NumPy arrays
+    pts1 = np.array(self.sample, dtype=np.float32)
+    pts2 = np.array(self.sampleMod, dtype=np.float32)
+    
+    ### M is the matrix transformation calculated with the size of the sample (calculated from user input), and the sampleMod from the user clicks
+    # M = cv2.getPerspectiveTransform(self.sample, self.sampleMod)
+    # M = cv2.getPerspectiveTransform(pts1, pts2)
+    
     # If the perspective is done on a rotated video, the corrected image might have a much larger size than the original one, here we check this
-    originalFrame = np.float32([[0,0], [self.vWidth, 0], [self.vWidth, self.vHeight], [0, self.vHeight]])
+    # orginalFlame does not seem to be used, so it is commented out
+    # originalFrame = np.float32([[0,0], [self.vWidth, 0], [self.vWidth, self.vHeight], [0, self.vHeight]])
     width = int(frame.shape[1])
     height = int(frame.shape[0])
-    for point in self.sampleMod:
+
+    M = cv2.getPerspectiveTransform(pts1, pts2)
+        
+    # for point in self.sampleMod:
+    for point in pts2: #v1.3.0
         if point[0] > width:
             width = int(point[0])
         if point[1] > height:

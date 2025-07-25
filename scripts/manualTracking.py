@@ -1,6 +1,6 @@
 """
 Flame Tracker. This program is designed to track flames or bright objects in videos or images.
-Copyright (C) 2020-2024  Luca Carmignani
+Copyright (C) 2020-2025  Luca Carmignani
 
 This file is part of Flame Tracker.
 
@@ -29,18 +29,6 @@ def initVars(self): # define initial variables
 
 def startTracking(self):
     global clk, nClicks #, flameDir
-    # select the variables to plot based on user input
-    xAxis_lbl1 = self.xAxis_lbl1.currentText()
-    yAxis_lbl1 = self.yAxis_lbl1.currentText()
-    xAxis_lbl2 = self.xAxis_lbl2.currentText()
-    yAxis_lbl2 = self.yAxis_lbl2.currentText()
-
-    self.plot1_MT.clear()
-    self.plot1_MT.setLabel('left', str(yAxis_lbl1), color='black', size=14)
-    self.plot1_MT.setLabel('bottom', str(xAxis_lbl1), color='black', size=14)
-    self.plot1_MT.getAxis('bottom').setPen(color=(0, 0, 0))
-    self.plot1_MT.getAxis('left').setPen(color=(0, 0, 0))
-    self.plot1_MT.addLegend(offset = [1, 0.1])
 
     firstFrame = int(self.firstFrameIn.text())
     lastFrame = int(self.lastFrameIn.text())
@@ -52,9 +40,11 @@ def startTracking(self):
 
     clk = False # False unless the mouse is clicked
     posX = dict()
-    posX_mm = dict()
+    # posX_mm = dict()
+    posX_unit = dict() #v1.3.0
     posY = dict()
-    posY_mm = dict()
+    # posY_mm = dict()
+    posY_unit = dict()
     frameCount = dict()
     timeCount = dict()
 
@@ -71,7 +61,7 @@ def startTracking(self):
         if not self.scaleIn.text():
             # scale = False
             msg = ft.QMessageBox(self)
-            msg.setText('The scale [px/mm] has not been specified')
+            msg.setText('The scale [px/len] has not been specified')
             msg.exec()
             break
 
@@ -142,18 +132,22 @@ def startTracking(self):
             # update each position and frame list for the current click
             if str(n+1) in posX:
                 posX[str(n+1)].append(xClick)
-                posX_mm[str(n+1)].append(xClick / float(self.scaleIn.text()))
+                # posX_mm[str(n+1)].append(xClick / float(self.scaleIn.text()))
+                posX_unit[str(n+1)].append(xClick / float(self.scaleIn.text()))
                 posY[str(n+1)].append(yPos)
-                posY_mm[str(n+1)].append(yPos / float(self.scaleIn.text()))
+                # posY_mm[str(n+1)].append(yPos / float(self.scaleIn.text()))
+                posY_unit[str(n+1)].append(yPos / float(self.scaleIn.text()))
                 if n == 0: #frames and time are the same for all the clicks
                     frameCount[str(n+1)].append(currentFrame)
                     timeCount[str(n+1)].append(currentFrame / float(self.vFpsLbl.text()))
 
             else:
                 posX[str(n+1)] = [xClick]
-                posX_mm[str(n+1)] = [xClick / float(self.scaleIn.text())]
+                # posX_mm[str(n+1)] = [xClick / float(self.scaleIn.text())]
+                posX_unit[str(n+1)] = [xClick / float(self.scaleIn.text())]
                 posY[str(n+1)] = [yPos]
-                posY_mm[str(n+1)] = [yPos / float(self.scaleIn.text())]
+                # posY_mm[str(n+1)] = [yPos / float(self.scaleIn.text())]
+                posY_unit[str(n+1)] = [yPos / float(self.scaleIn.text())]
                 if n == 0: #frames and time are the same for all the clicks
                     frameCount[str(n+1)] = [currentFrame]
                     timeCount[str(n+1)] = [currentFrame / float(self.vFpsLbl.text())]
@@ -170,9 +164,11 @@ def startTracking(self):
     ft.cv2.destroyAllWindows()
 
     self.posX_px = posX
-    self.posX_plot = posX_mm
+    # self.posX_plot = posX_mm
+    self.posX_plot = posX_unit
     self.posY_px = posY
-    self.posY_plot = posY_mm
+    # self.posY_plot = posY_mm
+    self.posY_plot = posY_unit
     self.frames_plot = frameCount
     self.time_plot = timeCount
     # moving average of the spread rate values
@@ -181,9 +177,11 @@ def startTracking(self):
     # if scale:
     for n in range(nClicks):
         for i in range(len(timeCount['1'])-1):
-            xCoeff = ft.np.polyfit(timeCount['1'][(i):(i + 2)], posX_mm[str(n+1)][(i):(i + 2)], 1)
+            # xCoeff = ft.np.polyfit(timeCount['1'][(i):(i + 2)], posX_mm[str(n+1)][(i):(i + 2)], 1)
+            xCoeff = ft.np.polyfit(timeCount['1'][(i):(i + 2)], posX_unit[str(n+1)][(i):(i + 2)], 1)
             spreadRate = xCoeff[0]
-            yCoeff = ft.np.polyfit(timeCount['1'][(i):(i + 2)], posY_mm[str(n+1)][(i):(i + 2)], 1)
+            # yCoeff = ft.np.polyfit(timeCount['1'][(i):(i + 2)], posY_mm[str(n+1)][(i):(i + 2)], 1)
+            yCoeff = ft.np.polyfit(timeCount['1'][(i):(i + 2)], posY_unit[str(n+1)][(i):(i + 2)], 1)
             spreadRateY = yCoeff[0]
             if str(n+1) in self.spreadRateX:
                 self.spreadRateX[str(n+1)].append(spreadRate)
@@ -195,8 +193,15 @@ def startTracking(self):
         self.spreadRateX[str(n+1)].append(xCoeff[0])
         self.spreadRateY[str(n+1)].append(yCoeff[0])
 
+    self.plot1_MT.clear()
     self.lbl2_MT.clear()
-    self.lbl2_MT.addLegend(offset = [1, 0.1]) # background color modified in line 122 and 123 of python3.7/site-packages/pyqtgraph/graphicsItems
+    # select the variables to plot based on user input
+    xAxis_lbl1 = self.xAxis_lbl1.currentText()
+    yAxis_lbl1 = self.yAxis_lbl1.currentText()
+    xAxis_lbl2 = self.xAxis_lbl2.currentText()
+    yAxis_lbl2 = self.yAxis_lbl2.currentText()
+
+    self.lbl2_MT.addLegend(offset = [1, 0.1]) # background color modified in line 122 and 123 of python3.7/site-packages/pyqtgraph/graphicsItems (only up to v1.13)
     color = ['b', 'r', 'k', 'g', 'c', 'y']
     for n in range(nClicks):
         name = 'click{}'.format([n+1])
@@ -206,12 +211,21 @@ def startTracking(self):
             if n > len(color):
                 self.msgLabel.setText('Not enough colors for plotting.')
 
-        xPlot1, yPlot1 = selectAxes(self, xAxis_lbl1, yAxis_lbl1, n)
-        xPlot2, yPlot2 = selectAxes(self, xAxis_lbl2, yAxis_lbl2, n)
+        xPlot1, yPlot1, yUnit1 = selectAxes(self, xAxis_lbl1, yAxis_lbl1, n)
+        xPlot2, yPlot2, yUnit2 = selectAxes(self, xAxis_lbl2, yAxis_lbl2, n)
         # manualTrackingPlot(self.lbl1_MT, self.time_plot['1'], self.posX_plot[str(n+1)], name, 'o', clr)
         manualTrackingPlot(self.plot1_MT, xPlot1, yPlot1, name, 'o', clr)
         # manualTrackingPlot(self.lbl2_MT, self.time_plot['1'], self.spreadRate[str(n+1)], name, 'o', clr)
         manualTrackingPlot(self.lbl2_MT, xPlot2, yPlot2, name, 'o', clr)
+
+
+    # self.plot1_MT.setLabel('left', str(yAxis_lbl1), color='black', size=14)
+    self.plot1_MT.setLabel('bottom', str(xAxis_lbl1), color='black', size=14)
+    self.plot1_MT.setLabel('left', f'{yAxis_lbl1} [{yUnit1}]', color='black', size=14)
+    self.lbl2_MT.setLabel('left', f'{yAxis_lbl2} [{yUnit2}]', color='black', size=14)
+    self.plot1_MT.getAxis('bottom').setPen(color=(0, 0, 0))
+    self.plot1_MT.getAxis('left').setPen(color=(0, 0, 0))
+    self.plot1_MT.addLegend(offset = [1, 0.1])
 
     self.plot1_MT.show()
     self.win1_MT.setCurrentIndex(1)
@@ -273,8 +287,8 @@ def absValue(self):
           yAxis_lbl1 = self.yAxis_lbl1.currentText()
           xAxis_lbl2 = self.xAxis_lbl2.currentText()
           yAxis_lbl2 = self.yAxis_lbl2.currentText()
-          xPlot1, yPlot1 = selectAxes(self, xAxis_lbl1, yAxis_lbl1, n)
-          xPlot2, yPlot2 = selectAxes(self, xAxis_lbl2, yAxis_lbl2, n)
+          xPlot1, yPlot1, yUnit1 = selectAxes(self, xAxis_lbl1, yAxis_lbl1, n)
+          xPlot2, yPlot2, yUnit2 = selectAxes(self, xAxis_lbl2, yAxis_lbl2, n)
           # manualTrackingPlot(self.lbl1_MT, self.time_plot['1'], self.posX_plot[str(n+1)], '', 'o', clr)
           # manualTrackingPlot(self.lbl2_MT, self.time_plot['1'], self.spreadRate[str(n+1)], '', 'o', clr)
           manualTrackingPlot(self.plot1_MT, xPlot1, yPlot1, '', 'o', clr)
@@ -293,21 +307,28 @@ def saveData(self):
         fileName = fileName + '.csv'
 
     try:
-        fileInfo = ['Name', self.fNameLbl.text(), 'Scale [px/mm]', self.scaleIn.text(), 'Manual Tracking', 'Flame dir.:', self.directionBox.currentText(), 'code version', str(self.version_FT)]
+        # fileInfo = ['Name', self.fNameLbl.text(), 'Scale [px/mm]', self.scaleIn.text(), 'Manual Tracking', 'Flame dir.:', self.directionBox.currentText(), 'code version', str(self.version_FT)]
+        fileInfo = ['Name', self.fNameLbl.text(), f'Scale [px/{self.unitScale}]', self.scaleIn.text(), 'Manual Tracking', 'Flame dir.:', self.directionBox.currentText(), 'code version', str(self.version_FT)]
         lbl = ['File info', 'Frame', 'Time [s]']
         clmns = [fileInfo, self.frames_plot['1'], self.time_plot['1']]
         for n in range(int(self.nClicksLbl.text())):
-            lbl.append('x_click{} [px]'.format([n+1]))
+            # lbl.append('x_click{} [px]'.format([n+1]))
+            lbl.append(f'x_click{n+1} [px]')
             clmns.append(self.posX_px[str(n+1)])
-            lbl.append('x_click{} [mm]'.format([n+1]))
+            # lbl.append('x_click{} [mm]'.format([n+1]))
+            lbl.append(f'x_click{n+1} [{self.unitScale}]')
             clmns.append(ft.np.round((self.posX_plot[str(n+1)]), 2))
-            lbl.append('y_click{} [px]'.format([n+1]))
+            # lbl.append('y_click{} [px]'.format([n+1]))
+            lbl.append(f'y_click{n+1} [px]')
             clmns.append(self.posY_px[str(n+1)])
-            lbl.append('y_click{} [mm]'.format([n+1]))
+            # lbl.append('y_click{} [mm]'.format([n+1]))
+            lbl.append(f'y_click{n+1} [{self.unitScale}]')
             clmns.append(ft.np.round((self.posY_plot[str(n+1)]), 2))
-            lbl.append('Vf,x_click{}'.format([n+1]))
+            # lbl.append('Vf,x_click{}'.format([n+1]))
+            lbl.append(f'Vf,x_click{n+1} [{self.unitScale}/s]')
             clmns.append(self.spreadRateX[str(n+1)])
-            lbl.append('Vf,y_click{}'.format([n+1]))
+            # lbl.append('Vf,y_click{}'.format([n+1]))
+            lbl.append(f'Vf,y_click{n+1} [{self.unitScale}/s]')
             clmns.append(self.spreadRateY[str(n+1)])
 
         clmns_zip = ft.zip_longest(*clmns)
@@ -351,13 +372,15 @@ def updateGraphsBtn(self):
                 if n > len(color):
                     self.msgLabel.setText('Not enough colors for plotting.')
 
-            xPlot1, yPlot1 = selectAxes(self, xAxis_lbl1, yAxis_lbl1, n)
-            xPlot2, yPlot2 = selectAxes(self, xAxis_lbl2, yAxis_lbl2, n)
+            xPlot1, yPlot1, yUnit1 = selectAxes(self, xAxis_lbl1, yAxis_lbl1, n)
+            xPlot2, yPlot2, yUnit2 = selectAxes(self, xAxis_lbl2, yAxis_lbl2, n)
 
-            self.plot1_MT.setLabel('left', str(yAxis_lbl1), color='black', size=14)
+            # self.plot1_MT.setLabel('left', str(yAxis_lbl1), color='black', size=14)
             self.plot1_MT.setLabel('bottom', str(xAxis_lbl1), color='black', size=14)
-            self.lbl2_MT.setLabel('left', str(yAxis_lbl2), color='black', size=14)
+            self.plot1_MT.setLabel('left', f'{yAxis_lbl1} [{yUnit1}]', color='black', size=14)
+            # self.lbl2_MT.setLabel('left', str(yAxis_lbl2), color='black', size=14)
             self.lbl2_MT.setLabel('bottom', str(xAxis_lbl2), color='black', size=14)
+            self.lbl2_MT.setLabel('left', f'{yAxis_lbl2} [{yUnit2}]', color='black', size=14)
             manualTrackingPlot(self.plot1_MT, xPlot1, yPlot1, name, 'o', clr)
             manualTrackingPlot(self.lbl2_MT, xPlot2, yPlot2, name, 'o', clr)
 
@@ -373,20 +396,26 @@ def selectAxes(self, xAxis_lbl, yAxis_lbl, n):
         xPlot = self.time_plot['1']
     elif xAxis_lbl == 'Frame #':
         xPlot = self.frames_plot['1']
-    if yAxis_lbl == 'x coord. [mm]':
+    if yAxis_lbl == 'x coord.':
+        yUnit = f'{self.unitScale}'
         yPlot = self.posX_plot[str(n+1)]
     elif yAxis_lbl == 'x coord. [px]':
+        yUnit = 'px'
         yPlot = self.posX_px[str(n+1)]
-    elif yAxis_lbl == 'y coord. [mm]':
+    elif yAxis_lbl == 'y coord.':
+        yUnit = f'{self.unitScale}'
         yPlot = self.posY_plot[str(n+1)]
     elif yAxis_lbl == 'y coord. [px]':
+        yUnit = 'px'
         yPlot = self.posY_px[str(n+1)]
-    elif yAxis_lbl == 'Spread rate, x [mm/s]':
+    elif yAxis_lbl == 'Spread rate, x':
+        yUnit = f'{self.unitScale}/s'
         yPlot = self.spreadRateX[str(n+1)]
-    elif yAxis_lbl == 'Spread rate, y [mm/s]':
+    elif yAxis_lbl == 'Spread rate, y':
+        yUnit = f'{self.unitScale}/s'
         yPlot = self.spreadRateY[str(n+1)]
 
-    return(xPlot, yPlot)
+    return(xPlot, yPlot, yUnit)
 
 
 def helpBtn(self):
