@@ -32,7 +32,7 @@ The packages required to run the code are (they can be installed with pip or ana
 - numPy (https://numpy.org)
 - PyQtgraph (http://www.pyqtgraph.org)
 
-**Note:** Mac and Linux users may have to use numPy 1.26.4 to avoid conflicts between numPy and openCV. Creating a virtual environment is recommended.
+**Note:** Creating a virtual environment is recommended to make sure you are using the right packages.
 
 **Note:** for Flame Tracker versions before v1.1.3 and old versions of the PyQtgraph package (up to 0.11), one of the source codes in the PyQtgraph package (legendItem.py) related to the legend visualization was modified. You should replace the original LegendItem.py file in the package folder .../site-packages/pyqtgraph/graphicsItems/legendItem.py. In order to do that:
 - locate the path of the site-packages folder, which depends on where and how you installed python. If you don't know the location, you can type 'python -m site' in the Command Prompt (Windows) or in the Terminal (MacOS) to see the folder path. Note: Linux users might need to look for the "dist-packages" folder instead of "site-packages".
