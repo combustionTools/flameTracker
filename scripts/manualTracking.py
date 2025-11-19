@@ -26,6 +26,8 @@ import boxesGUI_OS as gui
 
 def initVars(self): # define initial variables
     self.lightROI_MT_recorded = False
+    self.lightDetectCfg = {'R_min': 5, 'G_min': 5, 'B_min': 10, 'R_max': 255, 'G_max': 255, 'B_max': 255}
+
 
 def startTracking(self):
     global clk, nClicks #, flameDir
@@ -58,6 +60,14 @@ def startTracking(self):
     while (currentFrame < lastFrame):
         print('Frame #:', currentFrame, end='\r')
 
+        if not hasattr(self, "unitScale") or not self.unitScale:
+            ft.QMessageBox.warning(
+            self,
+            "Missing unit scale",
+            "Please select a unit scale before starting tracking."
+            )
+            break
+
         if not self.scaleIn.text():
             # scale = False
             msg = ft.QMessageBox(self)
@@ -70,8 +80,12 @@ def startTracking(self):
         if self.lightROI_MT_recorded == True:
             # looking for frames with a light on (which would increase the red and green channel values of the background)
             # low and high are the thresholds for each color channel
-            low = ([5, 5, 10]) # blueLow, greenLow, redLow
-            high = ([255, 255, 255]) # blueHigh, greenHigh, redHigh
+            # low = ([5, 5, 10]) # blueLow, greenLow, redLow
+            # high = ([255, 255, 255]) # blueHigh, greenHigh, redHigh
+            cfg = self.lightDetectCfg
+            low  = ft.np.array([cfg["B_min"], cfg["G_min"], cfg["R_min"]], dtype=ft.np.uint8)
+            high = ft.np.array([cfg["B_max"], cfg["G_max"], cfg["R_max"]], dtype=ft.np.uint8)
+
             low = ft.np.array(low, dtype = 'uint8') #this conversion is necessary
             high = ft.np.array(high, dtype = 'uint8')
 
@@ -416,6 +430,74 @@ def selectAxes(self, xAxis_lbl, yAxis_lbl, n):
         yPlot = self.spreadRateY[str(n+1)]
 
     return(xPlot, yPlot, yUnit)
+
+def lightThresholdsBtn(self):
+
+    self.msgLabel.setText('Maximize unfiltered (white) area. (S=Save, Q/Esc=Cancel)')
+    # Must have an ROI picked first
+    if not getattr(self, "lightROI_RT_recorded", False):
+        self.msgLabel.setText('Pick a bright region first (click "Pick a bright region").')
+        return
+
+    # Get current frame and crop ROI
+    frame, _ = ft.checkEditing(self, self.frameNumber)
+    x, y, w, h = self.lightROI_RT  # (x, y, w, h)
+    roi = frame[y:y+h, x:x+w].copy()
+    if roi is None or roi.size == 0:
+        self.msgLabel.setText('Selected ROI appears empty on this frame.')
+        return
+    
+    # Start from current min slider values
+    R0 = 5
+    G0 = 5
+    B0 = 10
+
+    # Create window & trackbars
+    win = 'Maximize unfiltered (white) area. (S=Save, Q/Esc=Cancel)'
+    ft.cv2.namedWindow(win, ft.cv2.WINDOW_AUTOSIZE)
+    ft.cv2.createTrackbar('R min', win, R0, 255, lambda v: None)
+    ft.cv2.createTrackbar('G min', win, G0, 255, lambda v: None)
+    ft.cv2.createTrackbar('B min', win, B0, 255, lambda v: None)
+
+    def apply_filter(img_bgr, r_min, g_min, b_min, r_max=255, g_max=255, b_max=255):
+        # inRange expects BGR order
+        low  = ft.np.array([b_min, g_min, r_min], dtype=ft.np.uint8)
+        high = ft.np.array([b_max, g_max, r_max], dtype=ft.np.uint8)
+        mask = ft.cv2.inRange(img_bgr, low, high)
+        return ft.cv2.bitwise_and(img_bgr, img_bgr, mask=mask)
+
+    # Render loop
+    saved = False
+    while True:
+        R_min = ft.cv2.getTrackbarPos('R min', win)
+        G_min = ft.cv2.getTrackbarPos('G min', win)
+        B_min = ft.cv2.getTrackbarPos('B min', win)
+
+        filtered = apply_filter(roi, R_min, G_min, B_min)
+
+        # Show original (left) and filtered (right)
+        preview = ft.np.hstack([roi, filtered])
+        ft.cv2.imshow(win, preview)
+
+        k = ft.cv2.waitKey(30) & 0xFF
+        if k in (ord('s'), ord('S')):  # Save
+            # Push values back into your existing sliders
+            self.redMinSlider.setValue(int(R_min))
+            self.greenMinSlider.setValue(int(G_min))
+            self.blueMinSlider.setValue(int(B_min))
+            saved = True
+            break
+        if k in (27, ord('q'), ord('Q')):  # Esc/Q -> cancel
+            break
+
+    ft.cv2.destroyWindow(win)
+
+    # Refresh your main previews if we saved
+    if saved:
+        self.lightDetectCfg = {'R_min': R_min, 'G_min': G_min, 'B_min': B_min, 'R_max': 255, 'G_max': 255, 'B_max': 255}
+        self.msgLabel.setText(f'Light thresholds updated: R≥{R_min}, G≥{G_min}, B≥{B_min}')
+    else:
+        self.msgLabel.setText('Light threshold adjustment canceled.')
 
 
 def helpBtn(self):

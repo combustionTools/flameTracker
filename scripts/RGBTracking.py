@@ -29,6 +29,7 @@ def initVars(self): # define initial variables
     self.lightROI_RT_recorded = False
     self.connectivity = self.connectivityGroup.checkedAction()
     self.connectivity = self.connectivity.text()
+    self.lightDetectCfg = {'R_min': 5, 'G_min': 5, 'B_min': 10, 'R_max': 255, 'G_max': 255, 'B_max': 255}
 
 def getFilteredFrame(self, frame):
     blueLow = self.blueMinSlider.value()
@@ -111,11 +112,21 @@ def findFlameEdges(self, frameBW, flamePx):
 def RGBTracking(self):
     startTimer = ft.time.perf_counter() # v1.3.0; to measure the execution time of the tracking
     scale = True
+
+    if not hasattr(self, "unitScale") or not self.unitScale:
+        ft.QMessageBox.warning(
+            self,
+            "Missing unit scale",
+            "Please select a unit scale before starting tracking."
+        )
+        return
+    
     if not self.scaleIn.text():
         scale = False
         msg = ft.QMessageBox(self)
         msg.setText('The scale [px/len] has not been specified')
         msg.exec()
+        return
 
     firstFrame = int(self.firstFrameIn.text())
     lastFrame = int(self.lastFrameIn.text())
@@ -133,7 +144,7 @@ def RGBTracking(self):
 
     if self.exportVideoBW_RT.isChecked(): # added in v1.2.2
         fps = (float(self.vFps))/(int(self.skipFrameIn.text()) + 1)
-        vNameBW = self.fPath + '-videoBW.' + str(self.vFormat)
+        vNameBW = self.fPath[0] + '-videoBW.' + str(self.vFormat)
         fourccBW = ft.cv2.VideoWriter_fourcc(*self.codec)
         size = (int(self.roiThreeIn.text()), int(self.roiFourIn.text()))
         # open and set properties
@@ -142,7 +153,7 @@ def RGBTracking(self):
 
     if self.exportVideo_RT.isChecked():
         fps = (float(self.vFps))/(int(self.skipFrameIn.text()) + 1)
-        vName = self.fPath + '-videoRGB.' + str(self.vFormat)
+        vName = self.fPath[0] + '-videoRGB.' + str(self.vFormat)
         fourcc = ft.cv2.VideoWriter_fourcc(*self.codec)
         size = (int(self.roiThreeIn.text()), int(self.roiFourIn.text()))
         # open and set properties
@@ -160,8 +171,12 @@ def RGBTracking(self):
             if self.filterLight_RT.isChecked() == True:
                 if self.lightROI_RT_recorded == True: #beta
                     # looking for frames with a light on (which would increase the red and green channel values of the background)
-                    low = ([5, 5, 10]) # blueLow, greenLow, redLow
-                    high = ([255, 255, 255]) # blueHigh, greenHigh, redHigh
+                    # low = ([5, 5, 10]) # blueLow, greenLow, redLow
+                    # high = ([255, 255, 255]) # blueHigh, greenHigh, redHigh
+                    cfg = self.lightDetectCfg
+                    low  = ft.np.array([cfg["B_min"], cfg["G_min"], cfg["R_min"]], dtype=ft.np.uint8)
+                    high = ft.np.array([cfg["B_max"], cfg["G_max"], cfg["R_max"]], dtype=ft.np.uint8)
+
                     low = ft.np.array(low, dtype = 'uint8') #this conversion is necessary
                     high = ft.np.array(high, dtype = 'uint8')
                     currentLightROI = frame[self.lightROI_RT[1] : (self.lightROI_RT[1] + self.lightROI_RT[3]), self.lightROI_RT[0] : (self.lightROI_RT[0] + self.lightROI_RT[2])]
@@ -628,3 +643,74 @@ def updateGraphsBtn(self):
     except:
         print('Unexpected error:', ft.sys.exc_info())
         self.msgLabel.setText('Error: the graphs could not be updated.')
+
+
+
+def lightThresholdsBtn(self):
+
+    self.msgLabel.setText('Maximize unfiltered area. (S=Save, Q/Esc=Cancel)')
+    # Must have an ROI picked first
+    if not getattr(self, "lightROI_RT_recorded", False):
+        self.msgLabel.setText('Pick a bright region first (click "Pick a bright region").')
+        return
+
+    # Get current frame and crop ROI
+    frame, _ = ft.checkEditing(self, self.frameNumber)
+    x, y, w, h = self.lightROI_RT  # (x, y, w, h)
+    roi = frame[y:y+h, x:x+w].copy()
+    if roi is None or roi.size == 0:
+        self.msgLabel.setText('Selected ROI appears empty on this frame.')
+        return
+    
+    # Start from current min slider values
+    cfg = self.lightDetectCfg
+    low  = ft.np.array([cfg["B_min"], cfg["G_min"], cfg["R_min"]], dtype=ft.np.uint8)
+    high = ft.np.array([cfg["B_max"], cfg["G_max"], cfg["R_max"]], dtype=ft.np.uint8)
+
+
+    # Create window & trackbars
+    win = 'Maximize unfiltered (white) area. (S=Save, Q/Esc=Cancel)'
+    ft.cv2.namedWindow(win, ft.cv2.WINDOW_AUTOSIZE)
+    ft.cv2.createTrackbar('R min', win, int(cfg["R_min"]), 255, lambda v: None)
+    ft.cv2.createTrackbar('G min', win, int(cfg["G_min"]), 255, lambda v: None)
+    ft.cv2.createTrackbar('B min', win, int(cfg["B_min"]), 255, lambda v: None)
+
+
+    # Render loop
+    # saved = False
+    while True:
+        R_min = ft.cv2.getTrackbarPos('R min', win)
+        G_min = ft.cv2.getTrackbarPos('G min', win)
+        B_min = ft.cv2.getTrackbarPos('B min', win)
+
+        low  = ft.np.array([B_min, G_min, R_min], dtype=ft.np.uint8)
+        high = ft.np.array([cfg["B_max"], cfg["G_max"], cfg["R_max"]], dtype=ft.np.uint8)
+        mask = ft.cv2.inRange(roi, low, high)
+        bw_bgr = ft.cv2.cvtColor(mask, ft.cv2.COLOR_GRAY2BGR)
+
+        # Show original (left) and filtered (right)
+        preview = ft.np.hstack([roi, bw_bgr])
+        ft.cv2.imshow(win, preview)
+
+        k = ft.cv2.waitKey(30) & 0xFF
+        if k in (ord('s'), ord('S')):  # Save
+            self.lightDetectCfg = {'R_min': R_min, 'G_min': G_min, 'B_min': B_min, 'R_max': 255, 'G_max': 255, 'B_max': 255}
+            self.msgLabel.setText(f'Light thresholds updated: R≥{R_min}, G≥{G_min}, B≥{B_min}')
+            # # Push values back into your existing sliders
+            # self.redMinSlider.setValue(int(R_min))
+            # self.greenMinSlider.setValue(int(G_min))
+            # self.blueMinSlider.setValue(int(B_min))
+            # saved = True
+            break
+        if k in (27, ord('q'), ord('Q')):  # Esc/Q -> cancel
+            self.msgLabel.setText('Light threshold adjustment canceled.')
+            break
+
+    ft.cv2.destroyWindow(win)
+
+    # # Refresh your main previews if we saved
+    # if saved:
+    #     self.lightDetectCfg = {'R_min': R_min, 'G_min': G_min, 'B_min': B_min, 'R_max': 255, 'G_max': 255, 'B_max': 255}
+    #     self.msgLabel.setText(f'Light thresholds updated: R≥{R_min}, G≥{G_min}, B≥{B_min}')
+    # else:
+    #     self.msgLabel.setText('Light threshold adjustment canceled.')

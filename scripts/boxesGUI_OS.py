@@ -281,6 +281,10 @@ def manualTrackingBox(self):
     lightTxt = ft.QLabel('Flashing light (optional):')#, self.manualTrackingBox)
     self.lightROIBtn_MT = ft.QPushButton('Pick bright region')#, self.manualTrackingBox)
     self.lightROIBtn_MT.clicked.connect(self.lightROIBtn_MT_clicked)
+    self.lightROIBtn_MT = ft.QAction('Pick bright region', self)
+    self.lightROIBtn_MT.triggered.connect(self.lightROIBtn_MT_clicked)
+    self.lightThresholdsBtn_MT = ft.QAction('Adjust light thresholds', self)
+    self.lightThresholdsBtn_MT.triggered.connect(self.lightThresholdsBtn_MT_clicked)
     self.filterLight_MT = ft.QComboBox()#self.manualTrackingBox)
     self.filterLight_MT.addItem('Track every frame')
     self.filterLight_MT.addItem('Frames light on')
@@ -401,6 +405,10 @@ def manualTrackingBox(self):
     self.menu_MT.addAction(self.showLines_MT)
     self.menu_MT.addAction(self.absValBtn_MT)
 
+    flashingLightSub = self.menu_MT.addMenu('Flashing light')
+    flashingLightSub.addAction(self.lightROIBtn_MT)
+    flashingLightSub.addAction(self.lightThresholdsBtn_MT)
+
 def lumaTrackingBox(self):
     self.box_layout = ft.QGridLayout()
     self.box_layout.setSpacing(10)
@@ -510,6 +518,8 @@ def lumaTrackingBox(self):
     self.filterLight_LT.setCheckable(True)
     self.lightROIBtn_LT = ft.QAction('Pick bright region', self)
     self.lightROIBtn_LT.triggered.connect(self.lightROIBtn_LT_clicked)
+    self.lightThresholdsBtn_LT = ft.QAction('Adjust light thresholds', self)
+    self.lightThresholdsBtn_LT.triggered.connect(self.lightThresholdsBtn_LT_clicked)
     self.absValBtn_LT = ft.QAction('Absolute values', self)
     self.absValBtn_LT.triggered.connect(self.absValBtn_LT_clicked)
     self.showEdges_LT = ft.QAction('Show edge lines', self)
@@ -524,8 +534,14 @@ def lumaTrackingBox(self):
 
     self.menu_LT = self.menu.addMenu('&Tracking options')
     self.menu_LT.addAction(showFrameLargeBtn_LT)
-    self.menu_LT.addAction(self.filterLight_LT)
-    self.menu_LT.addAction(self.lightROIBtn_LT)
+
+    flashingLightSub = self.menu_LT.addMenu('Flashing light')
+    flashingLightSub.addAction(self.filterLight_LT)
+    flashingLightSub.addAction(self.lightROIBtn_LT)
+    flashingLightSub.addAction(self.lightThresholdsBtn_LT)
+
+    # self.menu_LT.addAction(self.filterLight_LT)
+    # self.menu_LT.addAction(self.lightROIBtn_LT)
     self.menu_LT.addAction(self.absValBtn_LT)
     self.menu_LT.addAction(self.showEdges_LT)
     self.menu_LT.addAction(self.exportVideoBW_LT)
@@ -768,7 +784,7 @@ def RGBTrackingBox(self):
     self.box_layout.setColumnMinimumWidth(12, 50)
     self.analysisGroupBox.setLayout(self.box_layout)
 
-    # create menu on the menubar
+    # create a menu on the menubar
     connectivity0 = ft.QAction('4', self, checkable=True, checked=True)
     connectivity1 = ft.QAction('8', self, checkable=True, checked=False)
     showFrameLargeBtn_RT = ft.QAction('Show filtered frame', self)
@@ -777,6 +793,8 @@ def RGBTrackingBox(self):
     self.filterLight_RT.setCheckable(True)
     self.lightROIBtn_RT = ft.QAction('Pick bright region', self)
     self.lightROIBtn_RT.triggered.connect(self.lightROIBtn_RT_clicked)
+    self.lightThresholdsBtn_RT = ft.QAction('Adjust light thresholds', self)
+    self.lightThresholdsBtn_RT.triggered.connect(self.lightThresholdsBtn_RT_clicked)
     self.absValBtn_RT = ft.QAction('Absolute values', self)
     self.absValBtn_RT.triggered.connect(self.absValBtn_RT_clicked)
     self.showEdges_RT = ft.QAction('Show edge lines', self)
@@ -799,9 +817,19 @@ def RGBTrackingBox(self):
     self.connectivityGroup.addAction(connectivity1)
     self.connectivityGroup.setExclusive(True)
 
+    flashingLightSub = self.menu_RT.addMenu('Flashing light')
+    flashingLightSub.addAction(self.filterLight_RT)
+    flashingLightSub.addAction(self.lightROIBtn_RT)
+    flashingLightSub.addAction(self.lightThresholdsBtn_RT)
+    # self.flashingLightGroup = ft.QActionGroup(self)
+    # self.flashingLightGroup.addAction(flashingLight0)
+    # self.flashingLightGroup.addAction(flashingLight1)
+    # self.flashingLightGroup.addAction(flashingLight2)
+    # self.flashingLightGroup.setExclusive(True)
+
     self.menu_RT.addAction(showFrameLargeBtn_RT)
-    self.menu_RT.addAction(self.filterLight_RT)
-    self.menu_RT.addAction(self.lightROIBtn_RT)
+    # self.menu_RT.addAction(self.filterLight_RT)
+    # self.menu_RT.addAction(self.lightROIBtn_RT)
     self.menu_RT.addAction(self.absValBtn_RT)
     self.menu_RT.addAction(self.showEdges_RT)
     self.menu_RT.addAction(self.exportVideoBW_RT)
@@ -1036,6 +1064,8 @@ def HSVTrackingBox(self):
     self.filterLight_HT.setCheckable(True)
     self.lightROIBtn_HT = ft.QAction('Pick bright region', self)
     self.lightROIBtn_HT.triggered.connect(self.lightROIBtn_HT_clicked)
+    self.lightThresholdsBtn_HT = ft.QAction('Adjust light thresholds', self)
+    self.lightThresholdsBtn_HT.triggered.connect(self.lightThresholdsBtn_HT_clicked)
     self.absValBtn_HT = ft.QAction('Absolute values', self)
     self.absValBtn_HT.triggered.connect(self.absValBtn_HT_clicked)
     self.showEdges_HT = ft.QAction('Show edges location', self)
@@ -1059,9 +1089,58 @@ def HSVTrackingBox(self):
     self.connectivityGroup.setExclusive(True)
 
     self.menu_HT.addAction(showFrameLargeBtn_HT)
-    self.menu_HT.addAction(self.filterLight_HT)
-    self.menu_HT.addAction(self.lightROIBtn_HT)
+
+    flashingLightSub = self.menu_HT.addMenu('Flashing light')
+    flashingLightSub.addAction(self.filterLight_HT)
+    flashingLightSub.addAction(self.lightROIBtn_HT)
+    flashingLightSub.addAction(self.lightThresholdsBtn_HT)
+
+    # self.menu_HT.addAction(self.filterLight_HT)
+    # self.menu_HT.addAction(self.lightROIBtn_HT)
     self.menu_HT.addAction(self.absValBtn_HT)
     self.menu_HT.addAction(self.showEdges_HT)
     self.menu_HT.addAction(self.exportVideo_HT)
     self.menu_HT.addAction(self.exportTrackOverlay_HT)
+
+
+# def VSBox(self):
+#     self.box_layout = ft.QGridLayout()
+#     self.box_layout.setSpacing(10)
+
+#     # #first column
+    
+    
+#     folder3Txt = ft.QLabel('Folder 3:')
+#     folder1Btn = ft.QPushButton('Folder 1')
+#     folder1Btn.clicked.connect(self.folder1Btn_clicked)
+#     self.folder1Txt = ft.QLabel('Folder 1:')
+#     folder2Btn = ft.QPushButton('Folder 2')
+#     folder2Btn.clicked.connect(self.folder2Btn_clicked)
+#     self.folder2Txt = ft.QLabel('Folder 2:')
+
+#     calibrationFrameBtn = ft.QPushButton('Select ref. frame')
+#     calibrationFrameBtn.clicked.connect(self.calibrationFrameBtn_clicked)
+#     calibrationFrame2Btn = ft.QPushButton('Select 2nd ref. frame')
+#     calibrationFrame2Btn.clicked.connect(self.calibrationFrame2Btn_clicked)
+#     calibrationBtn = ft.QPushButton('Calibrate')
+#     calibrationBtn.clicked.connect(self.calibrationBtn_clicked)
+
+#     self.box_layout.addWidget(folder1Btn, 0, 0, 1, 1)
+#     self.box_layout.addWidget(self.folder1Txt, 0, 1, 1, 1)
+#     self.box_layout.addWidget(calibrationFrameBtn, 0, 2, 1, 1)
+#     self.box_layout.addWidget(folder2Btn, 1, 0, 1, 1)
+#     self.box_layout.addWidget(self.folder2Txt, 1, 1, 1, 1)
+#     self.box_layout.addWidget(folder3Txt, 2, 1, 1, 1)
+#     self.box_layout.addWidget(calibrationFrame2Btn, 1, 2, 1, 1)
+#     self.box_layout.addWidget(calibrationBtn, 3, 2, 1, 1)
+
+
+#     self.analysisGroupBox.setLayout(self.box_layout)
+
+#     # create a menu on the menubar
+#     testVideo = ft.QAction('Test action', self)
+#     # showFrameLargeBtn_RT.triggered.connect(self.showFrameLargeBtn_RT_clicked)
+#     # self.filterLight_RT = ft.QAction('Ignore flashing light', self)
+#     # self.filterLight_RT.setCheckable(True)
+
+#     self.menu_VS = self.menu.addMenu('&Tracking options')

@@ -43,6 +43,7 @@ import lumaTracking as lt
 import RGBTracking as rt
 import HSVTracking as ht
 import boxesGUI_OS as gui
+# import videoStitching as vs
 
 #To make sure the resolution is correct also in Windows
 if hasattr(Qt, 'AA_EnableHighDpiScaling'):
@@ -74,7 +75,7 @@ class FlameTrackerWindow(QMainWindow): #QWidget
         (at your option) any later version.''')
 
         # Flame Tracker version
-        self.version_FT = 'v1.3.0'
+        self.version_FT = 'v1.3.1beta'
 
         # creating the toolbar
         toolbar = QToolBar('FT toolbar')
@@ -115,6 +116,8 @@ class FlameTrackerWindow(QMainWindow): #QWidget
         selection_RT.triggered.connect(self.showRGBTracking)
         selection_HT = QAction('HSV tracking', self, checkable=True, checked=False)
         selection_HT.triggered.connect(self.showHSVTracking)
+        # selection_VS = QAction('Video Stiching', self, checkable=True, checked=False)
+        # selection_VS.triggered.connect(self.showVS)
 
         showFrame = QAction('Show frame in new window', self)
         showFrame.triggered.connect(self.showFrameLarge_clicked)
@@ -164,11 +167,13 @@ class FlameTrackerWindow(QMainWindow): #QWidget
         trackingMenu.addAction(selection_LT)
         trackingMenu.addAction(selection_RT)
         trackingMenu.addAction(selection_HT)
+        # trackingMenu.addAction(selection_VS)
         self.trackingGroup = QActionGroup(self)
         self.trackingGroup.addAction(selection_MT)
         self.trackingGroup.addAction(selection_LT)
         self.trackingGroup.addAction(selection_RT)
         self.trackingGroup.addAction(selection_HT)
+        # self.trackingGroup.addAction(selection_VS)
         self.trackingGroup.setExclusive(True)
 
         frameMenu = self.menu.addMenu('&Show')
@@ -207,6 +212,7 @@ class FlameTrackerWindow(QMainWindow): #QWidget
     def showLumaTracking(self):
         removeExistingMethod(self)
         gui.lumaTrackingBox(self)
+        lt.initVars(self)
 
     def showRGBTracking(self):
         removeExistingMethod(self)
@@ -218,14 +224,20 @@ class FlameTrackerWindow(QMainWindow): #QWidget
         gui.HSVTrackingBox(self)
         ht.initVars(self) # include default variables in this function
 
+    # def showVS(self):
+    #     removeExistingMethod(self)
+    #     gui.VSBox(self)
+    #     vs.initVars(self) # include default variables in this function
+# 
     def openVideo_clicked(self):
         self.openSelection = 'video'
         try:
             self.fPath, fFilter = QFileDialog.getOpenFileName(self, 'Open File')
+            self.fPath = [self.fPath] # in this way we have a list even if there is only one video
             # look for the name: look for '/' after any character (.), repeated any times (*), and extract everything that comes after in a non-greedy way
-            self.fName = re.findall('.*[/](.*)?', self.fPath)
+            self.fName = re.findall('.*[/](.*)?', self.fPath[0])
             self.fNameLbl.setText(str(self.fName[0]))
-            self.fVideo = cv2.VideoCapture(self.fPath)
+            self.fVideo = cv2.VideoCapture(self.fPath[0])
             self.vFrames = int(self.fVideo.get(cv2.CAP_PROP_FRAME_COUNT)) #get(7)
             self.vHeight = int(self.fVideo.get(cv2.CAP_PROP_FRAME_HEIGHT))
             self.vWidth = int(self.fVideo.get(cv2.CAP_PROP_FRAME_WIDTH))
@@ -873,7 +885,18 @@ class FlameTrackerWindow(QMainWindow): #QWidget
                 self.refPoint = [xPos_abs, yPos_abs] #absolute point
                 self.refPoint_ROI = [xPos - roiOne, yPos - roiTwo] #point function of ROI
 
-            self.msgLabel.setText(f'Reference point (absolute): ({self.refPoint[0]}, {self.refPoint[1]}); (ROI dependent): ({self.refPoint_ROI[0]}, {self.refPoint_ROI[1]})')
+            if str(self.scaleIn.text()):
+                refPointX_unit = self.refPoint[0] / float(self.scaleIn.text())
+                refPointY_unit = self.refPoint[1] / float(self.scaleIn.text())
+
+                refPointX_unit = np.round(refPointX_unit, 3)
+                refPointY_unit = np.round(refPointY_unit, 3)
+                self.msgLabel.setText(f'Ref. point ({self.unitScale}): [{refPointX_unit}, {refPointY_unit}]; (absolute): [{self.refPoint[0]}, {self.refPoint[1]}]; (ROI dependent): [{self.refPoint_ROI[0]}, {self.refPoint_ROI[1]}]')
+                
+            else:
+                self.msgLabel.setText(f'Reference point (absolute): ({self.refPoint[0]}, {self.refPoint[1]}); (ROI dependent): ({self.refPoint_ROI[0]}, {self.refPoint_ROI[1]})')
+
+            # self.msgLabel.setText(f'Reference point (absolute): ({self.refPoint[0]}, {self.refPoint[1]}); (ROI dependent): ({self.refPoint_ROI[0]}, {self.refPoint_ROI[1]})')
             self.refPointIn.setText(f'{self.refPoint[0]}, {self.refPoint[1]}')#str(self.refPoint) )
             cv2.destroyAllWindows()
         except:
@@ -984,6 +1007,8 @@ class FlameTrackerWindow(QMainWindow): #QWidget
         mt.absValue(self)
     def lightROIBtn_MT_clicked(self):
         mt.lightROIBtn(self)
+    def lightThresholdsBtn_MT_clicked(self):
+        mt.lightThresholdsBtn(self)
     def updateGraphsBtn_MT_clicked(self):
         mt.updateGraphsBtn(self)
 
@@ -998,6 +1023,8 @@ class FlameTrackerWindow(QMainWindow): #QWidget
         lt.filterParticleSldr(self)
     def lightROIBtn_LT_clicked(self):
         lt.lightROIBtn(self)
+    def lightThresholdsBtn_LT_clicked(self):
+        lt.lightThresholdsBtn(self)
     def showFrameLargeBtn_LT_clicked(self):
         lt.showFrameLarge(self)
     def updateGraphsBtn_LT_clicked(self):
@@ -1034,6 +1061,8 @@ class FlameTrackerWindow(QMainWindow): #QWidget
         rt.filterParticleSldr(self)
     def lightROIBtn_RT_clicked(self):
         rt.lightROIBtn(self)
+    def lightThresholdsBtn_RT_clicked(self):
+        rt.lightThresholdsBtn(self) 
     def saveChannelsBtn_RT_clicked(self):
         rt.saveChannelsBtn(self)
     def loadChannelsBtn_RT_clicked(self):
@@ -1078,6 +1107,8 @@ class FlameTrackerWindow(QMainWindow): #QWidget
         ht.valMaxRightBtn(self)
     def lightROIBtn_HT_clicked(self):
         ht.lightROIBtn(self)
+    def lightThresholdsBtn_HT_clicked(self):
+        ht.lightThresholdsBtn(self)
     def filterParticleSldr_HT_released(self):
         ht.filterParticleSldr(self)
     def saveChannelsBtn_HT_clicked(self):
@@ -1094,6 +1125,18 @@ class FlameTrackerWindow(QMainWindow): #QWidget
         ht.showFrameLarge(self)
     def updateGraphsBtn_HT_clicked(self):
         ht.updateGraphsBtn(self)
+
+    # ### Video stitching buttons (defined in videoStitching.py)
+    # def folder1Btn_clicked(self):
+    #     vs.folder1Btn_clicked(self)
+    # def folder2Btn_clicked(self):
+    #     vs.folder2Btn_clicked(self)
+    # def calibrationFrameBtn_clicked(self):
+    #     vs.calibrationFrameBtn_clicked(self)
+    # def calibrationFrame2Btn_clicked(self):
+    #     vs.calibrationFrame2Btn_clicked(self)
+    # def calibrationBtn_clicked(self):
+    #     vs.calibrationBtn_clicked(self)
 
     def exportVideo_clicked(self):
         # Open pop-up window to ask about frame rate, codec and format
@@ -1160,6 +1203,8 @@ def removeExistingMethod(self):
         self.menu_RT.clear()
     if self.trackingMethod == 'HSV tracking':
         self.menu_HT.clear()
+    # if self.trackingMethod == 'Video stitching':
+    #     self.menu_VS.clear()
 
     methodSelected = self.trackingGroup.checkedAction()
     methodSelected = methodSelected.text()
