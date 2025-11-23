@@ -144,7 +144,7 @@ def RGBTracking(self):
 
     if self.exportVideoBW_RT.isChecked(): # added in v1.2.2
         fps = (float(self.vFps))/(int(self.skipFrameIn.text()) + 1)
-        vNameBW = self.fPath[0] + '-videoBW.' + str(self.vFormat)
+        vNameBW = self.fPath[0] + '-videoRGBfilter-BW.' + str(self.vFormat)
         fourccBW = ft.cv2.VideoWriter_fourcc(*self.codec)
         size = (int(self.roiThreeIn.text()), int(self.roiFourIn.text()))
         # open and set properties
@@ -153,7 +153,7 @@ def RGBTracking(self):
 
     if self.exportVideo_RT.isChecked():
         fps = (float(self.vFps))/(int(self.skipFrameIn.text()) + 1)
-        vName = self.fPath[0] + '-videoRGB.' + str(self.vFormat)
+        vName = self.fPath[0] + '-videoRGBfilter.' + str(self.vFormat)
         fourcc = ft.cv2.VideoWriter_fourcc(*self.codec)
         size = (int(self.roiThreeIn.text()), int(self.roiFourIn.text()))
         # open and set properties

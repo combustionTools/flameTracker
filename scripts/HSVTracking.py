@@ -170,7 +170,7 @@ def HSVTracking(self):
 
     if self.exportVideo_HT.isChecked() or self.exportTrackOverlay_HT.isChecked():
         fps = (float(self.vFps))/(int(self.skipFrameIn.text()) + 1)
-        vName = self.fPath[0] + '-trackedVideo.' + str(self.vFormat) # alternative: 'output.{}'.format(vFormat);   self.fNameLbl.text()
+        vName = self.fPath[0] + '-videoHSVfilter.' + str(self.vFormat) # alternative: 'output.{}'.format(vFormat);   self.fNameLbl.text()
         fourcc = ft.cv2.VideoWriter_fourcc(*self.codec)
         size = (int(self.roiThreeIn.text()), int(self.roiFourIn.text()))
         # open and set properties
