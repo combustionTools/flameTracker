@@ -5,11 +5,11 @@ Flame Tracker is open source and cross platform, and information about how to us
 
 Original Author: Luca Carmignani, PhD
 
-Collaborator/Contributor/Co-Author: Charles Scudiere, PhD
+Contributor: Charles Scudiere, PhD
 
 Contact: flameTrackerContact@gmail.com
 
-Copyright (C) 2020-2025  Luca Carmignani, Charles Scudiere
+Copyright (C) 2020-2026  Luca Carmignani, Charles Scudiere
 
 ## Subscribe to the Flame Tracker newsletter!
 Stay up to date with new versions and other information! Subscribe here: https://docs.google.com/forms/d/e/1FAIpQLSc73pIB-tiwwX9s0nAkJ12WQ9dFSfLL3er3lLuyeshLAXtvhA/viewform?usp=sf_link
