@@ -5,11 +5,11 @@ Flame Tracker is open source and cross platform, and information about how to us
 
 Original Author: Luca Carmignani, PhD
 
-Collaborator/Contributor/Co-Author: Charles Scudiere, PhD
+Contributor: Charles Scudiere, PhD
 
 Contact: flameTrackerContact@gmail.com
 
-Copyright (C) 2020-2025  Luca Carmignani, Charles Scudiere
+Copyright (C) 2020-2026  Luca Carmignani, Charles Scudiere
 
 ## Subscribe to the Flame Tracker newsletter!
 Stay up to date with new versions and other information! Subscribe here: https://docs.google.com/forms/d/e/1FAIpQLSc73pIB-tiwwX9s0nAkJ12WQ9dFSfLL3er3lLuyeshLAXtvhA/viewform?usp=sf_link
@@ -19,6 +19,7 @@ L. Carmignani, Flame Tracker: An image analysis program to measure flame charact
 
 # Before you start
 Note: Windows users have the option to donwload the latest release of the executable file of the Flame Tracker (https://github.com/combustionTools/flameTracker/releases), avoiding the need to download the scripts.
+Update: MacOS executable available from v1.3.0
 
 ## 1. Python installation (if needed)
 
@@ -31,11 +32,12 @@ The packages required to run the code are (they can be installed with pip or ana
 - opencv-python (https://pypi.org/project/opencv-python/)
 - numPy (https://numpy.org)
 - PyQtgraph (http://www.pyqtgraph.org)
+- trackPy (https://pypi.org/project/trackpy/) for v1.4.0 and more recent versions
 
 **Note:** Creating a virtual environment is recommended to make sure you are using the right packages.
 
 # Additional information
-For more information about installing and running Flame Tracker (with the script and the Windows release), as well as the use of the software, refer to the Wiki page: https://github.com/combustionTools/flameTracker/wiki.
+For more information about installing and running Flame Tracker (with the script and the release), as well as the use of the software, refer to the Wiki page: https://github.com/combustionTools/flameTracker/wiki.
 
 For issues with the code and/or the analysis, please attach screenshots or other useful information related to you problem with your question at: flameTrackerContact@gmail.com.
 
@@ -54,6 +56,8 @@ The objects and their locations in the GUI are listed in boxesGUI_OS.py, with sp
 - RGBTracking.py: this script is used to automatically track a flame based on the color intensity of each pixel (RGB channels).
 
 - HSVTracking.py: this script is used to track a flame based on Hue-Saturation-Value color space thresholding. Similar to color tracking and luma tracking, it is an automatic method requriing limited user input.
+
+- emberTracking.py (added in v1.4.0): this script is used to track embers based on input parameters to extract trajectories and velocity vectors.
 
 - templateAddition.py: this script is a template file to add new analysis methods to the Flame Tracker.
 
