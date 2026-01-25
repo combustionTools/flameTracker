@@ -1,6 +1,7 @@
 """
 Flame Tracker. This program is designed to track flames or bright objects in videos or images.
-Copyright (C) 2021-2025 Charles Scudiere; 2021-2025  Luca Carmignani
+Copyright (C) 2020-2026  Luca Carmignani
+Contributor: Charles Scudiere, PhD (HSV tracking addition)
 
 This file is part of Flame Tracker.
 
@@ -17,9 +18,11 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
+Contact: flameTrackerContact@gmail.com
+
+
 Author: Charles Scudiere, PhD (adapted from RGBTracking.py)
 Collaborator/Contributor: Luca Carmignani, PhD
-Contact: flameTrackerContact@gmail.com
 
 Comments:
 Note on implementation of HSL and HSV:

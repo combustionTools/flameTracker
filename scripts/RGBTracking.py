@@ -1,6 +1,7 @@
 """
 Flame Tracker. This program is designed to track flames or bright objects in videos or images.
 Copyright (C) 2020-2025  Luca Carmignani
+Contributor: Charles Scudiere, PhD (HSV tracking addition)
 
 This file is part of Flame Tracker.
 
@@ -17,7 +18,6 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-Author: Luca Carmignani, PhD
 Contact: flameTrackerContact@gmail.com
 """
 
@@ -509,7 +509,7 @@ def showFrameLarge(self):
             ft.cv2.destroyAllWindows()
             return
 
-def lightROIBtn(self):
+def lightROISelection(self):
     frame, frameCrop = ft.checkEditing(self, self.frameNumber)
     self.lightROI_RT = ft.cv2.selectROI(frame)
     ft.cv2.destroyAllWindows()

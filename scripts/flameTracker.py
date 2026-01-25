@@ -1,6 +1,7 @@
 """
 Flame Tracker. This program is designed to track flames or bright objects in videos or images.
-Copyright (C) 2020-2025  Luca Carmignani; 2021-2025 Charles Scudiere
+Copyright (C) 2020-2026  Luca Carmignani
+Contributor: Charles Scudiere, PhD (HSV tracking addition)
 
 This file is part of Flame Tracker.
 
@@ -17,12 +18,10 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-Original Author: Luca Carmignani, PhD
-Collaborator/Contributor: Charles Scudiere, PhD
 Contact: flameTrackerContact@gmail.com
 """
 
-from PyQt6 import QtGui
+from PyQt6 import QtGui, QtCore
 from PyQt6.QtGui import *
 from PyQt6.QtWidgets import *
 from PyQt6.QtCore import *
@@ -42,6 +41,7 @@ import manualTracking as mt
 import lumaTracking as lt
 import RGBTracking as rt
 import HSVTracking as ht
+import emberTracking as et # v1.4.0
 import boxesGUI_OS as gui
 # import videoStitching as vs
 
@@ -59,14 +59,13 @@ def initVars(self): # define initial variables
     self.rotationValue = False
     self.refPoint = []
     self.refPoint_ROI = []
-    # editFrame = False
     self.trackingMethod = None
 
 class FlameTrackerWindow(QMainWindow): #QWidget
     def __init__(self, parent=None):
         super(FlameTrackerWindow, self).__init__(parent)
 
-        print('''Flame Tracker - Copyright (C) 2020-2025 Luca Carmignani; 2021-2025 Charles Scudiere
+        print('''Flame Tracker - Copyright (C) 2020-2026 Luca Carmignani; 2021-2026 Charles Scudiere
         This program comes with ABSOLUTELY NO WARRANTY; See the GNU General
         Public License for more details.
         This is free software, and you can redistribute it and/or modify
@@ -75,7 +74,7 @@ class FlameTrackerWindow(QMainWindow): #QWidget
         (at your option) any later version.''')
 
         # Flame Tracker version
-        self.version_FT = 'v1.3.2'
+        self.version_FT = 'v1.4.0'
 
         # creating the toolbar
         toolbar = QToolBar('FT toolbar')
@@ -99,11 +98,11 @@ class FlameTrackerWindow(QMainWindow): #QWidget
         loadPar_ico = self.style().standardIcon(loadPar_ico)
         loadPar = QAction(loadPar_ico, 'Load parameters', self)
         loadPar.triggered.connect(self.loadParBtn_clicked)
-        measureScale = QAction('Scale (px/len)', self)
+        measureScale = QAction('Scale (px/length)', self)
         measureScale.triggered.connect(self.measureScaleBtn_clicked)
         refPoint = QAction('Point coordinates', self)
         refPoint.triggered.connect(self.refPointBtn_clicked)
-        measureLength = QAction('Length/distance', self)
+        measureLength = QAction('Length', self)
         measureLength.triggered.connect(self.measureLenBtn_clicked)
         exportVideo = QAction('Export edited video', self)
         exportVideo.triggered.connect(self.exportVideo_clicked)
@@ -116,6 +115,8 @@ class FlameTrackerWindow(QMainWindow): #QWidget
         selection_RT.triggered.connect(self.showRGBTracking)
         selection_HT = QAction('HSV tracking', self, checkable=True, checked=False)
         selection_HT.triggered.connect(self.showHSVTracking)
+        selection_ET = QAction('Ember tracking', self, checkable=True, checked=False) # v1.4.0
+        selection_ET.triggered.connect(self.showEmberTracking)
         # selection_VS = QAction('Video Stiching', self, checkable=True, checked=False)
         # selection_VS.triggered.connect(self.showVS)
 
@@ -167,12 +168,14 @@ class FlameTrackerWindow(QMainWindow): #QWidget
         trackingMenu.addAction(selection_LT)
         trackingMenu.addAction(selection_RT)
         trackingMenu.addAction(selection_HT)
+        trackingMenu.addAction(selection_ET)
         # trackingMenu.addAction(selection_VS)
         self.trackingGroup = QActionGroup(self)
         self.trackingGroup.addAction(selection_MT)
         self.trackingGroup.addAction(selection_LT)
         self.trackingGroup.addAction(selection_RT)
         self.trackingGroup.addAction(selection_HT)
+        self.trackingGroup.addAction(selection_ET)
         # self.trackingGroup.addAction(selection_VS)
         self.trackingGroup.setExclusive(True)
 
@@ -190,12 +193,16 @@ class FlameTrackerWindow(QMainWindow): #QWidget
         help_RT.triggered.connect(self.help_RT_clicked)
         help_HT = QAction('HSV tracking', self)
         help_HT.triggered.connect(self.help_HT_clicked)
+        help_ET = QAction('Ember tracking', self)
+        help_ET.triggered.connect(self.help_ET_clicked)
+
         helpMenu = self.menu.addMenu("&Help")
         helpMenu.addAction(help_FT)
         helpMenu.addAction(help_MT)
         helpMenu.addAction(help_LT)
         helpMenu.addAction(help_RT)
         helpMenu.addAction(help_HT)
+        helpMenu.addAction(help_ET)
 
         # this function contains all the initial variables to declare
         initVars(self)
@@ -222,13 +229,17 @@ class FlameTrackerWindow(QMainWindow): #QWidget
     def showHSVTracking(self):
         removeExistingMethod(self)
         gui.HSVTrackingBox(self)
-        ht.initVars(self) # include default variables in this function
+        ht.initVars(self) 
+
+    def showEmberTracking(self): # added in v1.4.0
+        removeExistingMethod(self)
+        gui.emberTrackingBox(self)
 
     # def showVS(self):
     #     removeExistingMethod(self)
     #     gui.VSBox(self)
-    #     vs.initVars(self) # include default variables in this function
-# 
+    #     vs.initVars(self) 
+ 
     def openVideo_clicked(self):
         self.openSelection = 'video'
         try:
@@ -371,6 +382,12 @@ class FlameTrackerWindow(QMainWindow): #QWidget
         ''')
         msg.exec()
 
+    def help_ET_clicked(self):
+        msg = QMessageBox(self)
+        msg.setText('''Ember Tracking allows you to track embers and particles to measure their velocity and trajectory.
+        ''')
+        msg.exec()
+
     def goToFrameBtn_clicked(self):
         self.frameNumber = int(self.frameIn.text())
         if self.frameNumber < int(self.firstFrameIn.text()):
@@ -400,8 +417,6 @@ class FlameTrackerWindow(QMainWindow): #QWidget
         self.frameNumber = int(self.frameIn.text()) - int(self.skipFrameIn.text())
         if self.frameNumber < 0:
             self.frameNumber = 0
-        # elif self.frameNumber > int(self.lastFrameIn.text()):
-        #     self.lastFrameIn.setText(str(self.frameNumber))
                                      
         self.timeIn.setText(str(np.round((self.frameNumber / float(self.vFps)), 3)))
         self.previewSlider.setValue(int(self.frameNumber))
@@ -412,8 +427,6 @@ class FlameTrackerWindow(QMainWindow): #QWidget
         self.frameNumber = int(self.frameIn.text()) - 1
         if self.frameNumber < 0:
             self.frameNumber = 0
-        # elif self.frameNumber > int(self.lastFrameIn.text()):
-        #     self.lastFrameIn.setText(str(self.frameNumber))
                                      
         self.timeIn.setText(str(np.round((self.frameNumber / float(self.vFps)), 3)))
         self.previewSlider.setValue(int(self.frameNumber))
@@ -463,7 +476,7 @@ class FlameTrackerWindow(QMainWindow): #QWidget
         try:
             frame, frameCrop = checkEditing(self, self.frameNumber)
 
-            # Select Region Of Interest
+            # Select Region Of Interest (ROI)
             self.roi = cv2.selectROI(frame)
             self.roiOneIn.setText(str(self.roi[0]))
             self.roiTwoIn.setText(str(self.roi[1]))
@@ -810,22 +823,11 @@ class FlameTrackerWindow(QMainWindow): #QWidget
                     length_val = float(length_input.text())
                     self.unitScale = unit_selector.currentText()
 
-                    # # Convert all units to mm
-                    # unit_factors = {
-                    #     "mm": 1,
-                    #     "cm": 10,
-                    #     "m": 1000,
-                    #     "in": 25.4,
-                    #     "ft": 304.8
-                    # }
-                    # length_mm = length_val * unit_factors[unit]
-
                     length_px = ((points[3]-points[1])**2 + (points[2]-points[0])**2)**0.5
                     scale = length_px / length_val
                     scale = np.round(scale, 3)
 
                     self.scaleIn.setText(str(scale))
-                    # self.measureScaleTxt
                     self.measureScaleTxt.setText(f'Scale px/{self.unitScale}:')
                     self.msgLabel.setText(f'Scale in px/{self.unitScale} successfully measured')
                 except ValueError:
@@ -1005,8 +1007,8 @@ class FlameTrackerWindow(QMainWindow): #QWidget
         mt.saveData(self)
     def absValBtn_MT_clicked(self):
         mt.absValue(self)
-    def lightROIBtn_MT_clicked(self):
-        mt.lightROIBtn(self)
+    def lightROI_MT_clicked(self):
+        mt.lightROISelection(self)
     def lightThresholdsBtn_MT_clicked(self):
         mt.lightThresholdsBtn(self)
     def updateGraphsBtn_MT_clicked(self):
@@ -1059,8 +1061,8 @@ class FlameTrackerWindow(QMainWindow): #QWidget
         rt.blueMaxRightBtn(self)
     def filterParticleSldr_RT_released(self):
         rt.filterParticleSldr(self)
-    def lightROIBtn_RT_clicked(self):
-        rt.lightROIBtn(self)
+    def lightROI_RT_clicked(self):
+        rt.lightROISelection(self)
     def lightThresholdsBtn_RT_clicked(self):
         rt.lightThresholdsBtn(self) 
     def saveChannelsBtn_RT_clicked(self):
@@ -1125,6 +1127,20 @@ class FlameTrackerWindow(QMainWindow): #QWidget
         ht.showFrameLarge(self)
     def updateGraphsBtn_HT_clicked(self):
         ht.updateGraphsBtn(self)
+
+    ### Ember tracking methods (defined in emberTracking.py)
+    def emberTrackingBtn_clicked(self):
+        et.emberTracking(self)
+    def showCharact_Btn_clicked(self):
+        et.showCharactSelection(self)
+    def showAnimation_Btn_clicked(self):
+        et.animateVelocityVectors(self)
+    def saveEmberPar_Btn_clicked(self):
+        et.saveEmberPar(self)
+    def loadEmberPar_Btn_clicked(self):
+        et.loadEmberPar(self)
+    def saveEmberResults_Btn_clicked(self):
+        et.saveEmberResults(self)
 
     # ### Video stitching buttons (defined in videoStitching.py)
     # def folder1Btn_clicked(self):
@@ -1203,6 +1219,8 @@ def removeExistingMethod(self):
         self.menu_RT.clear()
     if self.trackingMethod == 'HSV tracking':
         self.menu_HT.clear()
+    if self.trackingMethod == 'Ember tracking':
+        self.menu_ET.clear()
     # if self.trackingMethod == 'Video stitching':
     #     self.menu_VS.clear()
 
@@ -1376,6 +1394,12 @@ def checkAnalysisMethod(self, frameNumber):
         self.lbl2_HT.setPixmap(QPixmap.fromImage(self.frameBW))
         self.win1_HT.setCurrentIndex(0) #to activate the preview tab in the analysis box
         self.win2_HT.setCurrentIndex(0)
+
+    if self.trackingMethod == 'Ember tracking':
+        if self.grayscale.isChecked() == True:
+            self.msgLabel.setText('Grayscale images not supported with this feature')
+        frame, frameCrop = checkEditing(self, frameNumber)
+        et.detectEmbers(self, frameCrop)
 
 
 class MyPopup(QWidget):

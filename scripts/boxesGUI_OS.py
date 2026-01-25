@@ -1,6 +1,7 @@
 """
 Flame Tracker. This program is designed to track flames or bright objects in videos or images.
-Copyright (C) 2020-2024  Luca Carmignani; 2021-2024 Charles Scudiere
+Copyright (C) 2020-2026  Luca Carmignani
+Contributor: Charles Scudiere, PhD (HSV tracking addition)
 
 This file is part of Flame Tracker.
 
@@ -17,8 +18,6 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-Original Author: Luca Carmignani, PhD
-Collaborator/Contributor: Charles Scudiere, PhD
 Contact: flameTrackerContact@gmail.com
 """
 
@@ -274,18 +273,18 @@ def manualTrackingBox(self):
     self.box_layout.setSpacing(10)
 
     # first column
-    directionBoxTxt = ft.QLabel('Direction:')#, self.manualTrackingBox)
-    self.directionBox = ft.QComboBox()#self.manualTrackingBox)
+    directionBoxTxt = ft.QLabel('Direction:')
+    self.directionBox = ft.QComboBox()
     self.directionBox.addItem('Left to right')
     self.directionBox.addItem('Right to left')
-    lightTxt = ft.QLabel('Flashing light (optional):')#, self.manualTrackingBox)
-    self.lightROIBtn_MT = ft.QPushButton('Pick bright region')#, self.manualTrackingBox)
-    self.lightROIBtn_MT.clicked.connect(self.lightROIBtn_MT_clicked)
-    self.lightROIBtn_MT = ft.QAction('Pick bright region', self)
-    self.lightROIBtn_MT.triggered.connect(self.lightROIBtn_MT_clicked)
+    lightTxt = ft.QLabel('Flashing light (optional):')
+    self.lightROIBtn_MT = ft.QPushButton('Pick bright region')
+    self.lightROIBtn_MT.clicked.connect(self.lightROI_MT_clicked)
+    self.lightROI_MT = ft.QAction('Pick bright region', self)
+    self.lightROI_MT.triggered.connect(self.lightROI_MT_clicked)
     self.lightThresholdsBtn_MT = ft.QAction('Adjust light thresholds', self)
     self.lightThresholdsBtn_MT.triggered.connect(self.lightThresholdsBtn_MT_clicked)
-    self.filterLight_MT = ft.QComboBox()#self.manualTrackingBox)
+    self.filterLight_MT = ft.QComboBox()
     self.filterLight_MT.addItem('Track every frame')
     self.filterLight_MT.addItem('Frames light on')
     self.filterLight_MT.addItem('Frames light off')
@@ -324,7 +323,7 @@ def manualTrackingBox(self):
     self.win1_MT.addTab(self.plot1_MT, 'graph')
 
     # second window
-    self.lbl2_MT = ft.pg.PlotWidget()#self.manualTrackingBox)
+    self.lbl2_MT = ft.pg.PlotWidget()
     self.lbl2_MT.setBackground('w')
     # self.lbl2_MT.setLabel('left', 'Spread Rate [mm/s]', color='black', size=14)
     # self.lbl2_MT.setLabel('bottom', 'Time [s]', color='black', size=14)
@@ -332,24 +331,24 @@ def manualTrackingBox(self):
     self.lbl2_MT.getAxis('left').setPen(color=(0, 0, 0))
 
     #other objects
-    xAxisTxt_lbl1 = ft.QLabel('x axis:')#, self.manualTrackingBox)
-    self.xAxis_lbl1 = ft.QComboBox()#self.manualTrackingBox)
+    xAxisTxt_lbl1 = ft.QLabel('x axis:')
+    self.xAxis_lbl1 = ft.QComboBox()
     self.xAxis_lbl1.addItem('Time [s]')
     self.xAxis_lbl1.addItem('Frame #')
-    yAxisTxt_lbl1 = ft.QLabel('y axis:')#, self.manualTrackingBox)
-    self.yAxis_lbl1 = ft.QComboBox()#self.manualTrackingBox)
+    yAxisTxt_lbl1 = ft.QLabel('y axis:')
+    self.yAxis_lbl1 = ft.QComboBox()
     self.yAxis_lbl1.addItem('x coord.')
     self.yAxis_lbl1.addItem('x coord. [px]')
     self.yAxis_lbl1.addItem('y coord.')
     self.yAxis_lbl1.addItem('y coord. [px]')
     self.yAxis_lbl1.addItem('Spread rate, x')
     self.yAxis_lbl1.addItem('Spread rate, y')
-    xAxisTxt_lbl2 = ft.QLabel('x axis:')#, self.manualTrackingBox)
-    self.xAxis_lbl2 = ft.QComboBox()#self.manualTrackingBox)
+    xAxisTxt_lbl2 = ft.QLabel('x axis:')
+    self.xAxis_lbl2 = ft.QComboBox()
     self.xAxis_lbl2.addItem('Time [s]')
     self.xAxis_lbl2.addItem('Frame #')
-    yAxisTxt_lbl2 = ft.QLabel('y axis:')#, self.manualTrackingBox)
-    self.yAxis_lbl2 = ft.QComboBox()#self.manualTrackingBox)
+    yAxisTxt_lbl2 = ft.QLabel('y axis:')
+    self.yAxis_lbl2 = ft.QComboBox()
     self.yAxis_lbl2.addItem('Spread rate, x')
     self.yAxis_lbl2.addItem('Spread rate, y')
     self.yAxis_lbl2.addItem('x coord.')
@@ -406,7 +405,7 @@ def manualTrackingBox(self):
     self.menu_MT.addAction(self.absValBtn_MT)
 
     flashingLightSub = self.menu_MT.addMenu('Flashing light')
-    flashingLightSub.addAction(self.lightROIBtn_MT)
+    flashingLightSub.addAction(self.lightROI_MT)
     flashingLightSub.addAction(self.lightThresholdsBtn_MT)
 
 def lumaTrackingBox(self):
@@ -791,8 +790,8 @@ def RGBTrackingBox(self):
     showFrameLargeBtn_RT.triggered.connect(self.showFrameLargeBtn_RT_clicked)
     self.filterLight_RT = ft.QAction('Ignore flashing light', self)
     self.filterLight_RT.setCheckable(True)
-    self.lightROIBtn_RT = ft.QAction('Pick bright region', self)
-    self.lightROIBtn_RT.triggered.connect(self.lightROIBtn_RT_clicked)
+    self.lightROI_RT = ft.QAction('Pick bright region', self)
+    self.lightROI_RT.triggered.connect(self.lightROI_RT_clicked)
     self.lightThresholdsBtn_RT = ft.QAction('Adjust light thresholds', self)
     self.lightThresholdsBtn_RT.triggered.connect(self.lightThresholdsBtn_RT_clicked)
     self.absValBtn_RT = ft.QAction('Absolute values', self)
@@ -819,7 +818,7 @@ def RGBTrackingBox(self):
 
     flashingLightSub = self.menu_RT.addMenu('Flashing light')
     flashingLightSub.addAction(self.filterLight_RT)
-    flashingLightSub.addAction(self.lightROIBtn_RT)
+    flashingLightSub.addAction(self.lightROI_RT)
     flashingLightSub.addAction(self.lightThresholdsBtn_RT)
     # self.flashingLightGroup = ft.QActionGroup(self)
     # self.flashingLightGroup.addAction(flashingLight0)
@@ -1101,6 +1100,130 @@ def HSVTrackingBox(self):
     self.menu_HT.addAction(self.showEdges_HT)
     self.menu_HT.addAction(self.exportVideo_HT)
     self.menu_HT.addAction(self.exportTrackOverlay_HT)
+
+def emberTrackingBox(self):
+    self.box_layout = ft.QGridLayout()
+    self.box_layout.setSpacing(10)
+
+    # #first column
+    brightnessThreshold_txt = ft.QLabel('Min Brightness:')
+    self.brightnessThresholdIn = ft.QLineEdit('90')
+
+    try:
+        size_txtBox = ft.QLabel(f'Approx Diameter ({self.unitScale}):')
+    except:
+        size_txtBox = ft.QLabel('Approx Diameter (len):')
+        self.msgLabel.setText('Warning: Length unit not found. Once the Scale is determined, "len" will have that unit.')
+    self.emberSizeIn = ft.QLineEdit('1')
+
+    emberMinTotIntensity_txt = ft.QLabel('Min Tot Intensity:') # total intensity = area * pixel intensity = minMass parameter in trackPy
+    self.emberMinTotIntensity = ft.QLineEdit('50')
+
+    try:
+        maxDistance_txtBox = ft.QLabel(f'Max Travel Length ({self.unitScale}):')
+    except:
+        maxDistance_txtBox = ft.QLabel('Max Travel Length (len):')
+        self.msgLabel.setText('Warning: Length unit not found. Once the Scale is determined, "len" will have that unit.')  
+    self.searchRangeIn = ft.QLineEdit('3')
+
+    frameMemory_txtBox = ft.QLabel('Frame Memory:')
+    self.frameMemoryIn = ft.QLineEdit('0')
+
+    # second column
+    self.emberTrackingBtn = ft.QPushButton('Start Tracking')
+    self.emberTrackingBtn.clicked.connect(self.emberTrackingBtn_clicked)
+
+    self.showCharact_Btn = ft.QPushButton('Show:')
+    self.showCharact_Btn.clicked.connect(self.showCharact_Btn_clicked)
+
+    self.showCharact_Box = ft.QComboBox()
+    self.showCharact_Box.addItem('Trajectories')
+    self.showCharact_Box.addItem('Velocities')
+    self.showCharact_Box.addItem('Combined')
+
+    self.showAnimation_Btn = ft.QPushButton('Animation')
+    self.showAnimation_Btn.clicked.connect(self.showAnimation_Btn_clicked)
+    self.saveAnimation_box = ft.QCheckBox('Save')
+
+    self.saveEmberPar_Btn = ft.QPushButton('Save Par')
+    self.saveEmberPar_Btn.clicked.connect(self.saveEmberPar_Btn_clicked)
+    self.loadEmberPar_Btn = ft.QPushButton('Load Par')
+    self.loadEmberPar_Btn.clicked.connect(self.loadEmberPar_Btn_clicked)
+    self.saveEmberResults_Btn = ft.QPushButton('Save Results')
+    self.saveEmberResults_Btn.clicked.connect(self.saveEmberResults_Btn_clicked)
+
+    self.animationSpeed = ft.QComboBox()
+    self.animationSpeed.addItem('1.0x')
+    self.animationSpeed.addItem('0.5x')
+    self.animationSpeed.addItem('0.25x')
+    self.animationSpeed.addItem('0.1x')
+    
+    # first label
+    self.lbl1_ET = ft.QLabel()
+    self.lbl1_ET.setStyleSheet('background-color: white')
+    # self.plot1_ET = ft.pg.PlotWidget()
+    # self.plot1_ET.setBackground('w')
+
+    # self.win1_ET = ft.QTabWidget()
+    # self.win1_ET.addTab(self.lbl1_ET, 'preview')
+    # self.win1_ET.addTab(self.plot1_ET, 'graph')
+
+    # second label
+    # self.lbl2_ET = ft.QLabel()
+    # self.lbl2_ET.setStyleSheet('background-color: white')
+    self.plot2_ET = ft.pg.PlotWidget()
+    self.plot2_ET.setBackground('w')
+
+    # self.win2_ET = ft.QTabWidget()
+    # self.win2_ET.addTab(self.lbl2_ET, 'velocity')
+    # self.win2_ET.addTab(self.plot2_ET, 'distribution')
+
+    # specify the layout of the box
+    self.box_layout.addWidget(brightnessThreshold_txt, 0, 0, 1, 2)
+    self.box_layout.addWidget(self.brightnessThresholdIn, 0, 2, 1, 1)
+    self.box_layout.addWidget(size_txtBox, 1, 0, 1, 2)
+    self.box_layout.addWidget(self.emberSizeIn, 1, 2, 1, 1)
+    self.box_layout.addWidget(emberMinTotIntensity_txt, 2, 0, 1, 2)
+    self.box_layout.addWidget(self.emberMinTotIntensity, 2, 2, 1, 1)
+    self.box_layout.addWidget(maxDistance_txtBox, 3, 0, 1, 2)
+    self.box_layout.addWidget(self.searchRangeIn, 3, 2, 1, 1)
+    self.box_layout.addWidget(frameMemory_txtBox, 4, 0, 1, 2)
+    self.box_layout.addWidget(self.frameMemoryIn, 4, 2, 1, 1)
+    self.box_layout.addWidget(self.emberTrackingBtn, 5, 0, 1, 3)
+    self.box_layout.addWidget(self.showCharact_Btn, 6, 0, 1, 1)
+    self.box_layout.addWidget(self.showCharact_Box, 6, 1, 1, 2)
+    # self.box_layout.addWidget(self.showTrajectoryBtn, 6, 0, 1, 2)
+    # self.box_layout.addWidget(self.showVelocityBtn, 7, 0, 1, 2)
+    self.box_layout.addWidget(self.showAnimation_Btn, 8, 0, 1, 1)
+    self.box_layout.addWidget(self.animationSpeed, 8, 1, 1, 1)
+    self.box_layout.addWidget(self.saveAnimation_box, 8, 2, 1, 1)    
+    self.box_layout.addWidget(self.saveEmberPar_Btn, 9, 0, 1, 1)
+    self.box_layout.addWidget(self.loadEmberPar_Btn, 9, 1, 1, 1)
+    self.box_layout.addWidget(self.saveEmberResults_Btn, 10, 0, 1, 2)
+
+    self.box_layout.addWidget(self.lbl1_ET, 0, 3, 7, 1)
+    # self.box_layout.addWidget(self.win1_ET, 0, 2, 7, 1)
+    # self.box_layout.addWidget(self.win2_ET, 0, 4, 7, 1)
+    self.box_layout.addWidget(self.plot2_ET, 0, 5, 7, 1)
+
+    # self.box_layout.setColumnMinimumWidth(0, 10)
+    self.box_layout.setColumnMinimumWidth(2, 60)
+    self.box_layout.setColumnMinimumWidth(3, 250)
+    # self.box_layout.setColumnMinimumWidth(3, 50)
+    # self.box_layout.setColumnMinimumWidth(4, 10)
+    # box_layout.setColumnMinimumWidth(5, 50)
+    # self.box_layout.setColumnMinimumWidth(2, 40)
+    # box_layout.setColumnMinimumWidth(7, 10)
+    # box_layout.setColumnMinimumWidth(8, 50)
+    # self.box_layout.setColumnMinimumWidth(6, 60)
+    # self.box_layout.setColumnMinimumWidth(4, 80)
+    # box_layout.setColumnMinimumWidth(10, 50)
+    # box_layout.setColumnMinimumWidth(11, 100)
+    # self.box_layout.setColumnMinimumWidth(12, 50)
+
+    self.analysisGroupBox.setLayout(self.box_layout)
+
+    self.menu_ET = self.menu.addMenu('&Tracking options')
 
 
 # def VSBox(self):
