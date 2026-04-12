@@ -112,9 +112,15 @@ def findFlameEdges(self, frameBW, flamePx):
     self.flameArea = len(flamePx[0])
     self.xMax = 0
     self.xMin = 0
+    self.yMax = 0 #v1.4.1; added to track the top and bottom points of the flame (height)
+    self.yMin = 0 #v1.4.1
     self.xRight = 0
     self.xLeft = 0
+    self.yTop = 0 #v1.4.1
+    self.yBottom = 0 #v1.4.1
     sortedBWx = sorted(flamePx[1])
+    sortedBWy = sorted(flamePx[0]) # v1.4.1
+
     i = 0
     try:
         # average of the flame location based on the n# of points indicated by the user
@@ -122,18 +128,25 @@ def findFlameEdges(self, frameBW, flamePx):
             i = i + 1
             self.xMax = self.xMax + sortedBWx[-i]
             self.xMin = self.xMin + sortedBWx[i]
+            self.yMax = self.yMax + sortedBWy[-i] #v1.4.1
+            self.yMin = self.yMin + sortedBWy[i] #v1.4.1
+
 
         self.xMax = int(self.xMax/int(self.avgLEIn_HT.text()))
         self.xMin = int(self.xMin/int(self.avgLEIn_HT.text()))
+        self.yMax = int(self.yMax/int(self.avgLEIn_HT.text())) #v1.4.1
+        self.yMin = int(self.yMin/int(self.avgLEIn_HT.text())) #v1.4.1 
 
-        #     if flameDir == 'toRight'::
         if self.directionBox.currentText() == 'Left to right':
             self.xRight = int(self.roiOneIn.text()) + self.xMax
             self.xLeft = int(self.roiOneIn.text()) + self.xMin
         elif self.directionBox.currentText() == 'Right to left':
-            # elif flameDir == 'toLeft':
             self.xRight = self.vWidth - int(self.roiOneIn.text()) - self.xMax
             self.xLeft = self.vWidth - int(self.roiOneIn.text()) - self.xMin
+
+        self.yTop = int(self.roiTwoIn.text()) + self.yMax #v1.4.1; added to track the top and bottom points of the flame (height)
+        self.yBottom = int(self.roiTwoIn.text()) + self.yMin #v1.4.1; added to track the top and bottom points of the flame (height)
+        
     except:
         self.msgLabel.setText('Flame not found in some frames')
 
@@ -165,9 +178,14 @@ def HSVTracking(self):
     currentFrame = firstFrame
     self.xRight_px = list()
     self.xLeft_px = list()
+    self.yTop_px = list() # v1.4.1
+    self.yBottom_px = list()
     self.xRight_unit = list() #v1.3.0; the unit is now a variable selected by the user, check Luma tracking for previous version
     self.xLeft_unit = list()
-    flameLength_unit = list()
+    self.yTop_unit = list() # v1.4.1
+    self.yBottom_unit = list()
+    flameWidth_unit = list() #v1.4.1 changed from flameLength to flameWidth 
+    flameHeight_unit = list() #v1.4.1
     self.frameCount = list()
     flameArea = list()
 
@@ -228,10 +246,15 @@ def HSVTracking(self):
 
             self.xRight_px.append(self.xRight)
             self.xLeft_px.append(self.xLeft)
+            self.yTop_px.append(self.yTop) # v1.4.1
+            self.yBottom_px.append(self.yBottom) # v1.4.1
             self.xRight_unit.append(self.xRight / float(self.scaleIn.text()))
             self.xLeft_unit.append(self.xLeft / float(self.scaleIn.text()))
+            self.yTop_unit.append(self.yTop / float(self.scaleIn.text())) # v1.4.1
+            self.yBottom_unit.append(self.yBottom / float(self.scaleIn.text())) # v1.4.1
             flameArea.append(self.flameArea)
             self.frameCount.append(currentFrame)
+            
             if self.exportVideo_HT.isChecked() and not self.exportTrackOverlay_HT.isChecked():
                 vout.write(self.currentFrameRGB_HT)
             elif self.exportTrackOverlay_HT.isChecked():
@@ -269,11 +292,14 @@ def HSVTracking(self):
 
 
         for i in range(len(self.xRight_unit)):
-            flameLength_unit.append(abs(self.xRight_unit[i] - self.xLeft_unit[i]))
+            flameWidth_unit.append(abs(self.xRight_unit[i] - self.xLeft_unit[i]))
+            flameHeight_unit.append(abs(self.yTop_unit[i] - self.yBottom_unit[i])) # v1.4.1; added to track the height of the flame
 
-        flameLength_unit = ft.np.round(flameLength_unit, 2)
-        self.flameLength_unit = flameLength_unit.tolist()
-        
+        flameWidth_unit = ft.np.round(flameWidth_unit, 2)
+        flameHeight_unit = ft.np.round(flameHeight_unit, 2) # v1.4.1
+        self.flameWidth_unit = flameWidth_unit.tolist()
+        self.flameHeight_unit = flameHeight_unit.tolist() #1.4.1
+
         endTimer = ft.time.perf_counter()
         runTime = ft.np.round(endTimer - startTimer, 4)
         txtMessage = 'Progress: 100 %; Run time: ' + str(runTime) + ' s'
@@ -340,26 +366,23 @@ def HSVTracking(self):
 
         # xPlot1, yRight1, yLeft1 = selectAxes(self, xAxis_lbl1, yAxis_lbl1)
         # xPlot2, yRight2, yLeft2 = selectAxes(self, xAxis_lbl2, yAxis_lbl2)
-
-        # if yAxis_lbl1 == 'Flame length [mm]':
-        #     HSVTrackingPlot(self.plot1_HT, xPlot1, yRight1, 'flame length', 'o', 'b')
-        # elif yAxis_lbl1 == 'Flame area [mm2]':
-        #     HSVTrackingPlot(self.plot1_HT, xPlot1, yRight1, 'flame area', 'o', 'b')
         if nPlot1 == 1: #added in v1.3.0, replaces code above
-            HSVTrackingPlot(self.plot1_HT, xPlot1, yRight1, xAxis_lbl1, 'o', 'b')
-        else:
+            HSVTrackingPlot(self.plot1_HT, xPlot1, yRight1, yAxis_lbl1, 'o', 'b')
+        elif nPlot1 == 2:
             HSVTrackingPlot(self.plot1_HT, xPlot1, yRight1, 'right edge', 'o', 'b')
             HSVTrackingPlot(self.plot1_HT, xPlot1, yLeft1, 'left edge', 't', 'r')
+        else:
+            HSVTrackingPlot(self.plot1_HT, xPlot1, yRight1, 'top edge', 's', 'g')
+            HSVTrackingPlot(self.plot1_HT, xPlot1, yLeft1, 'bottom edge', 'd', 'm')
 
-        # if yAxis_lbl2 == 'Flame length [mm]':
-        #     HSVTrackingPlot(self.plot2_HT, xPlot2, yRight2, 'flame length', 'o', 'b')
-        # elif yAxis_lbl2 == 'Flame area [mm2]':
-        #     HSVTrackingPlot(self.plot2_HT, xPlot2, yRight2, 'flame area', 'o', 'b')
         if nPlot2 == 1:
             HSVTrackingPlot(self.plot2_HT, xPlot2, yRight2, yAxis_lbl2, 'o', 'b')
-        else:
+        elif nPlot2 == 2:
             HSVTrackingPlot(self.plot2_HT, xPlot2, yRight2, 'right edge', 'o', 'b')
             HSVTrackingPlot(self.plot2_HT, xPlot2, yLeft2, 'left edge', 't', 'r')
+        else:
+            HSVTrackingPlot(self.plot2_HT, xPlot2, yRight2, 'top edge', 's', 'g')
+            HSVTrackingPlot(self.plot2_HT, xPlot2, yLeft2, 'bottom edge', 'd', 'm')
 
         self.win1_HT.setCurrentIndex(1) #to activate the preview tab in the analysis box
         self.win2_HT.setCurrentIndex(1)
@@ -451,8 +474,13 @@ def absValBtn(self):
     abs_time = list()
     abs_xRight_px = list()
     abs_xLeft_px = list()
+    abs_yTop_px = list() # v1.4.1
+    abs_yBottom_px = list() # v1.4.1
     abs_xRight_unit = list()
     abs_xLeft_unit = list()
+    abs_yTop_unit = list() # v1.4.1
+    abs_yBottom_unit = list() # v1.4.1
+
 
     for i in self.frameCount:
         abs_frames.append(i - self.frameCount[0])
@@ -472,12 +500,28 @@ def absValBtn(self):
     for i in self.xLeft_unit:
         abs_xLeft_unit.append(i - self.xRight_unit[0])
 
+    for i in self.yTop_px: # v1.4.1
+        abs_yTop_px.append(i - self.yTop_px[0])
+
+    for i in self.yBottom_px: # v1.4.1
+        abs_yBottom_px.append(i - self.yBottom_px[0])
+
+    for i in self.yTop_unit: # v1.4.1
+        abs_yTop_unit.append(i - self.yTop_unit[0])
+
+    for i in self.yBottom_unit: # v1.4.1
+        abs_yBottom_unit.append(i - self.yBottom_unit[0])
+
     self.frameCount = abs_frames
     self.timeCount = abs_time
     self.xRight_px = abs_xRight_px
     self.xLeft_px = abs_xLeft_px
     self.xRight_unit = abs_xRight_unit
     self.xLeft_unit = abs_xLeft_unit
+    self.yTop_px = abs_yTop_px # v1.4.1
+    self.yBottom_px = abs_yBottom_px # v1.4.1
+    self.yTop_unit = abs_yTop_unit # v1.4.1
+    self.yBottom_unit = abs_yBottom_unit # v1.4.1
 
     self.plot1_HT.clear()
     self.plot2_HT.clear()
@@ -487,25 +531,23 @@ def absValBtn(self):
     xPlot1, yRight1, yLeft1, yUnit1, nPlot1 = selectAxes(self, xAxis_lbl1, yAxis_lbl1)
     xPlot2, yRight2, yLeft2, yUnit2, nPlot2 = selectAxes(self, xAxis_lbl2, yAxis_lbl2)
 
-    # if yAxis_lbl1 == 'Flame length [mm]':
-    #     HSVTrackingPlot(self.plot1_HT, xPlot1, yRight1, 'flame length', 'o', 'b')
-    # elif yAxis_lbl1 == 'Flame area [mm2]':
-    #     HSVTrackingPlot(self.plot1_HT, xPlot1, yRight1, 'flame area', 'o', 'b')
     if nPlot1 == 1:
-        HSVTrackingPlot(self.plot1_HT, xPlot1, yRight1, xAxis_lbl1, 'o', 'b')
-    else:
+        HSVTrackingPlot(self.plot1_HT, xPlot1, yRight1, yAxis_lbl1, 'o', 'b')
+    elif nPlot1 == 2:
         HSVTrackingPlot(self.plot1_HT, xPlot1, yRight1, 'right edge', 'o', 'b')
         HSVTrackingPlot(self.plot1_HT, xPlot1, yLeft1, 'left edge', 't', 'r')
+    else:
+        HSVTrackingPlot(self.plot1_HT, xPlot1, yRight1, 'top edge', 's', 'g')
+        HSVTrackingPlot(self.plot1_HT, xPlot1, yLeft1, 'bottom edge', 'd', 'm')
 
-    # if yAxis_lbl2 == 'Flame length [mm]':
-    #     HSVTrackingPlot(self.plot2_HT, xPlot2, yRight2, 'flame length', 'o', 'b')
-    # elif yAxis_lbl2 == 'Flame area [mm2]':
-    #     HSVTrackingPlot(self.plot2_HT, xPlot2, yRight2, 'flame area', 'o', 'b')
     if nPlot2 == 1:
         HSVTrackingPlot(self.plot2_HT, xPlot2, yRight2, yAxis_lbl2, 'o', 'b')
-    else:
+    elif nPlot2 == 2:
         HSVTrackingPlot(self.plot2_HT, xPlot2, yRight2, 'right edge', 'o', 'b')
         HSVTrackingPlot(self.plot2_HT, xPlot2, yLeft2, 'left edge', 't', 'r')
+    else:
+        HSVTrackingPlot(self.plot2_HT, xPlot2, yRight2, 'top edge', 's', 'g')
+        HSVTrackingPlot(self.plot2_HT, xPlot2, yLeft2, 'bottom edge', 'd', 'm')
 
     self.win1_HT.setCurrentIndex(1)
     self.win2_HT.setCurrentIndex(1)
@@ -516,12 +558,9 @@ def saveBtn(self):
     if not fileName[-4:] == '.csv':
         fileName = fileName + '.csv'
 
-    # fileInfo = ['Name', self.fNameLbl.text(), 'Scale [px/mm]', self.scaleIn.text(), 'Moving avg', self.movAvgIn_HT.text(), 'Points LE', self.avgLEIn_HT.text(), 'Flame dir.:', self.directionBox.currentText(), 'code version', str(self.version_FT)]
     fileInfo = ['Name', self.fNameLbl.text(), f'Scale [px/{self.unitScale}]', self.scaleIn.text(), 'Moving avg', self.movAvgIn_HT.text(), 'Points LE', self.avgLEIn_HT.text(), 'Flame dir.:', self.directionBox.currentText(), 'code version', str(self.version_FT)]
-    # lbl = ['File info', 'Frame', 'Time [s]', 'Right Edge [mm]', 'Left Edge [mm]', 'Length [mm]', 'Spread Rate RE [mm/s]', 'Spread Rate LE [mm/s]', 'Area [mm^2]']
-    lbl = ['File info', 'Frame', 'Time [s]', f'Right Edge [{self.unitScale}]', f'Left Edge [{self.unitScale}]', f'Length [{self.unitScale}]', f'Spread Rate RE [{self.unitScale}/s]', f'Spread Rate LE [{self.unitScale}/s]', f'Area [{self.unitScale}^2]']
-    # clms = [fileInfo, self.frameCount, self.timeCount, self.xRight_mm, self.xLeft_mm, self.flameLength_mm, self.spreadRateRight, self.spreadRateLeft, self.flameArea]
-    clms = [fileInfo, self.frameCount, self.timeCount, self.xRight_unit, self.xLeft_unit, self.flameLength_unit, self.spreadRateRight, self.spreadRateLeft, self.flameArea]
+    lbl = ['File info', 'Frame', 'Time [s]', f'Right Edge [{self.unitScale}]', f'Left Edge [{self.unitScale}]', f'Top edge, y [{self.unitScale}]', f'Bottom edge, y [{self.unitScale}]', f'Flame width [{self.unitScale}]', f'Flame height [{self.unitScale}]', f'Spread Rate RE [{self.unitScale}/s]', f'Spread Rate LE [{self.unitScale}/s]', f'Area [{self.unitScale}^2]']
+    clms = [fileInfo, self.frameCount, self.timeCount, self.xRight_unit, self.xLeft_unit, self.yTop_unit, self.yBottom_unit, self.flameWidth_unit, self.flameHeight_unit, self.spreadRateRight, self.spreadRateLeft, self.flameArea]
     clms_zip = ft.zip_longest(*clms)
 
     if fileName == '.csv': #this prevents name issues when the user closes the dialog without saving
@@ -618,19 +657,33 @@ def selectAxes(self, xAxis_lbl, yAxis_lbl):
         xPlot = self.timeCount
     elif xAxis_lbl == 'Frame #':
         xPlot = self.frameCount
-    if yAxis_lbl == 'Position':
+    if yAxis_lbl == 'Position, x':
         nPlot = 2
         yUnit = f'{self.unitScale}' #added in v1.3.0
         yRight = self.xRight_unit
         yLeft = self.xLeft_unit
-    if yAxis_lbl == 'Position [px]':
+    if yAxis_lbl == 'Position, x [px]':
         nPlot = 2
         yUnit = 'px'
         yRight = self.xRight_px
         yLeft = self.xLeft_px
-    elif yAxis_lbl == 'Flame length':
+    if yAxis_lbl == 'Position, y':
+        nPlot = 3
+        yUnit = f'{self.unitScale}' #added in v1.4.1
+        yRight = self.yTop_unit
+        yLeft = self.yBottom_unit
+    if yAxis_lbl == 'Position, y [px]':
+        nPlot = 3
+        yUnit = 'px'
+        yRight = self.yTop_px
+        yLeft = self.yBottom_px
+    elif yAxis_lbl == 'Flame width':
         yUnit = f'{self.unitScale}'
-        yRight = self.flameLength_unit
+        yRight = self.flameWidth_unit
+        yLeft = 0
+    elif yAxis_lbl == 'Flame height': # v1.4.1
+        yUnit = f'{self.unitScale}'
+        yRight = self.flameHeight_unit
         yLeft = 0
     elif yAxis_lbl == 'Spread rate':
         yUnit = f'{self.unitScale}/s'
@@ -665,25 +718,23 @@ def updateGraphsBtn(self):
         self.plot2_HT.setLabel('bottom', str(xAxis_lbl2), color='black', size=14)
         self.plot2_HT.setLabel('left', f'{yAxis_lbl2} [{yUnit2}]', color='black', size=14) #v1.3.0
 
-        # if yAxis_lbl1 == 'Flame length [mm]':
-        #     HSVTrackingPlot(self.plot1_HT, xPlot1, yRight1, 'flame length', 'o', 'b')
-        # elif yAxis_lbl1 == 'Flame area [mm2]':
-        #     HSVTrackingPlot(self.plot1_HT, xPlot1, yRight1, 'flame area', 'o', 'b')
         if nPlot1 == 1: #added in v1.3.0
-            HSVTrackingPlot(self.plot1_HT, xPlot1, yRight1, xAxis_lbl1, 'o', 'b')
-        else:
+            HSVTrackingPlot(self.plot1_HT, xPlot1, yRight1, yAxis_lbl1, 'o', 'b')
+        elif nPlot1 == 2:
             HSVTrackingPlot(self.plot1_HT, xPlot1, yRight1, 'right edge', 'o', 'b')
             HSVTrackingPlot(self.plot1_HT, xPlot1, yLeft1, 'left edge', 't', 'r')
+        else:
+            HSVTrackingPlot(self.plot1_HT, xPlot1, yRight1, 'top edge', 'o', 'b')
+            HSVTrackingPlot(self.plot1_HT, xPlot1, yLeft1, 'bottom edge', 't', 'r')
 
-        # if yAxis_lbl2 == 'Flame length':
-        #     HSVTrackingPlot(self.plot2_HT, xPlot2, yRight2, 'flame length', 'o', 'b')
-        # elif yAxis_lbl2 == 'Flame area':
-        #     HSVTrackingPlot(self.plot2_HT, xPlot2, yRight2, 'flame area', 'o', 'b')
         if nPlot2 == 1:
             HSVTrackingPlot(self.plot2_HT, xPlot2, yRight2, yAxis_lbl2, 'o', 'b')
-        else:
+        elif nPlot2 == 2:
             HSVTrackingPlot(self.plot2_HT, xPlot2, yRight2, 'right edge', 'o', 'b')
             HSVTrackingPlot(self.plot2_HT, xPlot2, yLeft2, 'left edge', 't', 'r')
+        else:
+            HSVTrackingPlot(self.plot2_HT, xPlot2, yRight2, 'top edge', 'o', 'b')
+            HSVTrackingPlot(self.plot2_HT, xPlot2, yLeft2, 'bottom edge', 't', 'r')
 
         self.win1_HT.setCurrentIndex(1)
         self.win2_HT.setCurrentIndex(1)

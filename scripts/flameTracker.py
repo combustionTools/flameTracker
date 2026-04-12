@@ -74,7 +74,7 @@ class FlameTrackerWindow(QMainWindow): #QWidget
         (at your option) any later version.''')
 
         # Flame Tracker version
-        self.version_FT = 'v1.4.0'
+        self.version_FT = 'v1.4.1'
 
         # creating the toolbar
         toolbar = QToolBar('FT toolbar')

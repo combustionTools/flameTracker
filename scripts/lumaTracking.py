@@ -81,41 +81,46 @@ def findFlameEdges(self, frameBW, flamePx):
     self.flameArea = len(flamePx[0])
     self.xMax = 0
     self.xMin = 0
+    self.yMax = 0 # v1.4.1
+    self.yMin = 0
     self.xRight = 0
     self.xLeft = 0
-    i = 0
+    self.yTop = 0 # v1.4.1
+    self.yBottom = 0 # v1.4.1
     sortedBWx = sorted(flamePx[1])
+    sortedBWy = sorted(flamePx[0]) # v1.4.1
+
+    i = 0
     try:
         # average of the flame location based on the n. of points indicated by the user
         for x in range(int(self.avgLEIn_LT.text())):
             i = i + 1
             self.xMax = self.xMax + sortedBWx[-i]
             self.xMin = self.xMin + sortedBWx[i]
+            self.yMax = self.yMax + sortedBWy[-i]
+            self.yMin = self.yMin + sortedBWy[i]
 
         self.xMax = int(self.xMax/int(self.avgLEIn_LT.text()))
         self.xMin = int(self.xMin/int(self.avgLEIn_LT.text()))
+        self.yMax = int(self.yMax/int(self.avgLEIn_LT.text()))
+        self.yMin = int(self.yMin/int(self.avgLEIn_LT.text()))
 
         if self.directionBox.currentText() == 'Left to right':
             self.xRight = int(self.roiOneIn.text()) + self.xMax
             self.xLeft = int(self.roiOneIn.text()) + self.xMin
+            
         elif self.directionBox.currentText() == 'Right to left':
             self.xRight = self.vWidth - int(self.roiOneIn.text()) - self.xMax
             self.xLeft = self.vWidth - int(self.roiOneIn.text()) - self.xMin
+        
+        self.yTop = int(self.roiTwoIn.text()) + self.yMax #v1.4.1; added to track the top and bottom points of the flame (height)
+        self.yBottom = int(self.roiTwoIn.text()) + self.yMin #v1.4.1; added to track the top and bottom points of the flame (height)
+    
     except:
         self.msgLabel.setText('Flame not found in some frames')
         #pass
 
-    # moved in getFilteredFlame function in v1.2.2
-    # if self.showEdges_LT.isChecked() == True:
-    #     ft.cv2.line(frameBW, (self.xMax, 0),(self.xMax, int(self.roiFourIn.text())), (255, 255, 255), 2)
-    #     ft.cv2.line(frameBW, (self.xMin, 0),(self.xMin, int(self.roiFourIn.text())), (255, 255, 255), 2)
-
-    # self.currentFrameBW_LT = frameBW
-    # totalBytes = frameBW.nbytes
-    # bytesPerLine = int(totalBytes/frameBW.shape[0])
-    # self.frameBW = ft.QImage(frameBW.data, frameBW.shape[1], frameBW.shape[0], bytesPerLine, ft.QImage.Format.Format_Grayscale8)
-    # self.frameBW = self.frameBW.scaled(self.lbl2_LT.size(), ft.Qt.AspectRatioMode.KeepAspectRatio, ft.Qt.TransformationMode.SmoothTransformation)
-
+    
 def lumaTracking(self):
     startTimer = ft.time.perf_counter() # v1.3.0; to measure the execution time of the tracking
     scale = True
@@ -139,12 +144,14 @@ def lumaTracking(self):
     currentFrame = firstFrame
     self.xRight_px = list()
     self.xLeft_px = list()
-    # self.xRight_mm = list()
-    # self.xLeft_mm = list()
+    self.yTop_px = list() # v1.4.1
+    self.yBottom_px = list()
     self.xRight_unit = list() #v1.3.0; the unit is now a variable selected by the user
     self.xLeft_unit = list()
-    # flameLength_mm = list()
-    flameLength_unit = list()
+    self.yTop_unit = list() # v1.4.1
+    self.yBottom_unit = list() # v1.4.1
+    flameWidth_unit = list()
+    flameHeight_unit = list() # v1.4.1
     self.frameCount = list()
     # iCount = 0
     flameArea = list()
@@ -212,10 +219,14 @@ def lumaTracking(self):
 
             self.xRight_px.append(self.xRight)
             self.xLeft_px.append(self.xLeft)
-            # self.xRight_mm.append(self.xRight / float(self.scaleIn.text()))
-            # self.xLeft_mm.append(self.xLeft / float(self.scaleIn.text()))
+            self.yTop_px.append(self.yTop)
+            self.yBottom_px.append(self.yBottom)
+
             self.xRight_unit.append(self.xRight / float(self.scaleIn.text())) #v1.3.0; the unit is now a variable selected by the user
             self.xLeft_unit.append(self.xLeft / float(self.scaleIn.text()))
+            self.yTop_unit.append(self.yTop / float(self.scaleIn.text())) # v1.4.1
+            self.yBottom_unit.append(self.yBottom / float(self.scaleIn.text())) # v1.4.1
+
             flameArea.append(self.flameArea)
             self.frameCount.append(currentFrame)
             if self.exportVideoBW_LT.isChecked():
@@ -252,13 +263,14 @@ def lumaTracking(self):
 
         # for i in range(len(self.xRight_mm)):
         for i in range(len(self.xRight_unit)): #v1.3.0
-            # flameLength_mm.append(abs(self.xRight_mm[i] - self.xLeft_mm[i]))
-            flameLength_unit.append(abs(self.xRight_unit[i] - self.xLeft_unit[i]))
+            flameWidth_unit.append(abs(self.xRight_unit[i] - self.xLeft_unit[i]))
+            flameHeight_unit.append(abs(self.yTop_unit[i] - self.yBottom_unit[i])) # v1.4.1; added to track the height of the flame
 
-        # flameLength_mm = ft.np.round(flameLength_mm, 2)
-        # self.flameLength_mm = flameLength_mm.tolist()
-        flameLength_unit = ft.np.round(flameLength_unit, 2)
-        self.flameLength_unit = flameLength_unit.tolist()
+        
+        flameWidth_unit = ft.np.round(flameWidth_unit, 2)
+        flameHeight_unit = ft.np.round(flameHeight_unit, 2) # v1.4.1
+        self.flameWidth_unit = flameWidth_unit.tolist()
+        self.flameHeight_unit = flameHeight_unit.tolist() #1.4.1
 
         movAvgPt = int(self.movAvgIn_LT.text()) #this number is half of the interval considered for the spread rate (movAvgPt = 2 means I am considering a total of 5 points (my point, 2 before and 2 after))
         self.spreadRateRight = list()
@@ -278,35 +290,25 @@ def lumaTracking(self):
         else: #here we calculate the instantaneous spread rate based on the moving avg. I also included the initial and final points
             for i in range(len(self.timeCount)):
                 if i - movAvgPt < 0:
-                    # xCoeffRight = ft.np.polyfit(self.timeCount[0:(i + movAvgPt + 1)], self.xRight_mm[0:(i + movAvgPt + 1)], 1)
-                    # xCoeffLeft = ft.np.polyfit(self.timeCount[0:(i + movAvgPt + 1)], self.xLeft_mm[0:(i + movAvgPt + 1)], 1)
                     xCoeffRight = ft.np.polyfit(self.timeCount[0:(i + movAvgPt + 1)], self.xRight_unit[0:(i + movAvgPt + 1)], 1) #v1.3.0
                     xCoeffLeft = ft.np.polyfit(self.timeCount[0:(i + movAvgPt + 1)], self.xLeft_unit[0:(i + movAvgPt + 1)], 1)
                     self.spreadRateRight.append(xCoeffRight[0])
                     self.spreadRateLeft.append(xCoeffLeft[0])
                 elif i >= movAvgPt:
-                    # xCoeffRight = ft.np.polyfit(self.timeCount[(i - movAvgPt):(i + movAvgPt + 1)], self.xRight_mm[(i - movAvgPt):(i + movAvgPt + 1)], 1)
-                    # xCoeffLeft = ft.np.polyfit(self.timeCount[(i - movAvgPt):(i + movAvgPt + 1)], self.xLeft_mm[(i - movAvgPt):(i + movAvgPt + 1)], 1)
                     xCoeffRight = ft.np.polyfit(self.timeCount[(i - movAvgPt):(i + movAvgPt + 1)], self.xRight_unit[(i - movAvgPt):(i + movAvgPt + 1)], 1) #v1.3.0
                     xCoeffLeft = ft.np.polyfit(self.timeCount[(i - movAvgPt):(i + movAvgPt + 1)], self.xLeft_unit[(i - movAvgPt):(i + movAvgPt + 1)], 1)
                     self.spreadRateRight.append(xCoeffRight[0])
                     self.spreadRateLeft.append(xCoeffLeft[0])
                 elif i + movAvgPt > len(self.timeCount):
-                    # xCoeffRight = ft.np.polyfit(self.timeCount[(i - movAvgPt):], self.xRight_mm[(i - movAvgPt):], 1)
-                    # xCoeffLeft = ft.np.polyfit(self.timeCount[(i - movAvgPt):], self.xLeft_mm[(i - movAvgPt):], 1)
                     xCoeffRight = ft.np.polyfit(self.timeCount[(i - movAvgPt):], self.xRight_unit[(i - movAvgPt):], 1) #v1.3.0
                     xCoeffLeft = ft.np.polyfit(self.timeCount[(i - movAvgPt):], self.xLeft_unit[(i - movAvgPt):], 1)
                     self.spreadRateRight.append(xCoeffRight[0])
                     self.spreadRateLeft.append(xCoeffLeft[0])
 
-        # self.xRight_mm = ft.np.round(self.xRight_mm, 3)
-        # self.xRight_mm = self.xRight_mm.tolist()
-        # self.xLeft_mm = ft.np.round(self.xLeft_mm, 3)
-        # self.xLeft_mm = self.xLeft_mm.tolist()
-        self.xRight_unit = ft.np.round(self.xRight_unit, 3) #v1.3.0
-        self.xRight_unit = self.xRight_unit.tolist()
-        self.xLeft_unit = ft.np.round(self.xLeft_unit, 3)
-        self.xLeft_unit = self.xLeft_unit.tolist()
+        # self.xRight_unit = ft.np.round(self.xRight_unit, 3) #v1.3.0
+        # self.xRight_unit = self.xRight_unit.tolist()
+        # self.xLeft_unit = ft.np.round(self.xLeft_unit, 3)
+        # self.xLeft_unit = self.xLeft_unit.tolist()
         self.spreadRateRight = ft.np.round(self.spreadRateRight, 3)
         self.spreadRateRight = self.spreadRateRight.tolist()
         self.spreadRateLeft = ft.np.round(self.spreadRateLeft, 3)
@@ -332,31 +334,22 @@ def lumaTracking(self):
         # xPlot2, yRight2, yLeft2 = selectAxes(self, xAxis_lbl2, yAxis_lbl2)
        
         if nPlot1 == 1: #added in v1.3.0, replaces code below
-            lumaTrackingPlot(self.plot1_LT, xPlot1, yRight1, xAxis_lbl1, 'o', 'b')
-        else:
+            lumaTrackingPlot(self.plot1_LT, xPlot1, yRight1, yAxis_lbl1, 'o', 'b')
+        elif nPlot1 == 2:
             lumaTrackingPlot(self.plot1_LT, xPlot1, yRight1, 'right edge', 'o', 'b')
             lumaTrackingPlot(self.plot1_LT, xPlot1, yLeft1, 'left edge', 't', 'r')
+        else:
+            lumaTrackingPlot(self.plot1_LT, xPlot1, yRight1, 'top edge', 's', 'g') # v1.4.1; added to track the top and bottom points of the flame (height)
+            lumaTrackingPlot(self.plot1_LT, xPlot1, yLeft1, 'bottom edge', 'd', 'm') # v1.4.1; added to track the top and bottom points of the flame (height)
+        
         if nPlot2 == 1:
             lumaTrackingPlot(self.plot2_LT, xPlot2, yRight2, yAxis_lbl2, 'o', 'b')
-        else:
+        elif nPlot2 == 2:
             lumaTrackingPlot(self.plot2_LT, xPlot2, yRight2, 'right edge', 'o', 'b')
             lumaTrackingPlot(self.plot2_LT, xPlot2, yLeft2, 'left edge', 't', 'r')
-
-        # if yAxis_lbl1 == 'Flame length [mm]':
-        #     lumaTrackingPlot(self.plot1_LT, xPlot1, yRight1, 'flame length', 'o', 'b')
-        # elif yAxis_lbl1 == 'Flame area [mm2]':
-        #     lumaTrackingPlot(self.plot1_LT, xPlot1, yRight1, 'flame area', 'o', 'b')
-        # else:
-        #     lumaTrackingPlot(self.plot1_LT, xPlot1, yRight1, 'right edge', 'o', 'b')
-        #     lumaTrackingPlot(self.plot1_LT, xPlot1, yLeft1, 'left edge', 't', 'r')
-
-        # if yAxis_lbl2 == 'Flame length [mm]':
-        #     lumaTrackingPlot(self.plot2_LT, xPlot2, yRight2, 'flame length', 'o', 'b')
-        # elif yAxis_lbl2 == 'Flame area [mm2]':
-        #     lumaTrackingPlot(self.plot2_LT, xPlot2, yRight2, 'flame area', 'o', 'b')
-        # else:
-        #     lumaTrackingPlot(self.plot2_LT, xPlot2, yRight2, 'right edge', 'o', 'b')
-        #     lumaTrackingPlot(self.plot2_LT, xPlot2, yLeft2, 'left edge', 't', 'r')
+        else:
+            lumaTrackingPlot(self.plot2_LT, xPlot2, yRight2, 'top edge', 's', 'g')
+            lumaTrackingPlot(self.plot2_LT, xPlot2, yLeft2, 'bottom edge', 'd', 'm')
 
         self.win1_LT.setCurrentIndex(1) #to activate the preview tab in the analysis box
         self.win2_LT.setCurrentIndex(1) #to activate the preview tab in the analysis box
@@ -372,16 +365,13 @@ def saveData(self):
     if not fileName[-4:] == '.csv':
         fileName = fileName + '.csv'
 
-    # fileInfo = ['Name', self.fNameLbl.text(), 'Scale [px/mm]', self.scaleIn.text(), 'Luma Tracking', 'Flame dir.:', self.directionBox.currentText(), 'Luma threshold', self.thresholdIn.text(), 'Min. particle [px]', str(self.filterParticleSldr_LT.value()),'Points LE', self.avgLEIn_LT.text(), 'Moving avg', self.movAvgIn_LT.text()]
     fileInfo = ['Name', self.fNameLbl.text(), f'Scale [px/{self.unitScale}]', self.scaleIn.text(), 'Luma Tracking', 'Flame dir.:', self.directionBox.currentText(), 'Luma threshold', self.thresholdIn.text(), 'Min. particle [px]', str(self.filterParticleSldr_LT.value()),'Points LE', self.avgLEIn_LT.text(), 'Moving avg', self.movAvgIn_LT.text()]
     if self.refPoint != []:
         fileInfo = fileInfo + ['Ref. point (abs)', [self.refPoint[0], self.refPoint[1]]]
     fileInfo = fileInfo + ['Code version', str(self.version_FT)]
 
-    # lbl = ['File info', 'Frame', 'Time [s]', 'Right edge [mm]', 'Left edge [mm]', 'Length [mm]', 'Spread Rate RE [mm/s]', 'Spread Rate LE [mm/s]', 'Area [mm^2]']
-    lbl = ['File info', 'Frame', 'Time [s]', f'Right edge [{self.unitScale}]', f'Left edge [{self.unitScale}]', f'Length [{self.unitScale}]', f'Spread Rate RE [{self.unitScale}/s]', f'Spread Rate LE [{self.unitScale}/s]', f'Area [{self.unitScale}^2]'] #v1.3.0; updated labels to the unit selected by the user
-    # clms = [fileInfo, self.frameCount, self.timeCount, self.xRight_mm, self.xLeft_mm, self.flameLength_mm, self.spreadRateRight, self.spreadRateLeft, self.flameArea]
-    clms = [fileInfo, self.frameCount, self.timeCount, self.xRight_unit, self.xLeft_unit, self.flameLength_unit, self.spreadRateRight, self.spreadRateLeft, self.flameArea] #v1.3.0; updated labels to the unit selected by the user
+    lbl = ['File info', 'Frame', 'Time [s]', f'Right edge [{self.unitScale}]', f'Left edge [{self.unitScale}]', f'Top edge, y [{self.unitScale}]', f'Bottom edge, y [{self.unitScale}]', f'Flame width [{self.unitScale}]', f'Flame height [{self.unitScale}]', f'Spread Rate RE [{self.unitScale}/s]', f'Spread Rate LE [{self.unitScale}/s]', f'Area [{self.unitScale}^2]'] #v1.3.0; updated labels to the unit selected by the user; v1.4.1 added flame heigth
+    clms = [fileInfo, self.frameCount, self.timeCount, self.xRight_unit, self.xLeft_unit, self.yTop_unit, self.yBottom_unit, self.flameWidth_unit, self.flameHeight_unit, self.spreadRateRight, self.spreadRateLeft, self.flameArea] #v1.3.0; updated labels to the unit selected by the user
     clms_zip = ft.zip_longest(*clms)
 
     with open(fileName, 'w', newline = '') as csvfile:
@@ -401,10 +391,12 @@ def absValue(self):
     abs_time = list()
     abs_xRight_px = list()
     abs_xLeft_px = list()
-    # abs_xRight_mm = list()
-    # abs_xLeft_mm = list()
+    abs_yTop_px = list() # v1.4.1
+    abs_yBottom_px = list() # v1.4.1
     abs_xRight_unit = list() #v1.3.0; updated to the unit selected by the user
     abs_xLeft_unit = list()
+    abs_yTop_unit = list() # v1.4.1
+    abs_yBottom_unit = list() # v1.4.1
 
     for i in self.frameCount:
         abs_frames.append(i - self.frameCount[0])
@@ -418,52 +410,57 @@ def absValue(self):
     for i in self.xLeft_px:
         abs_xLeft_px.append(i - self.xRight_px[0])
 
-    # for i in self.xRight_mm:
+    for i in self.yTop_px: # v1.4.1
+        abs_yTop_px.append(i - self.yTop_px[0])
+
+    for i in self.yBottom_px: # v1.4.1
+        abs_yBottom_px.append(i - self.yBottom_px[0])
+
     for i in self.xRight_unit: #v1.3.0; updated to the unit selected by the user
-        # abs_xRight_mm.append(i - self.xRight_mm[0])
         abs_xRight_unit.append(i - self.xRight_unit[0])
 
-    # for i in self.xLeft_mm:
     for i in self.xLeft_unit: #v1.3.0; updated to the unit selected by the user
-        # abs_xLeft_mm.append(i - self.xRight_mm[0])
         abs_xLeft_unit.append(i - self.xRight_unit[0])
+
+    for i in self.yTop_unit: # v1.4.1
+        abs_yTop_unit.append(i - self.yTop_unit[0])
+
+    for i in self.yBottom_unit: # v1.4.1
+        abs_yBottom_unit.append(i - self.yBottom_unit[0])
 
     self.frameCount = abs_frames
     self.timeCount = abs_time
     self.xRight_px = abs_xRight_px
     self.xLeft_px = abs_xLeft_px
-    # self.xRight_mm = abs_xRight_mm
-    # self.xLeft_mm = abs_xLeft_mm
+    self.yTop_px = abs_yTop_px # v1.4.1
+    self.yBottom_px = abs_yBottom_px # v1.4.1
     self.xRight_unit = abs_xRight_unit #v1.3.0; updated to the unit selected by the user
     self.xLeft_unit = abs_xLeft_unit
-
+    self.yTop_unit = abs_yTop_unit # v1.4.1
+    self.yBottom_unit = abs_yBottom_unit # v1.4.1
     self.plot1_LT.clear()
     self.plot2_LT.clear()
 
-    # xPlot1, yRight1, yLeft1 = selectAxes(self, xAxis_lbl1, yAxis_lbl1)
-    # xPlot2, yRight2, yLeft2 = selectAxes(self, xAxis_lbl2, yAxis_lbl2)
     xPlot1, yRight1, yLeft1, yUnit1, nPlot1 = selectAxes(self, xAxis_lbl1, yAxis_lbl1)
     xPlot2, yRight2, yLeft2, yUnit2, nPlot2 = selectAxes(self, xAxis_lbl2, yAxis_lbl2)
  
     if nPlot1 == 1:
-        lumaTrackingPlot(self.plot1_LT, xPlot1, yRight1, xAxis_lbl1, 'o', 'b')
-        # if yAxis_lbl1 == 'Flame length [mm]':
-    #     lumaTrackingPlot(self.plot1_LT, xPlot1, yRight1, 'flame length', 'o', 'b')
-    # elif yAxis_lbl1 == 'Flame area [mm2]':
-    #     lumaTrackingPlot(self.plot1_LT, xPlot1, yRight1, 'flame area', 'o', 'b')
-    else:
+        lumaTrackingPlot(self.plot1_LT, xPlot1, yRight1, yAxis_lbl1, 'o', 'b')
+    elif nPlot1 == 2:
         lumaTrackingPlot(self.plot1_LT, xPlot1, yRight1, 'right edge', 'o', 'b')
         lumaTrackingPlot(self.plot1_LT, xPlot1, yLeft1, 'left edge', 't', 'r')
-    
-    if nPlot2 == 1:
-        lumaTrackingPlot(self.plot2_LT, xPlot2, yRight2, yAxis_lbl2, 'o', 'b')
-    # if yAxis_lbl2 == 'Flame length [mm]':
-    #     lumaTrackingPlot(self.plot2_LT, xPlot2, yRight2, 'flame length', 'o', 'b')
-    # elif yAxis_lbl2 == 'Flame area [mm2]':
-    #     lumaTrackingPlot(self.plot2_LT, xPlot2, yRight2, 'flame area', 'o', 'b')
     else:
+        lumaTrackingPlot(self.plot1_LT, xPlot1, yRight1, 'top edge', 's', 'g')
+        lumaTrackingPlot(self.plot1_LT, xPlot1, yLeft1, 'bottom edge', 'd', 'm')
+
+    if nPlot2 == 1:
+        lumaTrackingPlot(self.plot2_LT, xPlot2, yRight2, yAxis_lbl2, 'o', 'b')    
+    elif nPlot2 == 2:
         lumaTrackingPlot(self.plot2_LT, xPlot2, yRight2, 'right edge', 'o', 'b')
         lumaTrackingPlot(self.plot2_LT, xPlot2, yLeft2, 'left edge', 't', 'r')
+    else:
+        lumaTrackingPlot(self.plot2_LT, xPlot2, yRight2, 'top edge', 's', 'g')
+        lumaTrackingPlot(self.plot2_LT, xPlot2, yLeft2, 'bottom edge', 'd', 'm')
 
 
 def filterParticleSldr(self):
@@ -497,27 +494,35 @@ def selectAxes(self, xAxis_lbl, yAxis_lbl):
         xPlot = self.timeCount
     elif xAxis_lbl == 'Frame #':
         xPlot = self.frameCount
-    # if yAxis_lbl == 'Position [mm]':
-    #     yRight = self.xRight_mm
-    #     yLeft = self.xLeft_mm
-    if yAxis_lbl == 'Position': #v1.3.0; updated to the unit selected by the user
+
+    if yAxis_lbl == 'Position, x': #v1.3.0; updated to the unit selected by the user
         nPlot = 2
         yUnit = f'{self.unitScale}' #added in v1.3.0
         yRight = self.xRight_unit
         yLeft = self.xLeft_unit
-    if yAxis_lbl == 'Position [px]':
+    if yAxis_lbl == 'Position, x [px]':
         nPlot = 2
         yUnit = 'px'
         yRight = self.xRight_px
         yLeft = self.xLeft_px
-    # elif yAxis_lbl == 'Flame length [mm]':
-    #     yRight = self.flameLength_mm
-    elif yAxis_lbl == 'Flame length':
-        # yAxis_lbl == f'Flame length [{self.unitScale}]'
+    if yAxis_lbl == 'Position, y': #added in v1.4.1
+        nPlot = 3
+        yUnit = f'{self.unitScale}' 
+        yRight = self.yTop_unit
+        yLeft = self.yBottom_unit
+    if yAxis_lbl == 'Position, y [px]':
+        nPlot = 3
+        yUnit = 'px'
+        yRight = self.yTop_px
+        yLeft = self.yBottom_px
+    elif yAxis_lbl == 'Flame width': #v1.4.1 changed from 'Flame length' to 'Flame width' to avoid confusion with the flame length calculated as the distance between the right and left edge
         yUnit = f'{self.unitScale}'
-        yRight = self.flameLength_unit
+        yRight = self.flameWidth_unit
         yLeft = 0
-    # elif yAxis_lbl == 'Spread rate [mm/s]':
+    elif yAxis_lbl == 'Flame height': #v1.4.1
+        yUnit = f'{self.unitScale}'
+        yRight = self.flameHeight_unit
+        yLeft = 0
     elif yAxis_lbl == 'Spread rate':
         yUnit = f'{self.unitScale}/s'
         yRight = self.spreadRateRight
@@ -541,8 +546,6 @@ def updateGraphsBtn(self):
         self.plot1_LT.addLegend(offset = [1, 0.1])
         self.plot2_LT.addLegend(offset = [1, 0.1])
 
-        # xPlot1, yRight1, yLeft1 = selectAxes(self, xAxis_lbl1, yAxis_lbl1)
-        # xPlot2, yRight2, yLeft2 = selectAxes(self, xAxis_lbl2, yAxis_lbl2)
         xPlot1, yRight1, yLeft1, yUnit1, nPlot1 = selectAxes(self, xAxis_lbl1, yAxis_lbl1)
         xPlot2, yRight2, yLeft2, yUnit2, nPlot2 = selectAxes(self, xAxis_lbl2, yAxis_lbl2)
 
@@ -553,24 +556,24 @@ def updateGraphsBtn(self):
         self.plot2_LT.setLabel('bottom', str(xAxis_lbl2), color='black', size=14)
         self.plot2_LT.setLabel('left', f'{yAxis_lbl2} [{yUnit2}]', color='black', size=14) #v1.3.0
 
-        # if yAxis_lbl1 == 'Flame length [mm]':
-        #     lumaTrackingPlot(self.plot1_LT, xPlot1, yRight1, 'flame length', 'o', 'b')
-        # elif yAxis_lbl1 == 'Flame area [mm2]':
-        #     lumaTrackingPlot(self.plot1_LT, xPlot1, yRight1, 'flame area', 'o', 'b')
         if nPlot1 == 1: #added in v1.3.0
-            lumaTrackingPlot(self.plot1_LT, xPlot1, yRight1, xAxis_lbl1, 'o', 'b')
-        else:
+            lumaTrackingPlot(self.plot1_LT, xPlot1, yRight1, yAxis_lbl1, 'o', 'b')
+        elif nPlot1 == 2:
             lumaTrackingPlot(self.plot1_LT, xPlot1, yRight1, 'right edge', 'o', 'b')
             lumaTrackingPlot(self.plot1_LT, xPlot1, yLeft1, 'left edge', 't', 'r')
-        # if yAxis_lbl2 == 'Flame length [mm]':
-            # lumaTrackingPlot(self.plot2_LT, xPlot2, yRight2, 'flame length', 'o', 'b')
-        # elif yAxis_lbl2 == 'Flame area [mm2]':
-            # lumaTrackingPlot(self.plot2_LT, xPlot2, yRight2, 'flame area', 'o', 'b')
+        else:
+            lumaTrackingPlot(self.plot1_LT, xPlot1, yRight1, 'top edge', 'o', 'b')
+            lumaTrackingPlot(self.plot1_LT, xPlot1, yLeft1, 'bottom edge', 't', 'r')
+
+        
         if nPlot2 == 1:
             lumaTrackingPlot(self.plot2_LT, xPlot2, yRight2, yAxis_lbl2, 'o', 'b')
-        else:
+        elif nPlot2 == 2:
             lumaTrackingPlot(self.plot2_LT, xPlot2, yRight2, 'right edge', 'o', 'b')
             lumaTrackingPlot(self.plot2_LT, xPlot2, yLeft2, 'left edge', 't', 'r')
+        else:
+            lumaTrackingPlot(self.plot2_LT, xPlot2, yRight2, 'top edge', 'o', 'b')
+            lumaTrackingPlot(self.plot2_LT, xPlot2, yLeft2, 'bottom edge', 't', 'r')
 
         self.win1_LT.setCurrentIndex(1) #to activate the preview tab in the analysis box
         self.win2_LT.setCurrentIndex(2) #to activate the preview tab in the analysis box
@@ -641,7 +644,7 @@ def lightThresholdsBtn(self):
 
     ft.cv2.destroyWindow(win)
 
-    # Refresh your main previews if we saved
+    # Refresh previews if saved
     if saved:
         self.lightDetectCfg = {'R_min': R_min, 'G_min': G_min, 'B_min': B_min, 'R_max': 255, 'G_max': 255, 'B_max': 255}
         self.msgLabel.setText(f'Light thresholds updated: R≥{R_min}, G≥{G_min}, B≥{B_min}')

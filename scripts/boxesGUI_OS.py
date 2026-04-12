@@ -483,9 +483,12 @@ def lumaTrackingBox(self):
     self.xAxis_lbl1.addItem('Frame #')
     yAxisTxt_lbl1 = ft.QLabel('y axis:')
     self.yAxis_lbl1 = ft.QComboBox()
-    self.yAxis_lbl1.addItem('Position')
-    self.yAxis_lbl1.addItem('Position [px]')
-    self.yAxis_lbl1.addItem('Flame length')
+    self.yAxis_lbl1.addItem('Position, x')
+    self.yAxis_lbl1.addItem('Position, x [px]')
+    self.yAxis_lbl1.addItem('Position, y')
+    self.yAxis_lbl1.addItem('Position, y [px]')
+    self.yAxis_lbl1.addItem('Flame width') # v1.4.1 change from 'Flame length' to 'Flame width'
+    self.yAxis_lbl1.addItem('Flame height') # v1.4.1 
     self.yAxis_lbl1.addItem('Spread rate')
     self.yAxis_lbl1.addItem('Flame area')
     xAxisTxt_lbl2 = ft.QLabel('x axis:')
@@ -495,9 +498,12 @@ def lumaTrackingBox(self):
     yAxisTxt_lbl2 = ft.QLabel('y axis:')
     self.yAxis_lbl2 = ft.QComboBox()
     self.yAxis_lbl2.addItem('Spread rate')
-    self.yAxis_lbl2.addItem('Flame length')
-    self.yAxis_lbl2.addItem('Position')
-    self.yAxis_lbl2.addItem('Position [px]')
+    self.yAxis_lbl2.addItem('Flame width') # v1.4.1 change from 'Flame length' to 'Flame width'
+    self.yAxis_lbl2.addItem('Flame height') # v1.4.1 
+    self.yAxis_lbl2.addItem('Position, x')
+    self.yAxis_lbl2.addItem('Position, x [px]')
+    self.yAxis_lbl2.addItem('Position, y')
+    self.yAxis_lbl2.addItem('Position, y [px]')
     self.yAxis_lbl2.addItem('Flame area')
 
     self.box_layout.addWidget(self.win1_LT, 0, 3, 8, 4)
@@ -739,9 +745,12 @@ def RGBTrackingBox(self):
     self.xAxis_lbl1.addItem('Frame #')
     yAxisTxt_lbl1 = ft.QLabel('y axis:')
     self.yAxis_lbl1 = ft.QComboBox()
-    self.yAxis_lbl1.addItem('Position')
-    self.yAxis_lbl1.addItem('Position [px]')
-    self.yAxis_lbl1.addItem('Flame length')
+    self.yAxis_lbl1.addItem('Position, x')
+    self.yAxis_lbl1.addItem('Position, x [px]')
+    self.yAxis_lbl1.addItem('Position, y') # v1.4.1 added position y as an option for y axis
+    self.yAxis_lbl1.addItem('Position, y [px]')
+    self.yAxis_lbl1.addItem('Flame width') #v1.4.1 change from flame length to width
+    self.yAxis_lbl1.addItem('Flame height')
     self.yAxis_lbl1.addItem('Spread rate')
     self.yAxis_lbl1.addItem('Flame area')
     txt_lbl2 = ft.QLabel('Graph #2:')
@@ -752,9 +761,12 @@ def RGBTrackingBox(self):
     yAxisTxt_lbl2 = ft.QLabel('y axis:')
     self.yAxis_lbl2 = ft.QComboBox()
     self.yAxis_lbl2.addItem('Spread rate')
-    self.yAxis_lbl2.addItem('Flame length')
-    self.yAxis_lbl2.addItem('Position')
-    self.yAxis_lbl2.addItem('Position [px]')
+    self.yAxis_lbl2.addItem('Flame width') #v1.4.1 change from flame length to width
+    self.yAxis_lbl2.addItem('Flame height')
+    self.yAxis_lbl2.addItem('Position, x')
+    self.yAxis_lbl2.addItem('Position, x [px]')
+    self.yAxis_lbl2.addItem('Position, y') # v1.4.1 added position y as an option for y axis
+    self.yAxis_lbl2.addItem('Position, y [px]') # v1.4.1 added position y as an option for y axis
     self.yAxis_lbl2.addItem('Flame area')
 
     self.box_layout.addWidget(self.win1_RT, 0, 9, 8, 3)
@@ -977,9 +989,12 @@ def HSVTrackingBox(self):
     self.xAxis_lbl1.addItem('Frame #')
     yAxisTxt_lbl1 = ft.QLabel('y (#1):')
     self.yAxis_lbl1 = ft.QComboBox()
-    self.yAxis_lbl1.addItem('Position')
-    self.yAxis_lbl1.addItem('Position [px]')
-    self.yAxis_lbl1.addItem('Flame length')
+    self.yAxis_lbl1.addItem('Position, x')
+    self.yAxis_lbl1.addItem('Position, x [px]')
+    self.yAxis_lbl1.addItem('Position, y') #v1.4.1 added position y as an option for y axis
+    self.yAxis_lbl1.addItem('Position, y [px]')
+    self.yAxis_lbl1.addItem('Flame width') #v1.4.1 change from flame length to width
+    self.yAxis_lbl1.addItem('Flame height') #v1.4.1
     self.yAxis_lbl1.addItem('Spread rate')
     self.yAxis_lbl1.addItem('Flame area')
     # txt_lbl2 = ft.QLabel('Graph #2:')
@@ -990,9 +1005,12 @@ def HSVTrackingBox(self):
     yAxisTxt_lbl2 = ft.QLabel('y (#2):')
     self.yAxis_lbl2 = ft.QComboBox()
     self.yAxis_lbl2.addItem('Spread rate')
-    self.yAxis_lbl2.addItem('Flame length')
-    self.yAxis_lbl2.addItem('Position')
-    self.yAxis_lbl2.addItem('Position [px]')
+    self.yAxis_lbl2.addItem('Flame width') #v1.4.1 change from flame length to width
+    self.yAxis_lbl2.addItem('Flame height') #v1.4.1
+    self.yAxis_lbl2.addItem('Position, x')
+    self.yAxis_lbl2.addItem('Position, x [px]')
+    self.yAxis_lbl2.addItem('Position, y') #v1.4.1 added position y as an option for y axis
+    self.yAxis_lbl2.addItem('Position, y [px]')
     self.yAxis_lbl2.addItem('Flame area')
 
 
