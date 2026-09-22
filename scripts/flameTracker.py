@@ -74,7 +74,7 @@ class FlameTrackerWindow(QMainWindow): #QWidget
         (at your option) any later version.''')
 
         # Flame Tracker version
-        self.version_FT = 'v1.4.1'
+        self.version_FT = 'v1.4.2'
 
         # creating the toolbar
         toolbar = QToolBar('FT toolbar')
@@ -126,6 +126,11 @@ class FlameTrackerWindow(QMainWindow): #QWidget
         self.figSize = QAction('Reduced-size windows', self)
         self.figSize.setCheckable(True)
 
+        self.autoSize = QAction('Auto-size windows', self)
+        self.autoSize.setCheckable(True)
+        self.normalSize = QAction('Normal-size windows', self)
+        self.normalSize.setCheckable(True)
+
         toolbar.addAction(openVideo)
         toolbar.addAction(openImages)
         toolbar.addSeparator()
@@ -148,6 +153,24 @@ class FlameTrackerWindow(QMainWindow): #QWidget
         showFrameBtn = QPushButton('Frame')
         showFrameBtn.clicked.connect(self.showFrameLarge_clicked)
         toolbar.addWidget(showFrameBtn)
+
+        # LC: pop-up window size options added in v1.4.2
+        # Only one option can be selected
+        self.popUpSizeGroup = QActionGroup(self)
+        self.popUpSizeGroup.setExclusive(True)
+        self.popUpSizeGroup.addAction(self.autoSize)
+        self.popUpSizeGroup.addAction(self.normalSize)
+
+        # Default = existing Flame Tracker behavior
+        self.autoSize.setChecked(True)
+
+        # Store the OpenCV window mode
+        self.windowSizeMode = cv2.WINDOW_AUTOSIZE
+
+        # Connect actions
+        self.autoSize.triggered.connect(self.popUpSizeChanged)
+        self.normalSize.triggered.connect(self.popUpSizeChanged)
+
 
         ## creating the menu bar
         self.menu = self.menuBar()
@@ -182,6 +205,9 @@ class FlameTrackerWindow(QMainWindow): #QWidget
         frameMenu = self.menu.addMenu('&Show')
         frameMenu.addAction(showFrame)
         frameMenu.addAction(self.figSize)
+        frameMenuSub = frameMenu.addMenu('Popup Windows')
+        frameMenuSub.addAction(self.autoSize)
+        frameMenuSub.addAction(self.normalSize)
 
         help_FT = QAction('Flame Tracker', self)
         help_FT.triggered.connect(self.help_FT_clicked)
@@ -239,6 +265,15 @@ class FlameTrackerWindow(QMainWindow): #QWidget
     #     removeExistingMethod(self)
     #     gui.VSBox(self)
     #     vs.initVars(self) 
+
+    # LC: pop-up window size options added in v1.4.2
+    def popUpSizeChanged(self):
+
+        if self.autoSize.isChecked():
+            self.windowSizeMode = cv2.WINDOW_AUTOSIZE
+
+        elif self.normalSize.isChecked():
+            self.windowSizeMode = cv2.WINDOW_NORMAL | cv2.WINDOW_KEEPRATIO
  
     def openVideo_clicked(self):
         self.openSelection = 'video'
@@ -532,7 +567,7 @@ class FlameTrackerWindow(QMainWindow): #QWidget
 
             # crop image
             frameCrop = frame[roiTwo : (roiTwo + roiFour), roiOne : (roiOne + roiThree)]
-            cv2.namedWindow('Perspective correction', cv2.WINDOW_AUTOSIZE)
+            cv2.namedWindow('Perspective correction', self.windowSizeMode)
             cv2.setMouseCallback('Perspective correction', click)
             if self.figSize.isChecked() == True:
                 newWidth = int(frameCrop.shape[1] / 2) #original width divided by 2
@@ -768,7 +803,7 @@ class FlameTrackerWindow(QMainWindow): #QWidget
 
             frame, frameCrop = checkEditing(self, self.frameNumber)
 
-            cv2.namedWindow('MeasureScale', cv2.WINDOW_AUTOSIZE)
+            cv2.namedWindow('MeasureScale', self.windowSizeMode) #cv2.WINDOW_AUTOSIZE)
             cv2.setMouseCallback('MeasureScale', click)
             if self.figSize.isChecked() == True:
                 newWidth = int(frameCrop.shape[1] / 2) #original width divided by 2
@@ -859,7 +894,7 @@ class FlameTrackerWindow(QMainWindow): #QWidget
 
             frame, frameCrop = checkEditing(self, self.frameNumber)
 
-            cv2.namedWindow('referencePoint', cv2.WINDOW_AUTOSIZE)
+            cv2.namedWindow('referencePoint', self.windowSizeMode) #cv2.WINDOW_AUTOSIZE)
             cv2.setMouseCallback('referencePoint', click)
             if self.figSize.isChecked() == True:
                 newWidth = int(frameCrop.shape[1] / 2) #original width divided by 2
@@ -919,7 +954,7 @@ class FlameTrackerWindow(QMainWindow): #QWidget
 
             frame, frameCrop = checkEditing(self, self.frameNumber)
 
-            cv2.namedWindow('MeasureLength', cv2.WINDOW_AUTOSIZE)
+            cv2.namedWindow('MeasureLength', self.windowSizeMode) #cv2.WINDOW_AUTOSIZE)
             cv2.setMouseCallback('MeasureLength', click)
             if self.figSize.isChecked() == True:
                 newWidth = int(frameCrop.shape[1] / 2) #original width divided by 2
@@ -986,7 +1021,7 @@ class FlameTrackerWindow(QMainWindow): #QWidget
         msg.exec()
 
     def showFrameLarge_clicked(self):
-        cv2.namedWindow(('Frame: ' + str(self.frameNumber)), cv2.WINDOW_AUTOSIZE)
+        cv2.namedWindow(('Frame: ' + str(self.frameNumber)), self.windowSizeMode) #cv2.WINDOW_AUTOSIZE)
         if self.figSize.isChecked() == True:
             newWidth = int(self.currentFrame.shape[1] / 2) #original width divided by 2
             newHeight = int(self.currentFrame.shape[0] / 2) #original height divided by 2

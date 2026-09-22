@@ -578,7 +578,7 @@ def saveBtn(self):
             print('Unexpected error:', ft.sys.exc_info())
 
 def showFrameLarge(self):
-    ft.cv2.namedWindow(('Frame (RGB): ' + self.frameIn.text()), ft.cv2.WINDOW_AUTOSIZE)
+    ft.cv2.namedWindow(('Frame (RGB): ' + self.frameIn.text()), self.windowSizeMode) #ft.cv2.WINDOW_AUTOSIZE)
     ft.cv2.imshow(('Frame (RGB): ' + self.frameIn.text()), self.currentFrameRGB_HT)
     #cv2.namedWindow(('Frame (black/white): ' + self.frameIn.text()), cv2.WINDOW_AUTOSIZE)
     #cv2.imshow(('Frame (black/white): ' + self.frameIn.text()), self.currentFrameBW_HT)
@@ -766,7 +766,7 @@ def lightThresholdsBtn(self):
 
     # Create window & trackbars
     win = 'Maximize unfiltered (white) area. (S=Save, Q/Esc=Cancel)'
-    ft.cv2.namedWindow(win, ft.cv2.WINDOW_AUTOSIZE)
+    ft.cv2.namedWindow(win, self.windowSizeMode) #cv2.WINDOW_AUTOSIZE)
     ft.cv2.createTrackbar('R min', win, R0, 255, lambda v: None)
     ft.cv2.createTrackbar('G min', win, G0, 255, lambda v: None)
     ft.cv2.createTrackbar('B min', win, B0, 255, lambda v: None)

@@ -109,7 +109,7 @@ def startTracking(self):
                     continue
 
         # create the window and the line over the first point clicked
-        ft.cv2.namedWindow('manualTracking', ft.cv2.WINDOW_AUTOSIZE)
+        ft.cv2.namedWindow('manualTracking', self.windowSizeMode) #ft.cv2.WINDOW_AUTOSIZE)
         ft.cv2.setWindowTitle('manualTracking', f'MT, frame #: {currentFrame}')
         # ft.cv2.namedWindow(f'ManualTracking; frame #: {currentFrame}', ft.cv2.WINDOW_AUTOSIZE)
         ft.cv2.setMouseCallback('manualTracking', click)
@@ -454,7 +454,7 @@ def lightThresholdsBtn(self):
 
     # Create window & trackbars
     win = 'Maximize unfiltered (white) area. (S=Save, Q/Esc=Cancel)'
-    ft.cv2.namedWindow(win, ft.cv2.WINDOW_AUTOSIZE)
+    ft.cv2.namedWindow(win, self.windowSizeMode) #ft.cv2.WINDOW_AUTOSIZE)
     ft.cv2.createTrackbar('R min', win, R0, 255, lambda v: None)
     ft.cv2.createTrackbar('G min', win, G0, 255, lambda v: None)
     ft.cv2.createTrackbar('B min', win, B0, 255, lambda v: None)
