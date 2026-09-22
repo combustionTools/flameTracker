@@ -74,7 +74,7 @@ class FlameTrackerWindow(QMainWindow): #QWidget
         (at your option) any later version.''')
 
         # Flame Tracker version
-        self.version_FT = 'v1.4.2'
+        self.version_FT = 'v1.4.3'
 
         # creating the toolbar
         toolbar = QToolBar('FT toolbar')
@@ -744,6 +744,8 @@ class FlameTrackerWindow(QMainWindow): #QWidget
                     if 'anglePerspective' in row:
                         self.rotationValue = True
                         self.anglePerspective = float(row[1])
+                    else: # LC: added in v1.4.2 to avoid errors when loading parameters after anglePerspective changed
+                        self.anglePerspective = 0.0
                     if 'sample' in row:
                         self.perspectiveValue = True
                         self.sample = []
